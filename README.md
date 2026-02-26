@@ -158,7 +158,7 @@ Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/proj
 
 * [ ] **TAC-28** — Contact Bruitparif → RUMEUR API access agreement *(urgent)*
 
-### 📋 V3 — Planned
+### V3 — Planned
 
 * [ ] Calm route planner (quiet streets navigation across Paris)
 * [ ] Thematic routes: nature, street art, gastronomy, coffee shops
@@ -166,7 +166,7 @@ Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/proj
 * [ ] Bruitparif RUMEUR real-time streaming (SSE — requires Vercel Pro)
 * [ ] Deck.gl heatmap overlay (RUMEUR sensor density)
 
-### 🔮 V4+ — Vision
+### V4+ — Vision
 
 * [ ] B2B data layer: certified noise reports for studios, medical, coworking
 * [ ] Natural language query: "Find a quiet café near République under 55 dB"
