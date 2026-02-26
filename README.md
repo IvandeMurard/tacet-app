@@ -18,15 +18,18 @@ Tacet is a mobile-first Progressive Web App that transforms technical noise data
 
 ## Tech Stack
 
-| Component | Technology |
-| --- | --- |
-| Framework | Next.js 14 (App Router) |
-| Map | Mapbox GL JS v3 / react-map-gl |
-| Language | TypeScript |
-| Style | Tailwind CSS + shadcn/ui |
-| Geo Data | GeoJSON (districts + IRIS) |
-| Noise Data | Bruitparif (Lden, 9 air-noise classes) |
-| Admin Data | IGN/INSEE (IRIS Boundaries), OpenData Paris |
+| Component | V1 (current) | V2 (in progress) |
+| --- | --- | --- |
+| Framework | Next.js 14 (App Router) | Next.js 15 |
+| Map | Mapbox GL JS v3 / react-map-gl | **MapLibre GL JS** (MIT, $0) |
+| Tiles | GeoJSON static | **PMTiles** (Protomaps, Vercel Blob) |
+| Geocoding | Mapbox Geocoding v6 | **Photon Komoot** (free, no key) |
+| PWA | — | **Serwist** (`@serwist/next`) |
+| Tests | — | **Vitest + Playwright + LHCI** |
+| Language | TypeScript | TypeScript |
+| Style | Tailwind CSS + shadcn/ui | Tailwind CSS + shadcn/ui |
+| Noise Data | Bruitparif PPBE 2024 (static) | Bruitparif RUMEUR (real-time, 3min) |
+| Admin Data | IGN/INSEE IRIS, OpenData Paris | OpenData Paris API v2.1 |
 
 ## Quick Start
 
@@ -128,44 +131,47 @@ ogr2ogr -f GeoJSON -t_srs EPSG:4326 -cliprect 2.22 48.81 2.47 48.91 \
 
 Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
 
-**Phase 0 — Data (In Progress)**
+### ✅ V1 — Delivered
 
-* [x] GeoJSON districts + estimated noise data
-* [x] 3-level Build script (Bruitparif 9-classes → IRIS fallback → fixtures)
-* [ ] Retrieve real IRIS data (Île-de-France portal)
-* [ ] Retrieve + convert Bruitparif 2024 9-classes (SHP → GeoJSON)
-* [ ] Validate Symbology.xlsx mapping → Tacet categories
-* [ ] Run `npm run build:data` with real data
+* [x] 992 IRIS zones choropleth map (Bruitparif PPBE 2024 data)
+* [x] Serenity Score (0–100 composite score, human-readable)
+* [x] Silence Barometer (district ranking by noise level)
+* [x] Address geocoding with per-IRIS score
+* [x] 2026 Paris Elections thematic layer
+* [x] Responsive web app (Next.js + Mapbox GL JS)
 
-**Phase 1 — Map MVP (Next)**
+### 🔄 V2 — In Progress (TAC-28→37)
 
-* [ ] Mapbox Choropleth: noise visualization by IRIS/district
-* [ ] Tacet 4-category legend
-* [ ] Popup detail on tap (name, level, category)
-* [ ] Glassmorphism UI, mobile-first
-* [ ] Address search (Mapbox geocoding)
-* [ ] PWA manifest + basic service worker
+**Open-source & free infrastructure migration:**
 
-**Phase 2 — Content & Launch**
+* [ ] **TAC-29** — Migrate to MapLibre GL JS (MIT, replaces Mapbox — $0 at any scale)
+* [ ] **TAC-30** — PMTiles pipeline: Tippecanoe + Vercel Blob CDN (–70% tile weight)
+* [ ] **TAC-31** — CI/CD: Vitest + Playwright + GitHub Actions
+* [ ] **TAC-32** — Lighthouse CI budget guard (Performance ≥ 85, Accessibility ≥ 95)
+* [ ] **TAC-33** — PWA: Serwist offline shell + manifest (installable from browser)
+* [ ] **TAC-34** — Geocoding: Photon Komoot (free, no API key, OSM-based)
+* [ ] **TAC-35** — Bruitparif RUMEUR real-time layer (polling 3min) *(blocked on TAC-28)*
+* [ ] **TAC-36** — Construction sites layer (Open Data Paris API v2.1)
+* [ ] **TAC-37** — E2E tests: Playwright ≥ 10 geospatial scenarios
 
-* [ ] Silence Barometer (district ranking)
-* [ ] Educational page: effects of noise pollution
-* [ ] Address diagnostic ("Serenity Score")
-* [ ] 2026 Elections angle: editorial content
-* [ ] Landing page / Tacet branding
+**External dependency:**
 
-**Phase 3 — Real-time & Routes**
+* [ ] **TAC-28** — Contact Bruitparif → RUMEUR API access agreement *(urgent)*
 
-* [ ] Real-time event overlay (City of Paris APIs: construction, events)
-* [ ] Quiet pedestrian/bike routes (routing engine weighted by noise)
-* [ ] Thematic options (art, nature)
-* [ ] Hourly prediction (day/night model based on Lden/Ln)
+### 📋 V3 — Planned
 
-**Phase 4 — Intelligence (Backlog)**
+* [ ] Calm route planner (quiet streets navigation across Paris)
+* [ ] Thematic routes: nature, street art, gastronomy, coffee shops
+* [ ] Personal noise alerts (push notification above threshold)
+* [ ] Bruitparif RUMEUR real-time streaming (SSE — requires Vercel Pro)
+* [ ] Deck.gl heatmap overlay (RUMEUR sensor density)
 
-* [ ] ML Interpolation (virtual sensor, OSM proxies)
-* [ ] Automatic Bruitparif data sync
-* [ ] Expansion outside Paris (Île-de-France)
+### 🔮 V4+ — Vision
+
+* [ ] B2B data layer: certified noise reports for studios, medical, coworking
+* [ ] Natural language query: "Find a quiet café near République under 55 dB"
+* [ ] Community layer: user-reported noise events (Waze-for-noise model)
+* [ ] Expansion: Lyon, Marseille, Brussels, Amsterdam
 
 ## Sources and Attribution
 
