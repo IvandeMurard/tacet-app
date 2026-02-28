@@ -78,7 +78,6 @@ npm run build:data
 | Symbology | Same Bruitparif page | XLSX (9 class codes) |
 
 ```
-
 ### Tacet Categories
 
 | Level | Label | Lden Threshold | Color |
@@ -87,6 +86,7 @@ npm run build:data
 | 2 | Moderate | 55–65 dB | `#f39c12` |
 | 3 | Noisy | 65–70 dB | `#e74c3c` |
 | 4 | Very Noisy | > 70 dB | `#8e44ad` |
+```
 
 ## Roadmap
 
@@ -103,36 +103,15 @@ Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/proj
 
 ### 🔄 V2 — In Progress (TAC-28→37)
 
-**Open-source & free infrastructure migration:**
-
-* [ ] **TAC-29** — Migrate to MapLibre GL JS (MIT, replaces Mapbox — $0 at any scale)
-* [ ] **TAC-30** — PMTiles pipeline: Tippecanoe + Vercel Blob CDN (–70% tile weight)
-* [ ] **TAC-31** — CI/CD: Vitest + Playwright + GitHub Actions
-* [ ] **TAC-32** — Lighthouse CI budget guard (Performance ≥ 85, Accessibility ≥ 95)
-* [ ] **TAC-33** — PWA: Serwist offline shell + manifest (installable from browser)
-* [ ] **TAC-34** — Geocoding: Photon Komoot (free, no API key, OSM-based)
-* [ ] **TAC-35** — Bruitparif RUMEUR real-time layer (polling 3min) *(blocked on TAC-28)*
-* [ ] **TAC-36** — Construction sites layer (Open Data Paris API v2.1)
-* [ ] **TAC-37** — E2E tests: Playwright ≥ 10 geospatial scenarios
-
-**External dependency:**
-
-* [ ] **TAC-28** — Contact Bruitparif → RUMEUR API access agreement *(urgent)*
+**Working on open-source & free infrastructure migration**
 
 ### V3 — Planned
 
-* [ ] Calm route planner (quiet streets navigation across Paris)
-* [ ] Thematic routes: nature, street art, gastronomy, coffee shops
-* [ ] Personal noise alerts (push notification above threshold)
-* [ ] Bruitparif RUMEUR real-time streaming (SSE — requires Vercel Pro)
-* [ ] Deck.gl heatmap overlay (RUMEUR sensor density)
+**Planning to work on real-time data integration and B2B features**
 
 ### V4+ — Vision
 
-* [ ] B2B data layer: certified noise reports for studios, medical, coworking
-* [ ] Natural language query: "Find a quiet café near République under 55 dB"
-* [ ] Community layer: user-reported noise events (Waze-for-noise model)
-* [ ] Expansion: Lyon, Marseille, Brussels, Amsterdam
+**Planning to work on natural language query and expand to other large cities**
 
 ## Sources and Attribution
 
