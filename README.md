@@ -79,7 +79,7 @@ docs/
 ```
 ## Roadmap
 
-Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
+Detailed tracking is available on [Linear] (https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
 
 ### ✅ V1 — Delivered
 
@@ -92,15 +92,15 @@ Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/proj
 
 ### 🔄 V2 — In Progress (TAC-28→37)
 
-**Working on open-source & free infrastructure migration**
+* [] **Working on open-source & free infrastructure migration**
 
 ### V3 — Planned
 
-**Planning to work on real-time data integration and B2B features**
+* [] **Planning to work on real-time data integration and B2B features**
 
 ### V4+ — Vision
 
-**Planning to work on natural language query and expand to other large cities**
+* [] **Planning to work on natural language query and expand to other large cities**
 
 ## Sources and Attribution
 
