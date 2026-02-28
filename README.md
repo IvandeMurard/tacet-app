@@ -56,19 +56,8 @@ docs/
 
 ```
 
-### Data Pipeline
-
-The build script supports 3 fallback levels:
-
-1. **Bruitparif 9-classes + IRIS** — Spatial join (Turf.js intersect + dominant area)
-2. **IRIS only** — IRIS Centroids → inheriting district noise level
-3. **Fixtures** — 4 minimal IRIS zones for development
-
-```bash
-npm run build:data
-
 ```
-
+```
 ### Retrieving Source Data
 
 | Data | Source | Format |
@@ -87,7 +76,7 @@ npm run build:data
 | 3 | Noisy | 65–70 dB | `#e74c3c` |
 | 4 | Very Noisy | > 70 dB | `#8e44ad` |
 ```
-
+```
 ## Roadmap
 
 Detailed tracking is available on [Linear](https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
