@@ -58,8 +58,9 @@ Thumbs.db
 /ios
 /android
 
-# Claude Code — worktrees (toujours temporaires, jamais commités)
-.claude/worktrees/
+# Claude Code — AI tooling (local only, not relevant for contributors)
+.claude/
+_bmad/
 
 # data sources (large files, do not commit)
 /data/sources/*.geojson

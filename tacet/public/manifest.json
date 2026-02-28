@@ -1,0 +1,9 @@
+{
+  "name": "Tacet - Bruit Paris",
+  "short_name": "Tacet",
+  "description": "Carte du bruit par arrondissement à Paris",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0a0a0a"
+}

@@ -13,6 +13,12 @@ const config: Config = {
   			sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
   		},
   		colors: {
+  			brand: {
+  				DEFAULT: '#0D9488',
+  				dark: '#0F766E',
+  				light: '#2DD4BF',
+  				muted: '#0D948833',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
