@@ -31,39 +31,7 @@ Tacet is a mobile-first Progressive Web App that transforms technical noise data
 | Noise Data | Bruitparif PPBE 2024 (static) | Bruitparif RUMEUR (real-time, 3min) |
 | Admin Data | IGN/INSEE IRIS, OpenData Paris | OpenData Paris API v2.1 |
 
-## Quick Start
-
-### Prerequisites
-
-* Node.js ≥ 18
-* A [Mapbox](https://account.mapbox.com/access-tokens/) token
-
-### Installation
-
-```bash
-git clone https://github.com/<your-username>/tacet.git
-cd tacet
-npm install
-
-```
-
-### Configuration
-
-Create a `.env.local` file at the root:
-
-```env
-NEXT_PUBLIC_MAPBOX_TOKEN=pk.your_mapbox_token_here
-
-```
-
-### Launch
-
-```bash
-npm run dev
-
-```
-
-The application is accessible at `http://localhost:3000`.
+---
 
 ## Data
 
