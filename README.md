@@ -77,13 +77,6 @@ npm run build:data
 | 9-class Noise 2024 | [bruitparif.fr/opendata-air-bruit](https://www.bruitparif.fr/opendata-air-bruit/) | Shapefile → convert via `ogr2ogr` |
 | Symbology | Same Bruitparif page | XLSX (9 class codes) |
 
-Bruitparif Shapefile Conversion:
-
-```bash
-unzip "Couches SIG air-bruit 2024_9_classes.zip" -d bruitparif_raw
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 -cliprect 2.22 48.81 2.47 48.91 \
-  data/sources/bruitparif_2024_9classes.geojson bruitparif_raw/*.shp
-
 ```
 
 ### Tacet Categories
