@@ -57,3 +57,16 @@ Thumbs.db
 # generated native folders
 /ios
 /android
+
+# Claude Code — worktrees (toujours temporaires, jamais commités)
+.claude/worktrees/
+
+# data sources (large files, do not commit)
+/data/sources/*.geojson
+/data/sources/.bruitparif_extracted_temp/
+/data/sources/*.shp
+/data/sources/*.shx
+/data/sources/*.dbf
+/data/sources/*.gpkg
+# keep .gitkeep
+!/data/sources/.gitkeep
