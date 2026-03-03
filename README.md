@@ -55,31 +55,11 @@ docs/
 └── data-bruitparif.md                 # Spatial join documentation
 
 ```
-
-```
-```
-### Retrieving Source Data
-
-| Data | Source | Format |
-| --- | --- | --- |
-| Paris IRIS Boundaries | [data.iledefrance.fr](https://data.iledefrance.fr/explore/dataset/iris/) | GeoJSON (filter `depcom` on `751*`) |
-| 9-class Noise 2024 | [bruitparif.fr/opendata-air-bruit](https://www.bruitparif.fr/opendata-air-bruit/) | Shapefile → convert via `ogr2ogr` |
-| Symbology | Same Bruitparif page | XLSX (9 class codes) |
-
-```
-### Tacet Categories
-
-| Level | Label | Lden Threshold | Color |
-| --- | --- | --- | --- |
-| 1 | Quiet | < 55 dB | `#2ecc71` |
-| 2 | Moderate | 55–65 dB | `#f39c12` |
-| 3 | Noisy | 65–70 dB | `#e74c3c` |
-| 4 | Very Noisy | > 70 dB | `#8e44ad` |
 ```
 ```
 ## Roadmap
 
-Detailed tracking is available on [Linear] (https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
+Detailed tracking hosted on [Linear] (https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
 
 ### ✅ V1 — Delivered
 
