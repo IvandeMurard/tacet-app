@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9]
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
@@ -541,3 +541,56 @@ Full-screen WebGL canvas requires a complete **text-alternative view** — a key
 - IrisPopup: focus trap when open (keyboard navigation)
 - AppNav: all icon-only buttons carry `aria-label`
 - Map element: `aria-label="Carte acoustique de Paris"` + keyboard shortcut to text alternative
+
+## Design Direction Decision
+
+### Design Directions Explored
+
+Four rounds of visual exploration:
+- Round 1: 6 directions (Minimaliste, Flottant, Premium, Sombre, Expert, Circulaire)
+- Round 2: 3 refined floating-card variants + "Très calme" color candidates
+- Round 3: Map rendering — SVG blur-filtered zone halos (Plume Labs inspired)
+- Round 4: Score dots + ambient glow (IQAir × Airbnb hybrid) — polygons fully removed
+
+### Chosen Direction
+
+**"Le Flottant Élégant" (V2-A)** — popup confirmed.
+**"Score Dots + Ambient Glow"** — map visualization confirmed.
+
+#### Popup: Le Flottant Élégant
+Floating glass panel (~88% width) over the map. Score (`text-5xl font-bold`) dominant. Tier label only — no raw dB in default view. Note de caractère in italic below score. Thin serenity progress bar. Map visible above panel at all times. Frosted glass in light mode; maximum transparency in dark mode.
+
+#### Map: Score Dots + Ambient Glow
+IRIS zone data represented as small tier-colored circular markers (score dots) at zone centroids. Map stays 100% clean and navigable. Progressive zoom disclosure:
+- City zoom (10–12): arrondissement-level clustered dots
+- Neighborhood zoom (13–16): individual IRIS dots at tier color
+- Street zoom (17+): dots persist, map detail is the star
+
+Optional ambient glow layer (default OFF): subtle radial gradients around each dot creating an atmospheric color wash. Toggled via AppNav settings.
+
+Selected zone: dot scales up + subtle dashed IRIS boundary at ~30% opacity. Zero fill or 3% max.
+
+**Updated tier colors (V2 final):**
+- Très calme: `#34D399` fill / `#065F46` text (warm emerald)
+- Calme: `#6EE7B7` fill / `#059669` text
+- Modéré: `#FCD34D` fill / `#B45309` text
+- Bruyant: `#FCA5A5` fill / `#DC2626` text
+- Très bruyant: `#D8B4FE` fill / `#7C3AED` text
+
+### Design Rationale
+
+1. **Map as hero** — No colored shapes obscure the city. The user can orient, project, and navigate freely. Streets, landmarks, Seine, parks — all fully visible. This is the premium hospitality feel.
+2. **Score dots = precise data** — Each dot represents exactly one IRIS zone's score. No interpolation, no false gradients. The data is honest and clear.
+3. **Progressive zoom disclosure** — City view shows the big picture (arrondissement clusters). Neighborhood view shows granularity. Street view keeps the map clean. Matches how people naturally explore.
+4. **Future-ready** — Score dots (static IRIS data) and future social sentiment markers (pulsing user reports) coexist naturally as separate visual layers. The ambient glow layer can incorporate both data sources.
+5. **IQAir × Airbnb pattern** — Proven at scale. Users already understand "colored dot on map = tap to see details." Zero learning curve.
+
+### Implementation Approach
+
+- Score dots: MapLibre `circle` layer, source = IRIS zone centroid GeoJSON
+- Clustering: MapLibre native cluster support at zoom < 13
+- Ambient glow: MapLibre `circle` layer with large radius + low opacity, toggled via layout `visibility`
+- Selected zone: MapLibre `line` layer (dashed) + `fill` layer (3% opacity) for the IRIS polygon boundary
+- IrisPopup: absolutely-positioned `<div>`, `bottom-4 left-1/2 -translate-x-1/2 w-[88%]`
+- Light glass: `bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg rounded-2xl`
+- Dark glass: `bg-white/6 backdrop-blur-[24px] border border-white/10 rounded-2xl`
