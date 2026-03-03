@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tacet V2 — Design Directions</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #0D9488;
+    --teal-light: #CCFBF1;
+    --teal-dark: #0E7490;
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text-1: #1C1917;
+    --text-2: #78716C;
+    --text-3: #A8A29E;
+    /* Score tier fills */
+    --tc-fill: #2DD4BF; --tc-text: #0E7490;   /* Très calme */
+    --ca-fill: #6EE7B7; --ca-text: #059669;   /* Calme */
+    --mo-fill: #FCD34D; --mo-text: #B45309;   /* Modéré */
+    --br-fill: #FCA5A5; --br-text: #DC2626;   /* Bruyant */
+    --tb-fill: #D8B4FE; --tb-text: #7C3AED;   /* Très bruyant */
+    --score-fill: var(--ca-fill);
+    --score-text: var(--ca-text);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F0EDE8;
+    color: var(--text-1);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: var(--teal);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+  }
+  .header-title { font-size: 18px; font-weight: 600; color: var(--text-1); }
+  .header-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+  .filter-bar { display: flex; gap: 8px; }
+  .filter-btn {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white; color: var(--text-2);
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--teal); color: white; border-color: var(--teal);
+  }
+
+  /* LAYOUT */
+  .page-intro {
+    max-width: 820px; margin: 40px auto 0; padding: 0 40px;
+    text-align: center;
+  }
+  .page-intro h1 { font-size: 28px; font-weight: 700; color: var(--text-1); }
+  .page-intro p { font-size: 15px; color: var(--text-2); margin-top: 10px; line-height: 1.6; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 40px;
+    padding: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* DIRECTION CARD */
+  .direction-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .direction-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+  }
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #F5F3EF;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .direction-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--teal); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .direction-label { font-size: 15px; font-weight: 600; }
+  .direction-tagline { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+
+  /* PHONE FRAME */
+  .phone-frame {
+    width: 280px; height: 540px;
+    margin: 24px auto;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 0 0 2px rgba(0,0,0,0.1);
+  }
+  .phone-screen { width: 100%; height: 100%; position: relative; overflow: hidden; }
+
+  /* MAP BACKGROUND (choropleth simulation) */
+  .map-bg {
+    position: absolute; inset: 0;
+    background: #E8E4DC;
+  }
+  .map-zones {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 120px 80px at 40% 35%, rgba(110,231,183,0.55) 0%, transparent 70%),
+      radial-gradient(ellipse 90px 70px at 65% 25%, rgba(45,212,191,0.6) 0%, transparent 70%),
+      radial-gradient(ellipse 100px 60px at 55% 55%, rgba(252,211,77,0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 80px 80px at 30% 60%, rgba(252,165,165,0.5) 0%, transparent 70%),
+      radial-gradient(ellipse 70px 50px at 75% 65%, rgba(252,211,77,0.45) 0%, transparent 70%);
+  }
+  .map-overlay { position: absolute; inset: 0; background: rgba(250,250,247,0.12); }
+
+  /* SEARCHBAR */
+  .searchbar {
+    position: absolute; top: 12px; left: 12px; right: 12px;
+    height: 40px; border-radius: 20px;
+    background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    display: flex; align-items: center; padding: 0 14px; gap: 8px;
+    font-size: 12px; color: var(--text-3);
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .searchbar svg { flex-shrink: 0; opacity: 0.5; }
+
+  /* APPNAV */
+  .appnav {
+    position: absolute; bottom: 10px; left: 12px; right: 12px;
+    height: 52px; border-radius: 26px;
+    background: white; box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: space-around;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .nav-icon {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 8px; color: var(--text-3); font-weight: 500;
+  }
+  .nav-icon.active { color: var(--teal); }
+  .nav-icon svg { width: 18px; height: 18px; }
+
+  /* ============================================
+     DIRECTION 1 — The Minimalist Card
+     Full-width bottom sheet, typography-first
+  ============================================ */
+  .d1-popup {
+    position: absolute; bottom: 72px; left: 0; right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+  }
+  .d1-handle {
+    width: 36px; height: 3px; border-radius: 2px;
+    background: #E5E0D8; margin: 0 auto 16px;
+  }
+  .d1-zone { font-size: 11px; color: var(--text-3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .d1-name { font-size: 16px; font-weight: 600; color: var(--text-1); margin-top: 2px; }
+  .d1-score-row { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 8px; }
+  .d1-score-num { font-size: 48px; font-weight: 700; color: var(--ca-text); line-height: 1; }
+  .d1-score-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ca-text); align-self: center;
+    background: var(--ca-fill); padding: 3px 8px; border-radius: 20px; opacity: 0.85;
+  }
+  .d1-bar-track { height: 4px; background: #F0EDE8; border-radius: 2px; margin-bottom: 14px; }
+  .d1-bar-fill { height: 4px; border-radius: 2px; background: var(--ca-fill); width: 72%; }
+  .d1-note { font-size: 11px; color: var(--text-2); font-style: italic; line-height: 1.5; }
+  .d1-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .d1-btn {
+    flex: 1; height: 36px; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: white; font-size: 11px; font-weight: 500; color: var(--text-1);
+    display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;
+  }
+  .d1-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ============================================
+     DIRECTION 2 — The Color Header
+     Tier color dominates the top of the card
+  ============================================ */
+  .d2-popup {
+    position: absolute; bottom: 72px; left: 0; right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    overflow: hidden;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+  }
+  .d2-header {
+    background: var(--ca-fill);
+    padding: 16px 20px 20px;
+    position: relative;
+  }
+  .d2-handle {
+    width: 36px; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.5); margin: 0 auto 12px;
+  }
+  .d2-score-row { display: flex; align-items: flex-end; gap: 6px; }
+  .d2-score-num { font-size: 52px; font-weight: 700; color: var(--ca-text); line-height: 1; }
+  .d2-score-meta { padding-bottom: 4px; }
+  .d2-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ca-text); }
+  .d2-zone-name { font-size: 13px; font-weight: 600; color: var(--ca-text); opacity: 0.8; margin-top: 2px; }
+  .d2-body { padding: 14px 20px 16px; }
+  .d2-note { font-size: 11px; color: var(--text-2); font-style: italic; line-height: 1.5; margin-bottom: 12px; }
+  .d2-daynight { display: flex; gap: 12px; }
+  .d2-dn { flex: 1; background: #F9F6F0; border-radius: 8px; padding: 8px 10px; }
+  .d2-dn-label { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  .d2-dn-val { font-size: 14px; font-weight: 600; color: var(--text-1); margin-top: 2px; }
+  .d2-dn-sub { font-size: 9px; color: var(--text-3); }
+  .d2-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .d2-btn {
+    flex: 1; height: 36px; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: white; font-size: 11px; font-weight: 500; color: var(--text-1);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .d2-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ============================================
+     DIRECTION 3 — The Floating Card
+     Mid-screen floating card, not full-width
+  ============================================ */
+  .d3-popup {
+    position: absolute; bottom: 80px; left: 14px; right: 14px;
+    background: white;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .d3-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .d3-zone { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  .d3-name { font-size: 14px; font-weight: 600; color: var(--text-1); margin-top: 1px; }
+  .d3-badge {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ca-text); background: var(--ca-fill);
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap; opacity: 0.85;
+  }
+  .d3-score-big { font-size: 56px; font-weight: 700; color: var(--ca-text); line-height: 1; margin-bottom: 10px; }
+  .d3-note { font-size: 11px; color: var(--text-2); font-style: italic; line-height: 1.5; margin-bottom: 12px; }
+  .d3-actions { display: flex; gap: 8px; }
+  .d3-btn {
+    flex: 1; height: 34px; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: white; font-size: 10px; font-weight: 500; color: var(--text-1);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .d3-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ============================================
+     DIRECTION 4 — The Split Panel
+     Score left, day/night right — data-forward
+  ============================================ */
+  .d4-popup {
+    position: absolute; bottom: 72px; left: 0; right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 18px 20px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+  }
+  .d4-handle {
+    width: 36px; height: 3px; border-radius: 2px;
+    background: #E5E0D8; margin: 0 auto 14px;
+  }
+  .d4-name-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .d4-name { font-size: 14px; font-weight: 600; color: var(--text-1); }
+  .d4-arr { font-size: 10px; color: var(--text-2); font-weight: 500; }
+  .d4-main { display: flex; gap: 14px; align-items: center; }
+  .d4-score-block { flex: 0 0 auto; }
+  .d4-score-num { font-size: 52px; font-weight: 700; color: var(--ca-text); line-height: 1; }
+  .d4-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ca-text); margin-top: 2px; }
+  .d4-bar-track { height: 3px; background: #F0EDE8; border-radius: 2px; margin-top: 6px; width: 80px; }
+  .d4-bar-fill { height: 3px; border-radius: 2px; background: var(--ca-fill); width: 72%; }
+  .d4-divider { width: 1px; background: #F0EDE8; align-self: stretch; }
+  .d4-dn-block { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .d4-dn { }
+  .d4-dn-label { font-size: 9px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; display: flex; align-items: center; gap: 3px; }
+  .d4-dn-val { font-size: 18px; font-weight: 600; color: var(--text-1); }
+  .d4-dn-sub { font-size: 9px; color: var(--text-3); }
+  .d4-note { font-size: 10px; color: var(--text-2); font-style: italic; line-height: 1.5; margin-top: 12px; border-top: 1px solid #F5F3EF; padding-top: 10px; }
+  .d4-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .d4-btn {
+    flex: 1; height: 34px; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: white; font-size: 10px; font-weight: 500; color: var(--text-1);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+  .d4-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ============================================
+     DIRECTION 5 — The Circular Score
+     Score in a circle, editorial feel
+  ============================================ */
+  .d5-popup {
+    position: absolute; bottom: 72px; left: 0; right: 0;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+  }
+  .d5-handle {
+    width: 36px; height: 3px; border-radius: 2px;
+    background: #E5E0D8; margin: 0 auto 16px;
+  }
+  .d5-top { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .d5-circle {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--teal-light);
+    border: 3px solid var(--ca-fill);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .d5-circle-num { font-size: 26px; font-weight: 700; color: var(--ca-text); line-height: 1; }
+  .d5-circle-100 { font-size: 9px; color: var(--text-3); }
+  .d5-info { flex: 1; }
+  .d5-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ca-text); margin-bottom: 4px;
+  }
+  .d5-name { font-size: 15px; font-weight: 600; color: var(--text-1); }
+  .d5-arr { font-size: 11px; color: var(--text-2); }
+  .d5-note { font-size: 11px; color: var(--text-2); font-style: italic; line-height: 1.5; margin-bottom: 14px; }
+  .d5-daynight { display: flex; gap: 8px; margin-bottom: 14px; }
+  .d5-dn { flex: 1; background: #FAFAF7; border-radius: 8px; padding: 8px; text-align: center; }
+  .d5-dn-icon { font-size: 14px; margin-bottom: 2px; }
+  .d5-dn-val { font-size: 14px; font-weight: 600; color: var(--text-1); }
+  .d5-dn-label { font-size: 9px; color: var(--text-3); }
+  .d5-actions { display: flex; gap: 8px; }
+  .d5-btn {
+    flex: 1; height: 36px; border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    background: white; font-size: 11px; font-weight: 500; color: var(--text-1);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .d5-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ============================================
+     DIRECTION 6 — The Dark Glass (V1 Evolution)
+     Dark mode expression of V2's warm aesthetic
+  ============================================ */
+  .d6-phone-screen { background: #0C0A09 !important; }
+  .d6-map-bg { background: #1A1714 !important; }
+  .d6-searchbar {
+    position: absolute; top: 12px; left: 12px; right: 12px;
+    height: 40px; border-radius: 20px;
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
+    display: flex; align-items: center; padding: 0 14px; gap: 8px;
+    font-size: 12px; color: rgba(255,255,255,0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .d6-popup {
+    position: absolute; bottom: 72px; left: 0; right: 0;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(24px);
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+  }
+  .d6-handle {
+    width: 36px; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.2); margin: 0 auto 16px;
+  }
+  .d6-zone { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+  .d6-name { font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.95); margin-top: 2px; }
+  .d6-score-row { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 8px; }
+  .d6-score-num { font-size: 48px; font-weight: 700; color: var(--ca-fill); line-height: 1; }
+  .d6-score-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ca-fill); align-self: center;
+    background: rgba(110,231,183,0.15); padding: 3px 8px; border-radius: 20px;
+    border: 1px solid rgba(110,231,183,0.25);
+  }
+  .d6-bar-track { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 14px; }
+  .d6-bar-fill { height: 4px; border-radius: 2px; background: var(--ca-fill); width: 72%; opacity: 0.7; }
+  .d6-note { font-size: 11px; color: rgba(255,255,255,0.45); font-style: italic; line-height: 1.5; }
+  .d6-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .d6-btn {
+    flex: 1; height: 36px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06); font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.7);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .d6-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+  .d6-appnav {
+    position: absolute; bottom: 10px; left: 12px; right: 12px;
+    height: 52px; border-radius: 26px;
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-around;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .d6-nav-icon { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 8px; color: rgba(255,255,255,0.3); font-weight: 500; }
+  .d6-nav-icon.active { color: var(--teal); }
+
+  /* TIER SWITCHER */
+  .tier-switcher {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 0 24px 20px;
+    border-top: 1px solid #F5F3EF; padding-top: 16px;
+  }
+  .tier-btn {
+    padding: 5px 12px; border-radius: 20px; border: none; cursor: pointer;
+    font-size: 11px; font-weight: 600; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .tier-btn:hover { opacity: 0.8; }
+
+  /* CARD NOTES */
+  .card-notes {
+    padding: 0 24px 20px;
+  }
+  .note-item { font-size: 12px; color: var(--text-2); line-height: 1.6; padding: 4px 0; }
+  .note-item::before { content: "· "; color: var(--teal); font-weight: 700; }
+  .note-strong { font-weight: 600; color: var(--text-1); }
+
+  /* VERDICT SECTION */
+  .verdict-section {
+    max-width: 1400px; margin: 0 auto 60px;
+    padding: 0 40px;
+    display: grid; grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+  .verdict-card {
+    background: white; border-radius: 20px;
+    padding: 28px 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .verdict-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-bottom: 16px; }
+  .verdict-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .verdict-item { }
+  .verdict-item-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin-bottom: 4px; }
+  .verdict-item-val { font-size: 13px; color: var(--text-1); font-weight: 500; line-height: 1.4; }
+  .guide-card { background: #FAFAF7; border-radius: 20px; padding: 24px; border: 1px solid var(--border); }
+  .guide-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 12px; }
+  .guide-item { font-size: 12px; color: var(--text-2); line-height: 1.7; }
+  .guide-emoji { margin-right: 6px; }
+
+  /* UTILITY */
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 20px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .tag-warm { background: #FEF3C7; color: #92400E; }
+  .tag-data { background: #EDE9FE; color: #5B21B6; }
+  .tag-minimal { background: #F0FDF4; color: #166534; }
+  .tag-dark { background: #1C1917; color: #F5F5F4; }
+  .tag-editorial { background: #FFF7ED; color: #9A3412; }
+  .tag-floating { background: #EFF6FF; color: #1E40AF; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .verdict-section { grid-template-columns: 1fr; }
+    .verdict-grid { grid-template-columns: 1fr 1fr; }
+    .header { padding: 16px 20px; flex-direction: column; gap: 12px; align-items: flex-start; }
+    .grid, .verdict-section { padding: 20px; }
+    .page-intro { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">T</div>
+    <div>
+      <div class="header-title">Tacet V2 — Design Directions</div>
+      <div class="header-sub">6 variations · IrisPopup open state · Light mode default (Direction 6 = dark mode)</div>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <span style="font-size:12px;color:var(--text-3);align-self:center;">Voir le score pour :</span>
+    <button class="filter-btn" onclick="setTier('tc','#2DD4BF','#0E7490','Très calme',72)">Très calme</button>
+    <button class="filter-btn active" onclick="setTier('ca','#6EE7B7','#059669','Calme',72)">Calme</button>
+    <button class="filter-btn" onclick="setTier('mo','#FCD34D','#B45309','Modéré',45)">Modéré</button>
+    <button class="filter-btn" onclick="setTier('br','#FCA5A5','#DC2626','Bruyant',28)">Bruyant</button>
+    <button class="filter-btn" onclick="setTier('tb','#D8B4FE','#7C3AED','Très bruyant',12)">Très bruyant</button>
+  </div>
+</div>
+
+<div class="page-intro">
+  <h1>Six directions pour l'IrisPopup</h1>
+  <p>Chaque direction partage la même fondation visuelle (Inter, teal #0D9488, palette chaude) mais explore une arrangement différent des informations. Utilisez les boutons ci-dessus pour voir chaque direction avec différents scores. <strong>La Direction 6 montre le dark mode.</strong></p>
+</div>
+
+<!-- DIRECTION GRID -->
+<div class="grid">
+
+  <!-- DIRECTION 1: The Minimalist Card -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">1</div>
+      <div>
+        <div class="direction-label">Le Minimaliste <span class="tag tag-minimal">Minimaliste</span></div>
+        <div class="direction-tagline">Typographie first — le score occupe tout l'espace</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="map-bg"></div>
+        <div class="map-zones"></div>
+        <div class="map-overlay"></div>
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d1-popup" id="d1-popup">
+          <div class="d1-handle"></div>
+          <div class="d1-zone">11e arrondissement · IRIS</div>
+          <div class="d1-name">Oberkampf – Ménilmontant</div>
+          <div class="d1-score-row">
+            <span class="d1-score-num" id="d1-num">72</span>
+            <span class="d1-score-label" id="d1-lbl">Calme</span>
+          </div>
+          <div class="d1-bar-track"><div class="d1-bar-fill" id="d1-bar"></div></div>
+          <div class="d1-note">Quartier animé du 11e — nuits festives autour d'Oberkampf, intérieurs d'îlots très préservés.</div>
+          <div class="d1-actions">
+            <button class="d1-btn primary">📤 Partager</button>
+            <button class="d1-btn">📍 Épingler</button>
+          </div>
+        </div>
+        <div class="appnav">
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            Carte
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">Score 5xl</span> — le nombre domine, pas de compétition visuelle</div>
+      <div class="note-item"><span class="note-strong">Note de caractère</span> immédiatement sous le score</div>
+      <div class="note-item">Très <span class="note-strong">aéré</span> — inspire confiance, pas d'anxiété</div>
+      <div class="note-item">Barre de progression discrète pour l'analogique</div>
+    </div>
+  </div>
+
+  <!-- DIRECTION 2: The Color Header -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">2</div>
+      <div>
+        <div class="direction-label">L'En-tête Coloré <span class="tag tag-warm">Expressif</span></div>
+        <div class="direction-tagline">La couleur du tier domine le haut de la carte</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="map-bg"></div>
+        <div class="map-zones"></div>
+        <div class="map-overlay"></div>
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d2-popup" id="d2-popup">
+          <div class="d2-header" id="d2-header">
+            <div class="d2-handle"></div>
+            <div class="d2-score-row">
+              <span class="d2-score-num" id="d2-num">72</span>
+              <div class="d2-score-meta">
+                <div class="d2-label" id="d2-lbl">Calme</div>
+                <div class="d2-zone-name">Oberkampf – Ménilmontant</div>
+              </div>
+            </div>
+          </div>
+          <div class="d2-body">
+            <div class="d2-note">Quartier animé du 11e — nuits festives autour d'Oberkampf, intérieurs d'îlots très préservés.</div>
+            <div class="d2-daynight">
+              <div class="d2-dn">
+                <div class="d2-dn-label">☀ Jour</div>
+                <div class="d2-dn-val" id="d2-day">59 dB</div>
+                <div class="d2-dn-sub">Lden</div>
+              </div>
+              <div class="d2-dn">
+                <div class="d2-dn-label">🌙 Nuit</div>
+                <div class="d2-dn-val" id="d2-night">48 dB</div>
+                <div class="d2-dn-sub">Lnight</div>
+              </div>
+            </div>
+            <div class="d2-actions">
+              <button class="d2-btn primary">📤 Partager</button>
+              <button class="d2-btn">📍 Épingler</button>
+            </div>
+          </div>
+        </div>
+        <div class="appnav">
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            Carte
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">Header coloré</span> — impact visuel immédiat, très lisible</div>
+      <div class="note-item">Jour/nuit directement dans le corps — <span class="note-strong">données denses</span></div>
+      <div class="note-item">Très expressif : quand c'est vert, <span class="note-strong">on le voit</span> tout de suite</div>
+      <div class="note-item">Risque : l'orange/rouge peut <span class="note-strong">alarmer</span> (contre l'objectif émotionnel)</div>
+    </div>
+  </div>
+
+  <!-- DIRECTION 3: The Floating Card -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">3</div>
+      <div>
+        <div class="direction-label">La Carte Flottante <span class="tag tag-floating">Flottant</span></div>
+        <div class="direction-tagline">Panel mid-screen, pas pleine largeur — plus de map visible</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="map-bg"></div>
+        <div class="map-zones"></div>
+        <div class="map-overlay"></div>
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d3-popup" id="d3-popup">
+          <div class="d3-top">
+            <div>
+              <div class="d3-zone">11e · IRIS</div>
+              <div class="d3-name">Oberkampf – Ménilmontant</div>
+            </div>
+            <div class="d3-badge" id="d3-badge">Calme</div>
+          </div>
+          <div class="d3-score-big" id="d3-num">72</div>
+          <div class="d3-note">Nuits festives autour d'Oberkampf, intérieurs d'îlots très préservés.</div>
+          <div class="d3-actions">
+            <button class="d3-btn primary">📤 Partager</button>
+            <button class="d3-btn">📍 Épingler</button>
+          </div>
+        </div>
+        <div class="appnav">
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            Carte
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">La carte reste visible</span> — utilisateur voit toujours la zone</div>
+      <div class="note-item">Plus <span class="note-strong">aérien</span>, moins envahissant sur tablet</div>
+      <div class="note-item">Score 56px — très impactant malgré la compacité</div>
+      <div class="note-item">Risque : moins de place pour les données secondaires</div>
+    </div>
+  </div>
+
+  <!-- DIRECTION 4: The Split Panel -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">4</div>
+      <div>
+        <div class="direction-label">Le Panel Divisé <span class="tag tag-data">Data-forward</span></div>
+        <div class="direction-tagline">Score à gauche, jour/nuit à droite — dense mais organisé</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="map-bg"></div>
+        <div class="map-zones"></div>
+        <div class="map-overlay"></div>
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d4-popup" id="d4-popup">
+          <div class="d4-handle"></div>
+          <div class="d4-name-row">
+            <div class="d4-name">Oberkampf – Ménilmontant</div>
+            <div class="d4-arr">11e</div>
+          </div>
+          <div class="d4-main">
+            <div class="d4-score-block">
+              <div class="d4-score-num" id="d4-num">72</div>
+              <div class="d4-label" id="d4-lbl">Calme</div>
+              <div class="d4-bar-track"><div class="d4-bar-fill" id="d4-bar"></div></div>
+            </div>
+            <div class="d4-divider"></div>
+            <div class="d4-dn-block">
+              <div class="d4-dn">
+                <div class="d4-dn-label">☀ Jour</div>
+                <div class="d4-dn-val" id="d4-day">59 dB</div>
+                <div class="d4-dn-sub">Lden · PPBE 2024</div>
+              </div>
+              <div class="d4-dn">
+                <div class="d4-dn-label">🌙 Nuit</div>
+                <div class="d4-dn-val" id="d4-night">48 dB</div>
+                <div class="d4-dn-sub">Lnight · PPBE 2024</div>
+              </div>
+            </div>
+          </div>
+          <div class="d4-note">Nuits festives autour d'Oberkampf — intérieurs d'îlots très préservés.</div>
+          <div class="d4-actions">
+            <button class="d4-btn primary">📤 Partager</button>
+            <button class="d4-btn">📍 Épingler</button>
+          </div>
+        </div>
+        <div class="appnav">
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            Carte
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">Sophie</span> — tout en un coup d'œil, idéal comparaison</div>
+      <div class="note-item">Jour/nuit visibles sans scroll sur la vue par défaut</div>
+      <div class="note-item">Risque : peut paraître <span class="note-strong">trop technique</span> pour Maria</div>
+      <div class="note-item">Bonne option pour tablet/desktop où l'espace est disponible</div>
+    </div>
+  </div>
+
+  <!-- DIRECTION 5: The Circular Score -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">5</div>
+      <div>
+        <div class="direction-label">Le Score Circulaire <span class="tag tag-editorial">Editorial</span></div>
+        <div class="direction-tagline">Score en cercle — chaud, lifestyle, comme une note de guide</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen">
+        <div class="map-bg"></div>
+        <div class="map-zones"></div>
+        <div class="map-overlay"></div>
+        <div class="searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d5-popup" id="d5-popup">
+          <div class="d5-handle"></div>
+          <div class="d5-top">
+            <div class="d5-circle" id="d5-circle">
+              <span class="d5-circle-num" id="d5-num">72</span>
+              <span class="d5-circle-100">/100</span>
+            </div>
+            <div class="d5-info">
+              <div class="d5-label" id="d5-lbl">Calme</div>
+              <div class="d5-name">Oberkampf – Ménilmontant</div>
+              <div class="d5-arr">11e arrondissement</div>
+            </div>
+          </div>
+          <div class="d5-note">Quartier animé du 11e — nuits festives autour d'Oberkampf, intérieurs d'îlots très préservés.</div>
+          <div class="d5-daynight">
+            <div class="d5-dn">
+              <div class="d5-dn-icon">☀</div>
+              <div class="d5-dn-val" id="d5-day">59 dB</div>
+              <div class="d5-dn-label">Jour</div>
+            </div>
+            <div class="d5-dn">
+              <div class="d5-dn-icon">🌙</div>
+              <div class="d5-dn-val" id="d5-night">48 dB</div>
+              <div class="d5-dn-label">Nuit</div>
+            </div>
+          </div>
+          <div class="d5-actions">
+            <button class="d5-btn primary">📤 Partager</button>
+            <button class="d5-btn">📍 Épingler</button>
+          </div>
+        </div>
+        <div class="appnav">
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            Carte
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">Très chaud</span> — ressemble à un guide Michelin numérique</div>
+      <div class="note-item">Le cercle teal = <span class="note-strong">identité de marque</span> forte dans l'UI</div>
+      <div class="note-item">Score + nom + label d'un coup d'œil horizontal</div>
+      <div class="note-item">Risque : le chiffre est <span class="note-strong">moins grand</span> — impact réduit vs D1/D3</div>
+    </div>
+  </div>
+
+  <!-- DIRECTION 6: The Dark Glass (V1 Evolution) -->
+  <div class="direction-card">
+    <div class="card-header">
+      <div class="direction-num">6</div>
+      <div>
+        <div class="direction-label">Le Verre Sombre <span class="tag tag-dark">Dark Mode</span></div>
+        <div class="direction-tagline">Dark mode V2 — même chaleur, glass-morphism évolué</div>
+      </div>
+    </div>
+    <div class="phone-frame">
+      <div class="phone-screen d6-phone-screen" style="background: #0C0A09;">
+        <div class="map-bg d6-map-bg" style="background: #1A1714;"></div>
+        <div class="map-zones" style="opacity: 0.5;"></div>
+        <div class="d6-searchbar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Rechercher une adresse à Paris…
+        </div>
+        <div class="d6-popup" id="d6-popup">
+          <div class="d6-handle"></div>
+          <div class="d6-zone">11e arrondissement · IRIS</div>
+          <div class="d6-name">Oberkampf – Ménilmontant</div>
+          <div class="d6-score-row">
+            <span class="d6-score-num" id="d6-num">72</span>
+            <span class="d6-score-label" id="d6-lbl">Calme</span>
+          </div>
+          <div class="d6-bar-track"><div class="d6-bar-fill" id="d6-bar"></div></div>
+          <div class="d6-note">Quartier animé du 11e — nuits festives autour d'Oberkampf, intérieurs d'îlots très préservés.</div>
+          <div class="d6-actions">
+            <button class="d6-btn primary">📤 Partager</button>
+            <button class="d6-btn">📍 Épingler</button>
+          </div>
+        </div>
+        <div class="d6-appnav">
+          <div class="d6-nav-icon active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            Carte
+          </div>
+          <div class="d6-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/></svg>
+            Couches
+          </div>
+          <div class="d6-nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Info
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-notes">
+      <div class="note-item"><span class="note-strong">Identité V1</span> conservée et évoluée — warmth sur fond sombre</div>
+      <div class="note-item">Fond `#0C0A09` (charcoal chaud) vs V1's `#000000` — plus chaleureux</div>
+      <div class="note-item">Idéal pour utilisation <span class="note-strong">nocturne</span> ou environnements sombres</div>
+      <div class="note-item">Default = Light (D1–D5) ; ce mode est activé par préférence système</div>
+    </div>
+  </div>
+
+</div><!-- end grid -->
+
+<!-- VERDICT / EVALUATION GUIDE -->
+<div class="verdict-section">
+  <div class="verdict-card">
+    <div class="verdict-title">Guide d'évaluation — ce qu'on cherche</div>
+    <div class="verdict-grid">
+      <div class="verdict-item">
+        <div class="verdict-item-label">Lisibilité Maria</div>
+        <div class="verdict-item-val">Score visible en &lt;1s sans expertise acoustique</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-item-label">Partageabilité</div>
+        <div class="verdict-item-val">Screenshot WhatsApp beau et lisible par un tiers</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-item-label">Chaleur hospitality</div>
+        <div class="verdict-item-val">Ressemble à un guide de voyage, pas un dashboard</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-item-label">Sophie (comparaison)</div>
+        <div class="verdict-item-val">Infos jour/nuit accessibles sans scroll systématique</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-item-label">Confort émotionnel</div>
+        <div class="verdict-item-val">Zones bruyantes ne déclenchent pas l'alarme</div>
+      </div>
+      <div class="verdict-item">
+        <div class="verdict-item-label">Cohérence dark</div>
+        <div class="verdict-item-val">D6 se sent comme la même app, pas un autre produit</div>
+      </div>
+    </div>
+  </div>
+  <div class="guide-card">
+    <div class="guide-title">Questions à se poser</div>
+    <div class="guide-item"><span class="guide-emoji">👁</span>Quel layout je lis en 1 seconde ?</div>
+    <div class="guide-item"><span class="guide-emoji">📱</span>Lequel ferait le meilleur screenshot WhatsApp ?</div>
+    <div class="guide-item"><span class="guide-emoji">🏨</span>Lequel ressemble à une app hospitality ?</div>
+    <div class="guide-item"><span class="guide-emoji">😰</span>Lequel alarme le moins sur "Bruyant" ?</div>
+    <div class="guide-item"><span class="guide-emoji">🔀</span>Y a-t-il des éléments à combiner ?</div>
+  </div>
+</div>
+
+<script>
+  const tiers = {
+    tc: { fill: '#2DD4BF', text: '#0E7490', label: 'Très calme', score: 88, barW: '88%', day: '48 dB', night: '39 dB', borderColor: '#2DD4BF' },
+    ca: { fill: '#6EE7B7', text: '#059669', label: 'Calme', score: 72, barW: '72%', day: '59 dB', night: '48 dB', borderColor: '#6EE7B7' },
+    mo: { fill: '#FCD34D', text: '#B45309', label: 'Modéré', score: 45, barW: '45%', day: '66 dB', night: '56 dB', borderColor: '#FCD34D' },
+    br: { fill: '#FCA5A5', text: '#DC2626', label: 'Bruyant', score: 28, barW: '28%', day: '72 dB', night: '63 dB', borderColor: '#FCA5A5' },
+    tb: { fill: '#D8B4FE', text: '#7C3AED', label: 'Très bruyant', score: 12, barW: '12%', day: '78 dB', night: '70 dB', borderColor: '#D8B4FE' }
+  };
+
+  function setTier(key, fill, text, label, score) {
+    const t = tiers[key];
+
+    // D1
+    document.getElementById('d1-num').style.color = t.text;
+    document.getElementById('d1-num').textContent = t.score;
+    document.getElementById('d1-lbl').style.background = t.fill;
+    document.getElementById('d1-lbl').style.color = t.text;
+    document.getElementById('d1-lbl').textContent = t.label;
+    document.getElementById('d1-bar').style.background = t.fill;
+    document.getElementById('d1-bar').style.width = t.barW;
+
+    // D2
+    document.getElementById('d2-header').style.background = t.fill;
+    document.getElementById('d2-num').style.color = t.text;
+    document.getElementById('d2-num').textContent = t.score;
+    document.getElementById('d2-lbl').style.color = t.text;
+    document.getElementById('d2-lbl').textContent = t.label;
+    document.getElementById('d2-day').textContent = t.day;
+    document.getElementById('d2-night').textContent = t.night;
+
+    // D3
+    document.getElementById('d3-num').style.color = t.text;
+    document.getElementById('d3-num').textContent = t.score;
+    document.getElementById('d3-badge').style.background = t.fill;
+    document.getElementById('d3-badge').style.color = t.text;
+    document.getElementById('d3-badge').textContent = t.label;
+
+    // D4
+    document.getElementById('d4-num').style.color = t.text;
+    document.getElementById('d4-num').textContent = t.score;
+    document.getElementById('d4-lbl').style.color = t.text;
+    document.getElementById('d4-lbl').textContent = t.label;
+    document.getElementById('d4-bar').style.background = t.fill;
+    document.getElementById('d4-bar').style.width = t.barW;
+    document.getElementById('d4-day').textContent = t.day;
+    document.getElementById('d4-night').textContent = t.night;
+
+    // D5
+    document.getElementById('d5-circle').style.borderColor = t.fill;
+    document.getElementById('d5-circle').style.background = t.fill + '22';
+    document.getElementById('d5-num').style.color = t.text;
+    document.getElementById('d5-num').textContent = t.score;
+    document.getElementById('d5-lbl').style.color = t.text;
+    document.getElementById('d5-lbl').textContent = t.label;
+    document.getElementById('d5-day').textContent = t.day;
+    document.getElementById('d5-night').textContent = t.night;
+
+    // D6
+    document.getElementById('d6-num').style.color = t.fill;
+    document.getElementById('d6-num').textContent = t.score;
+    document.getElementById('d6-lbl').style.color = t.fill;
+    document.getElementById('d6-lbl').style.borderColor = t.fill + '44';
+    document.getElementById('d6-lbl').style.background = t.fill + '22';
+    document.getElementById('d6-lbl').textContent = t.label;
+    document.getElementById('d6-bar').style.background = t.fill;
+    document.getElementById('d6-bar').style.width = t.barW;
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>
