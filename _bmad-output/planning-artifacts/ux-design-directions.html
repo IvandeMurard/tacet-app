@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tacet V2 · Directions Design · Itération 3</title>
+  <title>Tacet V2 · Directions Design · Itération 4</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Inter', system-ui, sans-serif; background: #F5F1EB; color: #1A1614; min-height: 100vh; line-height: 1.5; }
-    .page { max-width: 1160px; margin: 0 auto; padding: 48px 32px 96px; }
+    .page { max-width: 920px; margin: 0 auto; padding: 48px 32px 96px; }
 
     /* Header */
     .page-header { margin-bottom: 48px; }
     .page-header .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #F0F7F6; color: #0D9488; border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 14px; }
     .page-header h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 8px; }
-    .page-header p  { font-size: 15px; color: #6B6560; max-width: 580px; line-height: 1.6; }
+    .page-header p  { font-size: 15px; color: #6B6560; max-width: 620px; line-height: 1.6; }
 
     /* Controls */
     .controls-bar { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-end; padding: 20px 24px; background: white; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05); margin-bottom: 40px; }
@@ -24,6 +24,7 @@
     .pill { padding: 6px 14px; border-radius: 100px; border: 1.5px solid #E5E0DA; background: white; font-family: 'Inter',sans-serif; font-size: 12px; font-weight: 500; color: #6B6560; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; line-height: 1; }
     .pill:hover { border-color: #A8A09A; color: #1A1614; }
     .pill.on { background: #1A1614; border-color: #1A1614; color: white; }
+    .pill.glow-on { background: #0D9488; border-color: #0D9488; color: white; }
 
     /* Color panel */
     .color-panel { background: white; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 28px 28px 24px; margin-bottom: 48px; }
@@ -41,29 +42,45 @@
     .cand-badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 100px; font-size: 11px; font-weight: 600; }
     .cand-note { font-size: 10px; color: #B5AFA8; margin-top: 6px; }
 
-    /* Mockups */
-    .mockups-row { display: flex; gap: 24px; justify-content: center; margin-bottom: 48px; }
-    .dir-col { flex: 1; max-width: 318px; display: flex; flex-direction: column; align-items: center; }
-    .dir-head { width: 100%; margin-bottom: 14px; }
+    /* Main mockup area — single centered phone */
+    .mockup-area { display: flex; gap: 40px; align-items: flex-start; justify-content: center; margin-bottom: 48px; }
+    .mockup-center { display: flex; flex-direction: column; align-items: center; }
+    .dir-head { width: 100%; max-width: 340px; margin-bottom: 18px; text-align: center; }
     .dir-tag { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
     .dir-tag.rec { background: #F0F7F6; color: #0D9488; }
-    .dir-tag.var { background: #F5F4F2; color: #9A928D; }
-    .dir-head h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 3px; }
-    .dir-head p  { font-size: 12px; color: #9A928D; line-height: 1.4; }
+    .dir-head h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 3px; }
+    .dir-head p  { font-size: 13px; color: #9A928D; line-height: 1.4; }
 
     /* Phone */
-    .phone-frame { width: 278px; height: 560px; background: #0F0D0C; border-radius: 48px; padding: 11px; box-shadow: 0 0 0 1.5px #1E1A18, 0 24px 64px rgba(0,0,0,.30), 0 8px 24px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.06); position: relative; margin-bottom: 18px; }
+    .phone-frame { width: 310px; height: 620px; background: #0F0D0C; border-radius: 48px; padding: 11px; box-shadow: 0 0 0 1.5px #1E1A18, 0 24px 64px rgba(0,0,0,.30), 0 8px 24px rgba(0,0,0,.15), inset 0 1px 0 rgba(255,255,255,.06); position: relative; margin-bottom: 22px; }
     .phone-frame::before { content: ''; position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 70px; height: 10px; background: #0F0D0C; border-radius: 0 0 8px 8px; z-index: 100; }
     .phone-screen { width: 100%; height: 100%; border-radius: 38px; overflow: hidden; position: relative; }
 
-    /* Features */
+    /* Features sidebar */
+    .features-sidebar { flex: 1; max-width: 340px; }
+    .feat-section { margin-bottom: 28px; }
+    .feat-section h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #0D9488; margin-bottom: 12px; }
     .features { width: 100%; list-style: none; }
     .feat { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 1px solid #EDE9E4; font-size: 12px; color: #6B6560; line-height: 1.45; }
     .feat:last-child { border-bottom: none; }
     .feat-ico { flex-shrink: 0; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; margin-top: 1px; }
     .ico-g { background: #D1FAE5; color: #059669; }
     .ico-b { background: #DBEAFE; color: #2563EB; }
+    .ico-t { background: #F0F7F6; color: #0D9488; }
     .ico-r { background: #FEE2E2; color: #DC2626; }
+
+    /* Zoom strategy card */
+    .zoom-card { background: white; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 28px; margin-bottom: 40px; }
+    .zoom-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.01em; }
+    .zoom-card .sub { font-size: 13px; color: #9A928D; margin-bottom: 20px; }
+    .zoom-levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .zoom-level { padding: 16px 14px; border-radius: 14px; border: 1.5px solid #EDE9E4; }
+    .zoom-level.active { border-color: #0D9488; background: #F0F7F6; }
+    .zl-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #B5AFA8; margin-bottom: 6px; }
+    .zl-label.active { color: #0D9488; }
+    .zl-zoom { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .zl-desc { font-size: 11px; color: #6B6560; line-height: 1.45; }
+    .zoom-note { margin-top: 16px; font-size: 12px; color: #9A928D; line-height: 1.5; padding: 12px 14px; background: #FAF8F5; border-radius: 10px; }
 
     /* Notes */
     .notes-card { background: #EDE9E2; border-radius: 16px; padding: 24px 28px; margin-bottom: 40px; }
@@ -92,9 +109,9 @@
 <div class="page">
 
   <header class="page-header">
-    <div class="badge">🗺 Itération 3 · Étape 09 · Design Directions</div>
-    <h1>Directions Design Tacet V2</h1>
-    <p>Carte repensée : fond Mapbox-like (crème clair / navy sombre), zones en halos doux (SVG blur). Même 3 directions flottantes. Inspiré de Plume Labs &amp; IQAir — la carte est un canvas, les données une couche ambiante.</p>
+    <div class="badge">🗺 Itération 4 · Étape 09 · Design Directions</div>
+    <h1>Score Dots + Ambient Glow</h1>
+    <p>Carte 100% visible. Données IRIS affichées comme des <strong>score dots</strong> (marqueurs tier-colorés) aux centroïdes des zones. Glow ambiant optionnel. Inspiré IQAir &times; Airbnb. Popup confirmé : V2-A Le Flottant Élégant.</p>
   </header>
 
   <!-- CONTROLS -->
@@ -118,6 +135,13 @@
         <button class="pill" data-color="D">D · Jade</button>
       </div>
     </div>
+    <div class="ctrl">
+      <div class="ctrl-label">Ambient Glow</div>
+      <div class="btn-row" id="glow-btns">
+        <button class="pill on" data-glow="off">Off</button>
+        <button class="pill" data-glow="on">On</button>
+      </div>
+    </div>
     <div class="ctrl" style="margin-left:auto;">
       <div class="ctrl-label">Mode</div>
       <div class="btn-row" id="mode-btns">
@@ -131,76 +155,109 @@
   <section class="color-panel">
     <div class="color-panel-head">
       <h2>🎨 Exploration couleur · Tier « Très calme »</h2>
-      <p>Activez le tier « Très calme » pour voir chaque candidat appliqué dans les 3 mockups et sur la carte.</p>
+      <p>Activez le tier « Très calme » pour voir chaque candidat appliqué dans le mockup et les score dots.</p>
     </div>
     <div class="candidates-grid" id="candidates-grid"></div>
   </section>
 
   <div class="section-sep"></div>
 
-  <!-- MOCKUPS -->
-  <div class="mockups-row">
-    <div class="dir-col">
+  <!-- MAIN MOCKUP — V2-A ONLY -->
+  <div class="mockup-area">
+    <div class="mockup-center">
       <div class="dir-head">
-        <div class="dir-tag rec">★ Recommandé</div>
+        <div class="dir-tag rec">★ Direction confirmée</div>
         <h2>V2-A · Le Flottant Élégant</h2>
-        <p>D3 + D1 — carte aérienne, score dominant, verre givré, note de caractère</p>
+        <p>Score dots sur carte propre + popup verre givré. Carte 100% navigable.</p>
       </div>
       <div class="phone-frame"><div class="phone-screen" id="screen-a"></div></div>
-      <ul class="features">
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Carte visible ~65% — la carte reste le sujet</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Score <strong>54px bold</strong>, couleur tier — lisible en 1 seconde</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Verre givré <code>bg-white/82 blur-xl</code> (clair) · <code>bg-white/7 blur-24px</code> (sombre)</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Note de caractère en italique — éditorial, pas données</span></li>
-        <li class="feat"><span class="feat-ico ico-r">×</span><span>Pas de dB bruts — expert uniquement (Paramètres)</span></li>
-      </ul>
     </div>
-    <div class="dir-col">
-      <div class="dir-head">
-        <div class="dir-tag var">Variante</div>
-        <h2>V2-B · Le Flottant Circulaire</h2>
-        <p>Anneau SVG « 72/100 » — contextualise sans expertise acoustique</p>
+    <div class="features-sidebar">
+      <div class="feat-section">
+        <h3>Carte — Score Dots</h3>
+        <ul class="features">
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Carte <strong>100% visible</strong> — rues, Seine, parcs, repères jamais masqués</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Score dots = cercles tier-colorés aux centroïdes IRIS (1 dot = 1 zone)</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Contour blanc léger (1.5px) — lisibilité sur fond clair et sombre</span></li>
+          <li class="feat"><span class="feat-ico ico-t">⚡</span><span>Dot sélectionné : taille ↑, stroke tier-color 2px, ombre portée subtile</span></li>
+          <li class="feat"><span class="feat-ico ico-b">~</span><span><strong>Ambient Glow</strong> (toggle) : halo radial autour de chaque dot, 10-15% opacité</span></li>
+          <li class="feat"><span class="feat-ico ico-r">—</span><span>Zéro polygone, zéro forme masquant la carte</span></li>
+        </ul>
       </div>
-      <div class="phone-frame"><div class="phone-screen" id="screen-b"></div></div>
-      <ul class="features">
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>« 72/100 » — échelle immédiatement comprise, 0 à 100</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Anneau coloré = repère visuel fort, cohérent avec le tier</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Même verre givré et disposition flottante que V2-A</span></li>
-        <li class="feat"><span class="feat-ico ico-b">?</span><span>L'anneau réduit légèrement l'espace pour la note de caractère</span></li>
-        <li class="feat"><span class="feat-ico ico-r">×</span><span>Pas de dB bruts — expert uniquement (Paramètres)</span></li>
-      </ul>
-    </div>
-    <div class="dir-col">
-      <div class="dir-head">
-        <div class="dir-tag var">Variante</div>
-        <h2>V2-C · Le Flottant Compact</h2>
-        <p>Surface minimale — carte visible ~78%, détails à la demande</p>
+      <div class="feat-section">
+        <h3>Popup — Le Flottant Élégant</h3>
+        <ul class="features">
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Score <strong>54px bold</strong>, couleur tier — lisible en 1 seconde</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Verre givré <code>bg-white/82 blur-xl</code> (clair) · <code>bg-white/7 blur-24px</code> (sombre)</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Note de caractère en italique — éditorial, pas données</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Barre de progression fine (4px) — fill tier-color</span></li>
+          <li class="feat"><span class="feat-ico ico-r">×</span><span>Pas de dB bruts — expert uniquement (Paramètres)</span></li>
+        </ul>
       </div>
-      <div class="phone-frame"><div class="phone-screen" id="screen-c"></div></div>
-      <ul class="features">
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Maximum de carte visible — expérience la plus immersive</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Score + label + note tronquée — densité minimale</span></li>
-        <li class="feat"><span class="feat-ico ico-g">✓</span><span>Chevron « Voir plus » — profondeur on demand</span></li>
-        <li class="feat"><span class="feat-ico ico-b">?</span><span>Note de caractère tronquée dans la vue compacte</span></li>
-        <li class="feat"><span class="feat-ico ico-r">×</span><span>Pas de dB bruts — expert uniquement (Paramètres)</span></li>
-      </ul>
+      <div class="feat-section">
+        <h3>Zone sélectionnée</h3>
+        <ul class="features">
+          <li class="feat"><span class="feat-ico ico-t">⚡</span><span>Contour dashed IRIS très subtil (1px, 25% opacité)</span></li>
+          <li class="feat"><span class="feat-ico ico-t">⚡</span><span>Fill 3% max — « cette zone existe » sans masquer la carte</span></li>
+          <li class="feat"><span class="feat-ico ico-g">✓</span><span>Pattern Airbnb / IQAir : dot = tap target → popup auto-reveal</span></li>
+        </ul>
+      </div>
     </div>
   </div>
 
+  <!-- ZOOM STRATEGY -->
+  <section class="zoom-card">
+    <h3>🔍 Zoom progressif — Semantic Zoom</h3>
+    <p class="sub">La densité visuelle s'adapte au niveau de zoom. Le type de visualisation reste constant (dots), seule la granularité change.</p>
+    <div class="zoom-levels">
+      <div class="zoom-level">
+        <div class="zl-label">Macro</div>
+        <div class="zl-zoom">Zoom 10–12</div>
+        <div class="zl-desc">20 dots arrondissement (moyennés). Couleur = tier moyen. Numéro d'arrondissement visible.</div>
+      </div>
+      <div class="zoom-level">
+        <div class="zl-label">District</div>
+        <div class="zl-zoom">Zoom 13–14</div>
+        <div class="zl-desc">Dots IRIS individuels apparaissent. Taille 16px. Clustering si overlap. Transition depuis arrondissement.</div>
+      </div>
+      <div class="zoom-level active">
+        <div class="zl-label active">Quartier — affiché</div>
+        <div class="zl-zoom">Zoom 15–16</div>
+        <div class="zl-desc">Dots pleine taille (24px). Tier color clair. Tap → IrisPopup. C'est le zoom du mockup ci-dessus.</div>
+      </div>
+      <div class="zoom-level">
+        <div class="zl-label">Rue</div>
+        <div class="zl-zoom">Zoom 17+</div>
+        <div class="zl-desc">Dots persistent, carte ultra-détaillée. L'information est là sans dominer. Map is the star.</div>
+      </div>
+    </div>
+    <div class="zoom-note">
+      <strong>Futur — Social sentiment :</strong> Les marqueurs pulsants (signalements temps réel des utilisateurs) coexisteront avec les score dots statiques. Forme et animation différentes → séparation visuelle claire entre données IRIS officielles et contributions communautaires. Les aura circles de Rork.com s'appliquent naturellement à ces données ponctuelles.
+    </div>
+  </section>
+
   <!-- NOTES -->
   <div class="notes-card">
-    <h3>Notes de conception · Itération 3</h3>
+    <h3>Notes de conception · Itération 4</h3>
     <div class="note">
       <span class="note-arrow">→</span>
-      <span><strong>Carte :</strong> fond clair = <code>#EDE8DF</code> (crème chaud, Mapbox Light style). Fond sombre = <code>#0C1524</code> (navy profond, Mapbox Dark style). Zones en halos doux via SVG <code>feGaussianBlur stdDeviation="8"</code> — pas de blocs opaques. Zone sélectionnée : pas de blur, bord net = précision visuelle.</span>
+      <span><strong>Pourquoi pas de polygones :</strong> les formes colorées masquent la carte, empêchent l'orientation et la projection (se repérer dans son futur quartier). La carte doit rester le héros — premium, hospitality-feel.</span>
     </div>
     <div class="note">
       <span class="note-arrow">→</span>
-      <span><strong>Transparence popup :</strong> mode clair = <code>bg-white/82 backdrop-blur-xl</code>. Mode sombre = <code>bg-white/7 backdrop-blur-24px</code> + bordure <code>rgba(255,255,255,0.14)</code> légèrement plus définie. La carte navy contraste mieux avec le panneau semi-transparent.</span>
+      <span><strong>Pourquoi pas heatmap :</strong> les données IRIS sont discrètes (1 score / zone), pas continues. Un heatmap créerait des dégradés faux entre zones (interpolation entre score 80 et 30 = mensonge visuel).</span>
     </div>
     <div class="note">
       <span class="note-arrow">→</span>
-      <span><strong>dB bruts absents :</strong> sans contexte acoustique, « 66 dB » ne dit rien à Maria. Vue par défaut = score + label + note. Expert mode = Paramètres.</span>
+      <span><strong>Score dots = IQAir &times; Airbnb :</strong> pattern éprouvé (pin sur carte propre). Chaque dot = 1 donnée précise, aucune interpolation. L'utilisateur comprend déjà « cercle coloré = tap pour détails ».</span>
+    </div>
+    <div class="note">
+      <span class="note-arrow">→</span>
+      <span><strong>Ambient Glow (OFF par défaut) :</strong> le défaut premium = carte propre. Le glow ajoute une atmosphère de couleur soft pour ceux qui le souhaitent. Toggle dans AppNav. Prépare aussi la couche futur social sentiment.</span>
+    </div>
+    <div class="note">
+      <span class="note-arrow">→</span>
+      <span><strong>Carte :</strong> fond clair = <code>#EDE8DF</code> (crème chaud). Fond sombre = <code>#0C1524</code> (navy profond). Rues et repères toujours visibles.</span>
     </div>
     <div class="note">
       <span class="note-arrow">→</span>
@@ -210,11 +267,11 @@
 
   <!-- APC -->
   <div class="apc-menu">
-    <h3>🗺 Directions design prêtes</h3>
-    <p class="apc-sub">Explorez les 3 variations en mode clair et sombre, testez les couleurs « Très calme ».</p>
-    <div class="apc-row"><div class="apc-key k-a">A</div><div class="apc-action"><strong>Advanced Elicitation</strong><span>Affiner la direction choisie — plus de détails visuels</span></div></div>
+    <h3>🗺 Direction design prête</h3>
+    <p class="apc-sub">V2-A + Score Dots confirmés. Explorez les tiers, couleurs et le glow ambiant.</p>
+    <div class="apc-row"><div class="apc-key k-a">A</div><div class="apc-action"><strong>Advanced Elicitation</strong><span>Affiner la direction — ajustements visuels</span></div></div>
     <div class="apc-row"><div class="apc-key k-p">P</div><div class="apc-action"><strong>Party Mode</strong><span>Perspectives multiples — autres angles visuels</span></div></div>
-    <div class="apc-row"><div class="apc-key k-c">C</div><div class="apc-action"><strong>Continuer</strong><span>Enregistrer la direction choisie et passer aux parcours utilisateurs (Étape 10)</span></div></div>
+    <div class="apc-row"><div class="apc-key k-c">C</div><div class="apc-action"><strong>Continuer</strong><span>Enregistrer la direction et passer aux parcours utilisateurs (Étape 10)</span></div></div>
   </div>
 
 </div>
@@ -222,10 +279,10 @@
 <script>
 /* ── DATA ── */
 const TC_CANDIDATES = {
-  A: { fill: '#34D399', text: '#065F46', name: 'Emerald 400',    hex: '#34D399', desc: 'Vert-chaud, moins bleu-froid que le teal.' },
-  B: { fill: '#4ADE80', text: '#166534', name: 'Green 400 (V1)',hex: '#4ADE80', desc: 'Vert pur — couleur V1 originale. Nostalgique et safe.' },
-  C: { fill: '#86EFAC', text: '#14532D', name: 'Green 300 — Doux', hex: '#86EFAC', desc: 'Très léger, pastel. Aérien.' },
-  D: { fill: '#6BCB9F', text: '#0A5E3C', name: 'Jade chaud',     hex: '#6BCB9F', desc: 'Entre émeraude et sauge, légèrement jaune-chaud.' }
+  A: { fill: '#34D399', text: '#065F46', name: 'Emerald 400',     hex: '#34D399', desc: 'Vert-chaud, moins bleu-froid que le teal.' },
+  B: { fill: '#4ADE80', text: '#166534', name: 'Green 400 (V1)',  hex: '#4ADE80', desc: 'Vert pur — couleur V1 originale.' },
+  C: { fill: '#86EFAC', text: '#14532D', name: 'Green 300 — Doux',hex: '#86EFAC', desc: 'Très léger, pastel. Aérien.' },
+  D: { fill: '#6BCB9F', text: '#0A5E3C', name: 'Jade chaud',     hex: '#6BCB9F', desc: 'Entre émeraude et sauge, jaune-chaud.' }
 };
 const FIXED = {
   calme:        { fill: '#6EE7B7', text: '#059669' },
@@ -241,87 +298,153 @@ const TIERS = {
   tres_bruyant: { label: 'Très bruyant',  score: 18, note: 'Périphérique nord — exposition permanente aux nuisances. Nuits difficiles, recommandé côté cour.',        zone: 'IRIS · Porte de Clignancourt', data: 'PPBE 2024 + RUMEUR 14h21' }
 };
 
-/* ── STATE ── */
-let S = { tier: 'calme', tcColor: 'A', mode: 'light' };
+/* ── Score dots positions (simulated IRIS centroids at neighborhood zoom) ── */
+const DOTS = [
+  // { x, y, tier }  — positions in SVG viewBox 288 × 598
+  { x:  58, y:  62, tier: 'tres_calme' },
+  { x: 168, y:  48, tier: 'modere' },
+  { x: 240, y:  85, tier: 'bruyant' },
+  { x:  45, y: 155, tier: 'calme' },
+  { x: 148, y: 168, tier: '__active__' },  // The selected zone — uses active tier
+  { x: 240, y: 165, tier: 'bruyant' },
+  { x:  60, y: 270, tier: 'modere' },
+  { x: 155, y: 280, tier: 'calme' },
+  { x: 245, y: 275, tier: 'calme' },
+  { x:  52, y: 380, tier: 'tres_bruyant' },
+  { x: 150, y: 370, tier: 'modere' },
+  { x: 235, y: 385, tier: 'modere' },
+];
 
-function getColors() {
-  return S.tier === 'tres_calme'
+/* ── STATE ── */
+let S = { tier: 'calme', tcColor: 'A', mode: 'light', glow: false };
+
+function getColors(tier) {
+  const t = tier || S.tier;
+  return t === 'tres_calme'
     ? { fill: TC_CANDIDATES[S.tcColor].fill, text: TC_CANDIDATES[S.tcColor].text }
-    : FIXED[S.tier];
+    : FIXED[t] || FIXED.calme;
 }
 
-/* ── MAP SVG (Iteration 3: blur-filter zones, Mapbox-like palette) ── */
+function dotFill(dotTier) {
+  if (dotTier === '__active__') return getColors(S.tier).fill;
+  return getColors(dotTier).fill;
+}
+
+/* ── MAP SVG (Iteration 4: Score Dots, no polygons) ── */
 function mapSVG(isLight, c) {
-  // Map base colors
   const bg    = isLight ? '#EDE8DF' : '#0C1524';
   const stPri = isLight ? '#C4BAB0' : '#213248';
   const stSec = isLight ? '#D3CBC0' : '#182840';
+  const water = isLight ? '#C9D8E4' : '#0E2240';
+  const park  = isLight ? '#D4DFC8' : '#142A1A';
+  const bldg  = isLight ? '#DDD7CE' : '#162232';
 
-  // Zone opacity: blurred bg zones, solid highlighted zone
-  const bgOp  = isLight ? '0.30' : '0.55'; // background (blurred)
-  const hiOp  = isLight ? '0.55' : '0.72'; // highlighted (no blur)
-  const gloOp = isLight ? '0'    : '0.32'; // dark-only glow pre-layer
+  // Dot styling
+  const dotStroke = isLight ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.30)';
+  const dotR    = 10;
+  const activeR = 14;
+  const dotStW  = isLight ? 1.5 : 1.5;
 
-  const tc = TC_CANDIDATES[S.tcColor].fill;
-  const Z  = { tc, ca: '#6EE7B7', mo: '#FCD34D', br: '#FCA5A5', tb: '#D8B4FE' };
+  // Selected zone boundary (very subtle dashed)
+  const selZone = '100,118 210,112 218,240 94,245';
+  const selStroke = c.fill;
+  const selStOp  = isLight ? '0.25' : '0.35';
+  const selFillOp = isLight ? '0.03' : '0.05';
 
-  // Highlighted zone polygon points (center IRIS zone)
-  const HI = '97,108 185,105 192,218 88,220';
+  // Ambient glow
+  const glowR   = 42;
+  const glowOp  = isLight ? '0.10' : '0.16';
 
-  return `<svg viewBox="0 0 256 538" xmlns="http://www.w3.org/2000/svg"
+  let dotsHTML = '';
+  let glowHTML = '';
+
+  DOTS.forEach((d, i) => {
+    const fill = dotFill(d.tier);
+    const isActive = d.tier === '__active__';
+    const r = isActive ? activeR : dotR;
+
+    // Ambient glow (radial gradient circles behind dots)
+    if (S.glow) {
+      glowHTML += `<circle cx="${d.x}" cy="${d.y}" r="${glowR}" fill="${fill}" opacity="${glowOp}" filter="url(#dotGlow)"/>`;
+    }
+
+    // The dot itself
+    if (isActive) {
+      // Selected dot: larger, tier-color stroke, subtle shadow
+      dotsHTML += `<circle cx="${d.x}" cy="${d.y}" r="${r + 3}" fill="${fill}" opacity="0.18" filter="url(#dotShadow)"/>`;
+      dotsHTML += `<circle cx="${d.x}" cy="${d.y}" r="${r}" fill="${fill}" stroke="${dotStroke}" stroke-width="2"/>`;
+      dotsHTML += `<circle cx="${d.x}" cy="${d.y}" r="${r + 4}" fill="none" stroke="${fill}" stroke-width="1.5" opacity="0.40" stroke-dasharray="3 3"/>`;
+    } else {
+      dotsHTML += `<circle cx="${d.x}" cy="${d.y}" r="${r}" fill="${fill}" stroke="${dotStroke}" stroke-width="${dotStW}"/>`;
+    }
+  });
+
+  return `<svg viewBox="0 0 288 598" xmlns="http://www.w3.org/2000/svg"
      style="position:absolute;inset:0;width:100%;height:100%;">
   <defs>
-    <!-- Soft blur filter for ambient zone halos -->
-    <filter id="zb" x="-35%" y="-35%" width="170%" height="170%">
-      <feGaussianBlur stdDeviation="8"/>
+    <filter id="dotGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="12"/>
     </filter>
-    <!-- Stronger glow for dark mode highlighted zone pre-layer -->
-    <filter id="zg" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="14"/>
+    <filter id="dotShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4"/>
     </filter>
   </defs>
 
   <!-- Map base -->
-  <rect width="256" height="538" fill="${bg}"/>
+  <rect width="288" height="598" fill="${bg}"/>
 
-  <!-- ── Background zones (blurred = soft ambient halo) ── -->
-  <polygon points="0,0 100,0 95,108 0,103"         fill="${Z.tc}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="100,0 256,0 256,105 97,108"     fill="${Z.mo}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="0,103 95,108 88,220 0,215"      fill="${Z.ca}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="185,105 256,105 256,220 190,218" fill="${Z.br}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="0,215 88,220 82,340 0,335"      fill="${Z.mo}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="90,220 256,220 256,340 84,340"  fill="${Z.ca}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="0,335 82,340 76,450 0,450"      fill="${Z.tb}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="84,340 256,340 256,450 78,450"  fill="${Z.mo}" opacity="${bgOp}" filter="url(#zb)"/>
-  <polygon points="0,450 256,450 256,538 0,538"    fill="${Z.ca}" opacity="${isLight ? '0.15' : '0.25'}" filter="url(#zb)"/>
+  <!-- Parks (subtle green patches) -->
+  <rect x="195" y="290" width="45" height="38" rx="6" fill="${park}" opacity="0.55"/>
+  <rect x="20"  y="95"  width="30" height="25" rx="5" fill="${park}" opacity="0.45"/>
 
-  <!-- ── Highlighted zone (selected IRIS — no blur, precise edges) ── -->
-  ${gloOp !== '0' ? `<polygon points="${HI}" fill="${c.fill}" opacity="${gloOp}" filter="url(#zg)"/>` : ''}
-  <polygon points="${HI}" fill="${c.fill}" opacity="${hiOp}"/>
-  <polygon points="${HI}" fill="none" stroke="${c.fill}" stroke-width="${isLight ? '2' : '2.5'}" opacity="0.92"/>
+  <!-- Water (Seine suggestion) -->
+  <path d="M 0 435 Q 80 420 160 438 Q 220 450 288 442" fill="none" stroke="${water}" stroke-width="14" opacity="0.50" stroke-linecap="round"/>
+
+  <!-- Buildings (block shapes, very subtle) -->
+  <rect x="70"  y="130" width="22" height="18" rx="2" fill="${bldg}" opacity="0.40"/>
+  <rect x="115" y="135" width="16" height="22" rx="2" fill="${bldg}" opacity="0.35"/>
+  <rect x="175" y="140" width="20" height="16" rx="2" fill="${bldg}" opacity="0.38"/>
+  <rect x="55"  y="235" width="18" height="24" rx="2" fill="${bldg}" opacity="0.35"/>
+  <rect x="185" y="245" width="24" height="18" rx="2" fill="${bldg}" opacity="0.37"/>
+  <rect x="120" y="335" width="20" height="20" rx="2" fill="${bldg}" opacity="0.33"/>
+  <rect x="60"  y="340" width="15" height="28" rx="2" fill="${bldg}" opacity="0.30"/>
 
   <!-- ── Street grid ── -->
-  <!-- Horizontals -->
-  <line x1="0"   y1="103" x2="256" y2="108" stroke="${stPri}" stroke-width="1.5"/>
-  <line x1="0"   y1="215" x2="256" y2="220" stroke="${stPri}" stroke-width="1.5"/>
-  <line x1="0"   y1="335" x2="256" y2="340" stroke="${stPri}" stroke-width="1.5"/>
-  <line x1="0"   y1="450" x2="256" y2="450" stroke="${stPri}" stroke-width="2"/>
-  <!-- Verticals -->
-  <line x1="92"  y1="0"   x2="86"  y2="538" stroke="${stPri}" stroke-width="1.5"/>
-  <line x1="186" y1="0"   x2="192" y2="538" stroke="${stPri}" stroke-width="1.5"/>
-  <!-- Secondary cross-streets -->
-  <line x1="46"  y1="103" x2="44"  y2="215" stroke="${stSec}" stroke-width="1"/>
-  <line x1="140" y1="0"   x2="140" y2="108" stroke="${stSec}" stroke-width="1"/>
-  <line x1="230" y1="108" x2="228" y2="220" stroke="${stSec}" stroke-width="1"/>
-  <line x1="44"  y1="220" x2="42"  y2="335" stroke="${stSec}" stroke-width="1"/>
-  <line x1="140" y1="108" x2="145" y2="220" stroke="${stSec}" stroke-width="1"/>
-  <line x1="138" y1="220" x2="142" y2="335" stroke="${stSec}" stroke-width="1"/>
+  <!-- Major horizontals -->
+  <line x1="0"   y1="108" x2="288" y2="112" stroke="${stPri}" stroke-width="1.5"/>
+  <line x1="0"   y1="225" x2="288" y2="230" stroke="${stPri}" stroke-width="1.5"/>
+  <line x1="0"   y1="345" x2="288" y2="348" stroke="${stPri}" stroke-width="1.5"/>
+  <!-- Major verticals -->
+  <line x1="95"  y1="0"   x2="92"  y2="598" stroke="${stPri}" stroke-width="1.5"/>
+  <line x1="200" y1="0"   x2="205" y2="598" stroke="${stPri}" stroke-width="1.5"/>
+  <!-- Secondary streets -->
+  <line x1="48"  y1="112" x2="46"  y2="225" stroke="${stSec}" stroke-width="1"/>
+  <line x1="150" y1="0"   x2="152" y2="112" stroke="${stSec}" stroke-width="1"/>
+  <line x1="248" y1="112" x2="246" y2="230" stroke="${stSec}" stroke-width="1"/>
+  <line x1="46"  y1="230" x2="44"  y2="345" stroke="${stSec}" stroke-width="1"/>
+  <line x1="148" y1="112" x2="152" y2="230" stroke="${stSec}" stroke-width="1"/>
+  <line x1="150" y1="230" x2="154" y2="348" stroke="${stSec}" stroke-width="1"/>
+  <line x1="245" y1="230" x2="243" y2="348" stroke="${stSec}" stroke-width="1"/>
   <!-- Diagonal boulevard -->
-  <line x1="30"  y1="0"   x2="200" y2="538" stroke="${stPri}" stroke-width="2.5"/>
+  <line x1="30"  y1="0"   x2="220" y2="598" stroke="${stPri}" stroke-width="2.5" opacity="0.75"/>
+  <!-- A few curved secondary streets for realism -->
+  <path d="M 0 180 Q 60 172 120 182 Q 180 192 230 178" fill="none" stroke="${stSec}" stroke-width="0.8" opacity="0.60"/>
+  <path d="M 130 0 Q 138 50 145 108" fill="none" stroke="${stSec}" stroke-width="0.8" opacity="0.50"/>
 
-  <!-- Zone label -->
-  <text x="141" y="168" text-anchor="middle" font-size="8" font-family="Inter,sans-serif"
-        font-weight="600" fill="${c.text}" opacity="0.70" letter-spacing="0.04em">
+  <!-- ── Selected zone boundary (very subtle dashed IRIS perimeter) ── -->
+  <polygon points="${selZone}" fill="${selStroke}" fill-opacity="${selFillOp}"
+           stroke="${selStroke}" stroke-width="1" stroke-opacity="${selStOp}"
+           stroke-dasharray="5 4" stroke-linejoin="round"/>
+
+  <!-- ── Ambient glow layer (behind dots) ── -->
+  ${glowHTML}
+
+  <!-- ── Score dots ── -->
+  ${dotsHTML}
+
+  <!-- Zone label near selected dot -->
+  <text x="148" y="200" text-anchor="middle" font-size="7.5" font-family="Inter,sans-serif"
+        font-weight="600" fill="${c.text}" opacity="0.55" letter-spacing="0.04em">
     ${TIERS[S.tier].zone.replace('IRIS · ', '')}
   </text>
 </svg>`;
@@ -396,105 +519,23 @@ function popupA(isLight, t, c) {
     <span style="font-size:9.5px;color:${tMut};letter-spacing:0.07em;text-transform:uppercase;font-weight:500;">Score Sérénité</span>
   </div>
   ${progressBar(t.score, c.fill, isLight)}
-  <p style="font-size:11px;font-style:italic;color:${tMid};line-height:1.5;margin-bottom:10px;">« ${t.note} »</p>
+  <p style="font-size:11px;font-style:italic;color:${tMid};line-height:1.5;margin-bottom:10px;">\u00ab ${t.note} \u00bb</p>
   <p style="font-size:9px;color:${tMut};margin-bottom:12px;">${t.data}</p>
   <div style="display:flex;gap:8px;">
-    <button style="flex:1;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bSec};color:${bSeT};display:flex;align-items:center;justify-content:center;gap:4px;">📌 Épingler</button>
-    <button style="flex:1.2;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bPri};color:${bPrT};display:flex;align-items:center;justify-content:center;gap:4px;">↗ Partager</button>
-  </div>
-</div>`;
-}
-
-/* ── POPUP V2-B ── */
-function popupB(isLight, t, c) {
-  const bg   = isLight ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.07)';
-  const bd   = isLight ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.14)';
-  const sh   = isLight
-    ? '0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.06)'
-    : '0 8px 40px rgba(0,0,0,0.60),inset 0 1px 0 rgba(255,255,255,0.06)';
-  const tMut = isLight ? '#B5AFA8'              : 'rgba(255,255,255,0.32)';
-  const tMid = isLight ? '#4A4540'              : 'rgba(255,255,255,0.65)';
-  const bPri = isLight ? '#1A1614'              : 'rgba(255,255,255,0.92)';
-  const bPrT = isLight ? 'white'                : '#0C1524';
-  const bSec = isLight ? 'rgba(0,0,0,0.06)'     : 'rgba(255,255,255,0.12)';
-  const bSeT = isLight ? '#1A1614'              : 'rgba(255,255,255,0.85)';
-  const bbg  = c.fill + '22';
-  const trackC = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.12)';
-  const r = 32; const circ = 2 * Math.PI * r; const dash = (t.score / 100) * circ;
-  return `<div style="position:absolute;bottom:56px;left:50%;transform:translateX(-50%);width:88%;
-                      border-radius:20px;z-index:25;padding:16px 18px 14px;
-                      background:${bg};backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-                      border:1px solid ${bd};box-shadow:${sh};">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-    <span style="font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:${tMut};">${t.zone}</span>
-    <span style="padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;background:${bbg};color:${c.text};">${t.label}</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-    <div style="flex-shrink:0;">
-      <svg width="76" height="76" viewBox="0 0 76 76">
-        <circle cx="38" cy="38" r="${r}" fill="none" stroke="${trackC}" stroke-width="5.5"/>
-        <circle cx="38" cy="38" r="${r}" fill="none" stroke="${c.fill}" stroke-width="5.5" stroke-linecap="round"
-                stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 38 38)"/>
-        <text x="38" y="34" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="700"
-              font-family="Inter,sans-serif" fill="${c.text}">${t.score}</text>
-        <text x="38" y="48" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="500"
-              font-family="Inter,sans-serif" fill="${tMut}" letter-spacing="0.03em">/100</text>
-      </svg>
-    </div>
-    <div style="flex:1;">
-      <p style="font-size:10.5px;font-style:italic;color:${tMid};line-height:1.5;margin-bottom:6px;">« ${t.note.substring(0,85)}${t.note.length>85?'…':''} »</p>
-      <p style="font-size:9px;color:${tMut};">${t.data}</p>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;">
-    <button style="flex:1;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bSec};color:${bSeT};display:flex;align-items:center;justify-content:center;gap:4px;">📌 Épingler</button>
-    <button style="flex:1.2;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bPri};color:${bPrT};display:flex;align-items:center;justify-content:center;gap:4px;">↗ Partager</button>
-  </div>
-</div>`;
-}
-
-/* ── POPUP V2-C ── */
-function popupC(isLight, t, c) {
-  const bg   = isLight ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.07)';
-  const bd   = isLight ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.14)';
-  const sh   = isLight
-    ? '0 8px 32px rgba(0,0,0,0.10),0 2px 8px rgba(0,0,0,0.06)'
-    : '0 8px 40px rgba(0,0,0,0.60),inset 0 1px 0 rgba(255,255,255,0.06)';
-  const tMid = isLight ? '#9A928D'              : 'rgba(255,255,255,0.50)';
-  const tMut = isLight ? '#B5AFA8'              : 'rgba(255,255,255,0.30)';
-  const bPri = isLight ? '#1A1614'              : 'rgba(255,255,255,0.92)';
-  const bPrT = isLight ? 'white'                : '#0C1524';
-  const shortNote = t.note.length > 65 ? t.note.substring(0,65)+'…' : t.note;
-  return `<div style="position:absolute;bottom:56px;left:50%;transform:translateX(-50%);width:88%;
-                      border-radius:16px;z-index:25;padding:13px 16px 11px;
-                      background:${bg};backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
-                      border:1px solid ${bd};box-shadow:${sh};">
-  <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:2px;">
-    <span style="font-size:36px;font-weight:700;letter-spacing:-0.03em;line-height:1;color:${c.text};">${t.score}</span>
-    <span style="font-size:12px;color:${c.text};opacity:0.35;font-weight:300;">/100</span>
-    <span style="font-size:13px;color:${c.text};font-weight:600;">· ${t.label}</span>
-  </div>
-  <p style="font-size:10.5px;font-style:italic;color:${tMid};line-height:1.45;margin-bottom:9px;">${shortNote}</p>
-  <div style="display:flex;align-items:center;justify-content:space-between;">
-    <span style="font-size:9.5px;color:${tMut};display:flex;align-items:center;gap:3px;"><span>⌄</span> Voir plus</span>
-    <button style="padding:7px 14px;border-radius:100px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bPri};color:${bPrT};display:flex;align-items:center;gap:4px;">↗ Partager</button>
+    <button style="flex:1;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bSec};color:${bSeT};display:flex;align-items:center;justify-content:center;gap:4px;">\ud83d\udccc \u00c9pingler</button>
+    <button style="flex:1.2;padding:8px;border-radius:10px;border:none;font-family:Inter,sans-serif;font-size:11px;font-weight:600;background:${bPri};color:${bPrT};display:flex;align-items:center;justify-content:center;gap:4px;">\u2197 Partager</button>
   </div>
 </div>`;
 }
 
 /* ── RENDER ── */
-function renderScreens() {
+function renderScreen() {
   const isLight = S.mode === 'light';
   const t = TIERS[S.tier], c = getColors();
   const bg = isLight ? '#EDE8DF' : '#0C1524';
-  const mp = mapSVG(isLight, c);
-  const sb = searchBar(isLight);
-  const nv = appNav(isLight);
-  ['a','b','c'].forEach(id => {
-    const el = document.getElementById(`screen-${id}`);
-    el.style.background = bg;
-    el.innerHTML = mp + sb + (id==='a' ? popupA : id==='b' ? popupB : popupC)(isLight, t, c) + nv;
-  });
+  const el = document.getElementById('screen-a');
+  el.style.background = bg;
+  el.innerHTML = mapSVG(isLight, c) + searchBar(isLight) + popupA(isLight, t, c) + appNav(isLight);
 }
 
 function renderCandidates() {
@@ -509,8 +550,8 @@ function renderCandidates() {
         <div class="cand-hex">${cand.hex}</div>
         <div class="cand-desc">${cand.desc}</div>
         <div class="cand-badge" style="background:${bbg};color:${cand.text};">Très calme</div>
-        ${chosen&&isTC ? '<div class="cand-note" style="color:#0D9488;font-weight:600;margin-top:6px;">✓ Actif dans les mockups</div>' : ''}
-        ${chosen&&!isTC ? '<div class="cand-note" style="margin-top:6px;">Activez « Très calme » pour voir</div>' : ''}
+        ${chosen&&isTC ? '<div class="cand-note" style="color:#0D9488;font-weight:600;margin-top:6px;">\u2713 Actif dans le mockup</div>' : ''}
+        ${chosen&&!isTC ? '<div class="cand-note" style="margin-top:6px;">Activez \u00ab Très calme \u00bb pour voir</div>' : ''}
       </div>`;
     }).join('');
 }
@@ -522,25 +563,34 @@ function selectTier(tier) {
   const cc = document.getElementById('ctrl-color');
   cc.style.opacity      = tier==='tres_calme' ? '1' : '0.35';
   cc.style.pointerEvents = tier==='tres_calme' ? 'auto' : 'none';
-  renderScreens(); renderCandidates();
+  renderScreen(); renderCandidates();
 }
 function selectColor(color) {
   S.tcColor = color;
   document.querySelectorAll('#color-btns .pill').forEach(b => b.classList.toggle('on', b.dataset.color === color));
-  renderScreens(); renderCandidates();
+  renderScreen(); renderCandidates();
 }
 function selectMode(mode) {
   S.mode = mode;
   document.querySelectorAll('#mode-btns .pill').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
-  renderScreens();
+  renderScreen();
+}
+function selectGlow(glow) {
+  S.glow = glow === 'on';
+  document.querySelectorAll('#glow-btns .pill').forEach(b => {
+    b.classList.remove('on', 'glow-on');
+    if (b.dataset.glow === glow) b.classList.add(glow === 'on' ? 'glow-on' : 'on');
+  });
+  renderScreen();
 }
 
 document.querySelectorAll('#tier-btns .pill').forEach(b => b.addEventListener('click', () => selectTier(b.dataset.tier)));
 document.querySelectorAll('#color-btns .pill').forEach(b => b.addEventListener('click', () => selectColor(b.dataset.color)));
 document.querySelectorAll('#mode-btns .pill').forEach(b => b.addEventListener('click', () => selectMode(b.dataset.mode)));
+document.querySelectorAll('#glow-btns .pill').forEach(b => b.addEventListener('click', () => selectGlow(b.dataset.glow)));
 
 renderCandidates();
-renderScreens();
+renderScreen();
 </script>
 </body>
 </html>
