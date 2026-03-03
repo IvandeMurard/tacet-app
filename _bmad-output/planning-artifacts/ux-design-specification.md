@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
@@ -594,3 +594,154 @@ Selected zone: dot scales up + subtle dashed IRIS boundary at ~30% opacity. Zero
 - IrisPopup: absolutely-positioned `<div>`, `bottom-4 left-1/2 -translate-x-1/2 w-[88%]`
 - Light glass: `bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg rounded-2xl`
 - Dark glass: `bg-white/6 backdrop-blur-[24px] border border-white/10 rounded-2xl`
+
+## User Journey Flows
+
+### Journey 1 — Maria: Découverte & Score
+
+Maria découvre Tacet via un article ou un lien partagé. Elle cherche une adresse précise et doit obtenir un Score Sérénité en < 5 secondes sans expertise acoustique.
+
+**Parcours détaillé :**
+
+```mermaid
+flowchart TD
+    A["Maria ouvre Tacet (lien/article)"] --> B["Carte de Paris charge < 2s"]
+    B --> C["Tape adresse dans SearchBar"]
+    C --> D["Autocomplétion Photon (3 lettres)"]
+    D --> E["Sélectionne suggestion"]
+    E --> F["Map vole vers zone IRIS"]
+    F --> G["Score dot s'agrandit + pulse"]
+    G --> H["IrisPopup V2-A s'ouvre automatiquement"]
+    H --> I{"Score lisible en 1 seconde ?"}
+    I -->|"Oui : 72 · Calme"| J["Maria comprend immédiatement"]
+    I -->|"Non : confusion"| K["Note de caractère clarifie le contexte"]
+    K --> J
+    J --> L{"Action suivante ?"}
+    L -->|"Partager"| M["Bouton Share → WhatsApp/SMS"]
+    M --> N["Share card : zone + score + label + note"]
+    L -->|"Comparer"| O["Pin la zone (mini-tray AppNav)"]
+    O --> P["Cherche 2e adresse → compare"]
+    L -->|"Explorer"| Q["Active RUMEUR layer"]
+    Q --> R["Voit données temps réel du capteur proche"]
+    L -->|"Installer"| S["PWA install prompt (après 1er tap zone)"]
+
+    style A fill:#f0fdf4,stroke:#34D399
+    style H fill:#f0fdf4,stroke:#34D399
+    style N fill:#eff6ff,stroke:#60a5fa
+```
+
+**Chemins d'erreur :**
+- Adresse introuvable → Message calme "Adresse non trouvée, essayez un format différent" + suggestions
+- Zone IRIS sans données → Score affiché "—" + explication "Données indisponibles pour cette zone"
+- Réseau lent → Skeleton loader sur le popup, carte en cache PWA
+
+### Journey 2 — Maria: Monitoring & Cas Limites
+
+Maria revient 6 semaines après avoir signé son bail. Bruit inhabituel le matin. Elle rouvre Tacet pour comprendre.
+
+**Parcours détaillé :**
+
+```mermaid
+flowchart TD
+    A["Maria rouvre Tacet (PWA installée)"] --> B["Dernière zone visitée en cache"]
+    B --> C["Score PPBE toujours 72 · Calme"]
+    C --> D{"Bruit ressenti ≠ Score ?"}
+    D -->|"Oui"| E["Active layer RUMEUR"]
+    E --> F["Capteur rue de Riquet : 68 dB à 06h30"]
+    F --> G["Comprend : pic matinal réel"]
+    D -->|"Explore plus"| H["Active layer Chantiers"]
+    H --> I["Chantier voirie détecté : 80m, 4 mois prévus"]
+    I --> J["Comprend : Score annuel ≠ situation actuelle"]
+    G --> K{"Action suivante ?"}
+    J --> K
+    K -->|"Feedback"| L["Formulaire footer → signale le bruit"]
+    K -->|"Partager"| M["Screenshot + WhatsApp à colocataire"]
+    K -->|"Accepter"| N["Ferme l'app, reviendra dans 2 semaines"]
+
+    style A fill:#fef3c7,stroke:#FCD34D
+    style I fill:#fef3c7,stroke:#FCD34D
+    style L fill:#eff6ff,stroke:#60a5fa
+```
+
+**Signaux de confiance données :**
+- Vintage PPBE visible : "Données annuelles 2024 (Bruitparif)" en `text-xs text-muted-foreground`
+- Timestamp RUMEUR : "Mis à jour il y a 12 min" comme indicateur de fraîcheur
+- Layer Chantiers : source Open Data Paris, dates début/fin affichées
+- Distinction visuelle claire entre Score statique (PPBE) et données dynamiques (RUMEUR/Chantiers)
+
+### Journey 3 — Sophie: Comparaison Multi-Zones
+
+Sophie compare 3 écoles dans des arrondissements différents. Elle utilise son iPad, revient régulièrement, et partage ses découvertes.
+
+**Parcours détaillé :**
+
+```mermaid
+flowchart TD
+    A["Sophie ouvre Tacet sur iPad"] --> B["Cherche École A (15e)"]
+    B --> C["Score 68 · Calme → Pin zone"]
+    C --> D["Cherche École B (14e)"]
+    D --> E["Score 55 · Modéré → Pin zone"]
+    E --> F["Cherche École C (13e)"]
+    F --> G["Score 74 · Calme → Pin zone"]
+    G --> H["Mini-tray montre 3 zones pinnées"]
+    H --> I["Compare scores côte à côte"]
+    I --> J{"Besoin de plus de détail ?"}
+    J -->|"Oui"| K["Active RUMEUR aux heures de sortie"]
+    K --> L["Confirme : 13e plus calme à 16h30"]
+    J -->|"Non"| M["Décision : École C (13e)"]
+    L --> M
+    M --> N["Présente à conjoint avec screenshots"]
+    N --> O["Argument chiffré clôt le débat"]
+    O --> P["Sophie revient tous les 2-3 mois"]
+    P --> Q["Recommande Tacet à 2 parents (WhatsApp)"]
+
+    style A fill:#faf5ff,stroke:#D8B4FE
+    style H fill:#f0fdf4,stroke:#34D399
+    style Q fill:#eff6ff,stroke:#60a5fa
+```
+
+**Différences Sophie vs Maria :**
+
+| Dimension | Maria | Sophie |
+|-----------|-------|--------|
+| Fréquence | Usage unique (décision bail) | Récurrent (monitoring 2-3 mois) |
+| Device | Mobile (375px) | Tablette iPad (768px) |
+| Zones | 1-2 zones | 3+ zones en parallèle |
+| Partage | WhatsApp à colocataire (1:1) | Groupe WhatsApp parents (1:N) |
+| Layers | Score + RUMEUR | Score + RUMEUR + Chantiers |
+| Décision | Personnelle (signer le bail) | Familiale (choix école + conjoint) |
+
+### Journey Patterns
+
+5 patterns réutilisables identifiés à travers les 3 parcours :
+
+1. **Score-in-Seconds** — Recherche → vol carte → popup auto → score lisible en < 5s. Aucun tap intermédiaire entre sélection d'adresse et affichage du score. Ce pattern est le cœur de chaque parcours.
+
+2. **Progressive Layer Activation** — Score PPBE comme baseline → RUMEUR pour le temps réel → Chantiers pour l'événementiel. Chaque couche s'active à la demande, jamais imposée. L'utilisateur descend en profondeur naturellement.
+
+3. **Pin → Compare → Decide** — Pin d'une zone (1 tap) → pin d'une 2e/3e zone → mini-tray de comparaison. Maximum 3 zones en session (sessionStorage). Sophie utilise ce pattern systématiquement ; Maria l'utilise pour comparer 2 appartements.
+
+4. **Calm Degradation** — Quand les données ne correspondent pas au vécu (Maria J2), le système offre des couches d'explication (RUMEUR, Chantiers) plutôt que des alertes. Le ton reste informatif, jamais alarmiste. "Les données sont transparentes, pas anxiogènes."
+
+5. **Share as Acquisition** — Chaque moment de partage (WhatsApp, screenshot) est un canal d'acquisition organique. La share card est conçue comme un objet visuel autonome : zone + score + label + note de caractère. Chaque partage est une publicité gratuite.
+
+### Flow Optimization Principles
+
+1. **Zéro tap superflu** — De l'adresse au Score, aucune étape intermédiaire. Le popup s'ouvre automatiquement. Maria ne doit jamais chercher l'information — elle apparaît.
+
+2. **Un signal primaire** — À tout moment, un seul chiffre domine visuellement (le Score). Les couches secondaires (RUMEUR, Chantiers, dB expert) sont accessibles mais ne rivalisent jamais avec le signal principal.
+
+3. **Comparaison naturelle** — Le pin de zone est un geste aussi naturel que le favori Instagram. La mini-tray de comparaison est toujours visible dans l'AppNav. Comparer ne nécessite pas de mode spécial.
+
+4. **Confiance par transparence douce** — Provenance (Bruitparif), vintage (2024), fraîcheur RUMEUR — toujours visibles en `text-xs`, jamais en bannière d'alerte. L'utilisateur sait d'où viennent les données sans être inquiété par leur ancienneté.
+
+5. **Acquisition organique intégrée** — Le bouton Share est dans le popup principal (pas dans un menu). La share card est belle par design. Le lien partagé ouvre Tacet directement sur la zone concernée (deep link).
+
+### Enrichissement Futur : PLU & Travaux
+
+Opportunité identifiée : connecter les données PLU (Plan Local d'Urbanisme) et les travaux à venir de la Ville de Paris pour contextualiser la réponse acoustique. Exemples :
+- Zone classée en "mutation urbaine" dans le PLU → avertissement que le profil sonore pourrait évoluer
+- Travaux prévus à proximité (Open Data Paris) → indication temporelle ("chantier prévu Q3 2026")
+- Permis de construire accordés → anticipation d'évolution du quartier
+
+**Statut : hors scope V2, noté comme enrichissement V3 pour les layers contextuels.**
