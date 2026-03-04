@@ -1,5 +1,7 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+workflowComplete: true
+completedAt: 2026-03-04
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
