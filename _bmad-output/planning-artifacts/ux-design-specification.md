@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
@@ -1004,3 +1004,204 @@ Tacet V2 n'a qu'un seul formulaire : la SearchBar (autocomplétion adresse).
 - `@/components/ui/` — composants shadcn (utilisés tels quels)
 - `@/components/tacet/` — composants custom (IrisPopup, AppNav, ComparisonTray, ShareCard)
 - `@/components/map/` — logique MapLibre (ScoreDot config, layer setup)
+
+## Responsive Design & Accessibility
+
+### Responsive Strategy
+
+**Priorité : Mobile-first → Desktop → Tablette (si le temps le permet)**
+
+#### Mobile (référence : 375px) — P0
+
+L'écran mobile est le produit. Tout est conçu ici d'abord. Maria utilise Tacet sur son iPhone.
+
+**Layout mobile :**
+- SearchBar : `top-4 left-4 right-4`, full-width, `z-40`
+- MapLibre Canvas : `100vh × 100vw`, `z-10`
+- IrisPopup : `bottom-0 left-0 right-0`, `rounded-t-2xl`, max 60vh, `z-30`
+- AppNav : `bottom-4 left-4 right-4`, floating glass, `z-20`
+- IrisPopup et AppNav mutuellement exclusifs : popup ouvert → AppNav `opacity-0 pointer-events-none`
+- Touch targets : minimum `44×44px` partout (RGAA + Apple HIG)
+- Pas de hover states — tout est tap/press
+- Gestes carte : pinch-zoom, pan, double-tap zoom in, two-finger tap zoom out
+
+#### Desktop (1024px+) — P1
+
+Usage secondaire mais important : journalistes, urbanistes, Sophie sur laptop.
+
+**Adaptations desktop :**
+- SearchBar : `max-w-md`, `top-4 left-4` (coin haut gauche, comme Google Maps)
+- IrisPopup : **panneau latéral gauche** (`left-4 top-16 bottom-4`, `w-80`, `rounded-2xl`) — persistent, pas bottom sheet
+- AppNav : repositionné en sidebar gauche sous le popup, vertical
+- ComparisonTray : intégré dans le panneau latéral sous l'IrisPopup
+- Carte : occupe tout l'espace restant
+- Hover states activés : tooltip au survol des ScoreDots, preview score
+
+#### Tablette (768px) — P2 (si le temps le permet)
+
+Hérite du layout desktop avec touch targets plus larges. Pas de layout spécifique.
+
+**Adaptations mineures :**
+- Touch targets : `48×48px` (plus larges que desktop)
+- IrisPopup : même panneau latéral que desktop, légèrement plus large
+- Pas de hover states (touch device)
+
+### Breakpoint Strategy
+
+Approche mobile-first avec Tailwind breakpoints :
+
+| Breakpoint | Valeur | Cible | Priorité |
+|---|---|---|---|
+| default | `0px` | Mobile | P0 — layout de référence, bottom sheets, full-width |
+| `lg` | `1024px` | Desktop | P1 — panneau latéral, hover states |
+| `md` | `768px` | Tablette | P2 — hérite desktop, touch targets adaptés |
+
+**Pas de breakpoint `sm` (640px) :** Les petits mobiles (320px–375px) utilisent le même layout que 375px avec `min-w-[320px]`. Fluid scaling, pas de layout différent.
+
+**Pas de breakpoint `xl`/`2xl` :** Au-delà de 1024px, le layout desktop est figé. La carte prend l'espace supplémentaire.
+
+### Accessibility Strategy (RGAA ≥ 95 / WCAG 2.1 AA)
+
+#### Cible de conformité
+
+**RGAA** (Référentiel Général d'Amélioration de l'Accessibilité) — obligation légale française. Tacet vise ≥ 95% de conformité.
+**WCAG 2.1 AA** comme standard technique sous-jacent.
+
+#### Tier Color Contrast — Variantes assombries (Option 1)
+
+Les couleurs tier pastelles sont utilisées pour les ScoreDots et badges. Pour le **texte du score** sur fond glass, des variantes assombries garantissent WCAG AA (≥ 4.5:1) et visent AAA (≥ 7:1) quand possible.
+
+**Light mode — texte score sur glass (`~#FDFCFA`) :**
+
+| Tier | Dot/Badge | Texte Score | Ratio estimé | WCAG |
+|---|---|---|---|---|
+| Très calme | `#34D399` | `#047857` (emerald-700) | ~5.2:1 | AA ✅ |
+| Calme | `#6EE7B7` | `#059669` (emerald-600) | ~4.6:1 | AA ✅ |
+| Modéré | `#FCD34D` | `#A16207` (yellow-700) | ~4.8:1 | AA ✅ |
+| Bruyant | `#FCA5A5` | `#B91C1C` (red-700) | ~5.4:1 | AA ✅ |
+| Très bruyant | `#D8B4FE` | `#7C3AED` (violet-600) | ~5.0:1 | AA ✅ |
+
+**Dark mode — texte score sur glass (`~#0F1729`) :**
+
+| Tier | Dot/Badge | Texte Score | Ratio estimé | WCAG |
+|---|---|---|---|---|
+| Très calme | `#34D399` | `#34D399` (inchangé) | ~6.8:1 | AA ✅ AAA ✅ |
+| Calme | `#6EE7B7` | `#6EE7B7` (inchangé) | ~9.2:1 | AA ✅ AAA ✅ |
+| Modéré | `#FCD34D` | `#FCD34D` (inchangé) | ~10.5:1 | AA ✅ AAA ✅ |
+| Bruyant | `#FCA5A5` | `#FCA5A5` (inchangé) | ~6.4:1 | AA ✅ |
+| Très bruyant | `#D8B4FE` | `#D8B4FE` (inchangé) | ~6.1:1 | AA ✅ |
+
+**Implémentation :** Tokens CSS `--tier-text-*` distincts de `--tier-dot-*`. Le mode light utilise les variantes assombries, le mode dark utilise les pastels d'origine. Chaque token est vérifié avec [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/).
+
+#### Navigation clavier
+
+| Action | Raccourci |
+|---|---|
+| Focus SearchBar | `Tab` (premier élément focusable) |
+| Naviguer suggestions | `↑` `↓` |
+| Sélectionner suggestion | `Enter` |
+| Naviguer AppNav | `Tab` entre icônes |
+| Activer layer | `Enter` / `Space` sur toggle |
+| Fermer IrisPopup | `Escape` |
+| Vue tableau accessible | `Alt+T` |
+| Zone suivante/précédente | `→` `←` (quand carte focusée) |
+
+#### TextAlternativeView (exigence RGAA carte)
+
+Le canvas WebGL MapLibre est inaccessible aux lecteurs d'écran. Le RGAA exige une alternative textuelle complète.
+
+**Vue tableau accessible :**
+- Accès via `Alt+T` ou lien footer "Vue accessible"
+- Tableau HTML sémantique : `<table>`, `<thead>`, `<th scope="col">`, `<tbody>`
+- Colonnes : Arrondissement, Zone IRIS, Score Sérénité, Tier, dB Jour (Lden), dB Nuit (Ln)
+- Filtres : par arrondissement (select), par tier (checkboxes)
+- Tri : par score (asc/desc), par arrondissement
+- Chaque ligne cliquable → ouvre IrisPopup et centre la carte
+- Design première-classe : même typographie, mêmes tokens
+
+#### ARIA & Screen Readers
+
+```html
+<!-- Carte -->
+<div role="application" aria-label="Carte acoustique de Paris" aria-describedby="map-desc">
+  <p id="map-desc" class="sr-only">
+    Carte interactive affichant les scores de sérénité acoustique des 992 zones IRIS de Paris.
+    Appuyez sur Alt+T pour la vue tableau accessible.
+  </p>
+</div>
+
+<!-- IrisPopup -->
+<div role="dialog" aria-label="Score Sérénité de Quartier Crimée, 19e" aria-live="polite">
+  <h2>Quartier Crimée · 19e</h2>
+  <p aria-label="Score Sérénité : 72 sur 100, niveau Calme">72 · Calme</p>
+</div>
+
+<!-- AppNav -->
+<nav aria-label="Navigation principale">
+  <button aria-label="Afficher la carte" aria-pressed="true">...</button>
+  <button aria-label="Activer les données RUMEUR temps réel" aria-pressed="false">...</button>
+  <button aria-label="Zones épinglées : 2 zones">...</button>
+</nav>
+
+<!-- SearchBar -->
+<div role="combobox" aria-expanded="true" aria-haspopup="listbox" aria-label="Rechercher une adresse à Paris">
+  <input aria-autocomplete="list" aria-controls="search-results" />
+  <ul id="search-results" role="listbox">...</ul>
+</div>
+```
+
+#### Focus Management
+
+- IrisPopup ouvert : focus trap — `Tab` circule à l'intérieur (score → actions → provenance → close)
+- IrisPopup fermé : focus retourne au ScoreDot déclencheur ou à SearchBar
+- SearchBar : autofocus sur desktop. Sur mobile, pas d'autofocus (évite clavier intempestif)
+- Skip link : `<a href="#main-content" class="sr-only focus:not-sr-only">Aller au contenu principal</a>`
+
+### Testing Strategy
+
+#### Responsive Testing
+
+| Device | Test | Priorité |
+|---|---|---|
+| iPhone SE (375×667) | Layout mobile référence | P0 |
+| iPhone 15 Pro (393×852) | Layout mobile courant | P0 |
+| Desktop Chrome (1440×900) | Layout desktop panneau latéral | P1 |
+| Android (360×800) | Compatibilité Android | P1 |
+| iPad 10.9" (810×1080) | Layout tablette | P2 |
+
+#### Accessibility Testing
+
+| Outil | Type | Fréquence |
+|---|---|---|
+| axe-core (CI) | Audit automatisé WCAG | Chaque PR |
+| Lighthouse a11y | Score global | Hebdomadaire |
+| VoiceOver (iOS/macOS) | Screen reader Apple | Avant release |
+| NVDA (Windows) | Screen reader Windows | Avant release |
+| Navigation clavier | Tous les parcours J1/J2/J3 | Avant release |
+| Daltonisme simulation | Contraste tiers couleur | Après changement palette |
+
+#### Critères de validation
+
+- Lighthouse Accessibility ≥ 95
+- axe-core : 0 violations critical/serious
+- Tous les parcours (J1, J2, J3) complétables au clavier seul
+- TextAlternativeView fonctionnelle et complète
+- Tous les touch targets ≥ 44×44px (mobile) / 48×48px (tablette)
+- Tous les ratios de contraste tier vérifiés via WebAIM
+
+### Implementation Guidelines
+
+#### Responsive Development
+- `rem` pour typographie, `px` pour spacing grid (4px base), `%`/`vw`/`vh` pour layouts
+- Media queries mobile-first : styles par défaut = mobile, `@media (min-width: 1024px)` pour desktop
+- CSS Container Queries pour composants adaptifs (IrisPopup, ComparisonTray)
+- Carte MapLibre : `resize` observer pour redimensionner le canvas au changement de viewport
+
+#### Accessibility Development
+- HTML sémantique strict : `<nav>`, `<main>`, `<dialog>`, `<table>`, `<h1>`–`<h3>`
+- `aria-live="polite"` pour les mises à jour de score (pas `assertive`)
+- `aria-label` sur tous les boutons icône sans texte visible
+- Focus visible : `outline-2 outline-offset-2 outline-teal-500` (jamais `outline-none`)
+- `prefers-reduced-motion` : désactiver animations carte (flyTo instant), pulse dots, transitions
+- `prefers-color-scheme` : respecté pour le mode light/dark auto
+- `prefers-contrast` : renforcer bordures, augmenter opacité glass en mode high-contrast
