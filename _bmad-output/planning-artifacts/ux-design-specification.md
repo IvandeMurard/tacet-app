@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
@@ -873,3 +873,134 @@ Composants disponibles directement depuis shadcn/ui, avec customisation minimale
 - `OfflineBanner` (shadcn Alert, calm degradation)
 - `TextAlternativeView` (RGAA table, première-classe)
 - Ambient Glow toggle (MapLibre circle layer, OFF par défaut)
+
+## UX Consistency Patterns
+
+### Action Hierarchy (Boutons)
+
+3 niveaux d'action avec traitement visuel distinct :
+
+| Niveau | Usage | Style | Exemples |
+|---|---|---|---|
+| **Primaire** | Action principale du contexte | `bg-teal-600 text-white shadow-sm` | Share, Installer PWA |
+| **Secondaire** | Action alternative | Glass (`bg-white/60 backdrop-blur-sm border`) | Pin zone, Comparer |
+| **Tertiaire** | Action discrète | `text-sm text-muted-foreground underline-offset-4 hover:underline` | Voir données brutes, Retour |
+
+**Règle mobile :** Un seul bouton primaire visible par écran. Jamais deux primaires en compétition.
+
+**Boutons icône (AppNav) :** `size-10 rounded-xl` + glass treatment. `aria-label` obligatoire. État actif : fond tier-coloré léger (`bg-tier/10`).
+
+### Feedback Patterns
+
+Registre émotionnel **calme** — jamais alarmiste, toujours informatif.
+
+#### Succès
+- Micro-animation (check icon fade-in 200ms) + texte confirmatif discret
+- Ton : "Zone épinglée" — pas "Bravo !"
+- Toast 2s auto-dismiss, position `top-4 right-4`
+
+#### Erreur
+- `border-amber-300 bg-amber-50/80` (jamais rouge — le rouge est réservé au tier "Bruyant")
+- Ton empathique + actionnable : "Adresse non trouvée — essayez un format différent"
+- Reste visible jusqu'à correction, pas d'auto-dismiss
+
+#### Loading
+- Skeleton : formes arrondies pulsantes (`animate-pulse`) reproduisant l'anatomie du composant
+- IrisPopup loading : skeleton rectangles pour score + text + bar
+- Map loading : placeholder teinte crème (`--bg-canvas`) + spinner discret centre
+
+#### Données indisponibles
+- Score "—" quand zone IRIS sans données PPBE
+- Explication calme : "Données indisponibles pour cette zone" en `text-sm text-muted-foreground`
+- Pas de blocage : l'utilisateur peut continuer à explorer
+
+#### Offline (Calm Degradation)
+- OfflineBanner : shadcn `Alert`, position `top-0`, fond neutre
+- Ton : "Vous êtes hors ligne — dernières données consultées disponibles"
+- Données en cache PWA accessibles, layers dynamiques (RUMEUR) grisés
+
+### Form Patterns
+
+Tacet V2 n'a qu'un seul formulaire : la SearchBar (autocomplétion adresse).
+
+**SearchBar :**
+- Placeholder : *"Rechercher une adresse à Paris…"* en `text-muted-foreground`
+- Activation : tap → fond blanc opaque, border teal subtil, clavier ouvert
+- Debounce : 350ms avant appel Photon geocoding
+- Résultats : max 5 suggestions, format "Rue + Arrondissement"
+- Sélection : tap suggestion → SearchBar collapse, map fly immédiat
+- Vide : "Aucune adresse trouvée à Paris" inline
+- Erreur réseau : "Recherche indisponible — vérifiez votre connexion"
+
+**Convention future V3 :** Si formulaires additionnels (feedback, contact) — validation inline, labels au-dessus des champs, erreurs en `text-sm text-red-500` sous le champ.
+
+### Navigation Patterns
+
+#### Navigation spatiale (Map-first)
+- Carte = écran principal. Tout part de la carte et y revient
+- Aucune page secondaire en V2. Pas de routing multi-pages — tout en overlay sur la carte
+- Z-index strict : SearchBar (`z-40`) > IrisPopup (`z-30`) > AppNav (`z-20`) > Map (`z-10`)
+
+#### Transitions
+| Élément | Animation | Durée |
+|---|---|---|
+| Map fly | `flyTo()` MapLibre, `ease-in-out` | 1200ms |
+| IrisPopup | slide-up `translateY(100%)→0` | 300ms ease |
+| ComparisonTray | expand/collapse | 200ms |
+| Layer toggle | fade opacity | 150ms |
+
+#### Retour / Dismiss
+- IrisPopup : swipe-down ou tap hors du panel → slide-down 200ms
+- ComparisonTray : bouton collapse ou tap hors du tray
+- SearchBar ouverte : tap hors des résultats → collapse
+- Pas de bouton "Retour" global — la carte EST le home
+
+### Map Interaction Patterns
+
+#### Tap Zone
+1. Tap sur ScoreDot → dot pulse + agrandit (8px → 16px)
+2. Carte centre sur le dot si hors viewport
+3. IrisPopup slide-up automatiquement
+4. Boundary IRIS pointillés apparaît (`stroke-dasharray: 5 4`, 30% opacity)
+
+#### Zoom Behavior
+- Zoom < 13 : clusters d'arrondissement (dots groupés + score moyen)
+- Zoom 13–16 : dots IRIS individuels, taille progressive
+- Zoom > 16 : dots persistent, carte de détail domine
+- Geste : pinch-to-zoom natif, double-tap zoom in, two-finger tap zoom out
+
+#### Layer Activation
+- Activé depuis AppNav (Toggle shadcn)
+- Icône du layer change de couleur quand actif
+- Données apparaissent en fade 200ms
+- Un seul layer contextuel actif à la fois (RUMEUR OU Chantiers)
+
+### Modal & Overlay Patterns
+
+#### IrisPopup (bottom sheet)
+- Slide-up, focus trap, dismiss par swipe-down ou tap extérieur
+- Ne bloque pas l'interaction carte (on peut scroller la partie visible)
+- Hauteur automatique selon contenu, max 60% viewport
+
+#### PWAInstallPrompt (dialog)
+- Trigger : après 1er tap zone (l'utilisateur a vu de la valeur)
+- shadcn Dialog, backdrop semi-opaque, focus trap
+- Un seul CTA : "Installer" (primaire) + "Plus tard" (tertiaire)
+- Une seule fois par session (`sessionStorage`)
+
+#### ComparisonTray (panel expand)
+- Pas un modal : overlay au-dessus de AppNav
+- Interaction carte maintenue même avec tray ouvert
+- Dismiss : bouton collapse ou tap hors du tray
+
+### shadcn/ui Integration Rules
+
+1. **Tokens CSS Tacet surclassent shadcn** — Variables Tacet (`--bg-canvas`, `--tier-calme`, etc.) ont priorité sur les defaults
+2. **Glass treatment systématique** — Tous les composants floating utilisent le même glass treatment
+3. **Pas de thème shadcn dual** — Tacet gère light/dark via ses propres tokens, pas via classes `dark:` shadcn
+4. **Animations custom** — Transitions shadcn remplacées par les timings Tacet (150ms, 200ms, 300ms, 1200ms)
+
+**Convention de nommage :**
+- `@/components/ui/` — composants shadcn (utilisés tels quels)
+- `@/components/tacet/` — composants custom (IrisPopup, AppNav, ComparisonTray, ShareCard)
+- `@/components/map/` — logique MapLibre (ScoreDot config, layer setup)
