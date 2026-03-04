@@ -1,5 +1,5 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 inputDocuments:
   - docs/planning/product-brief.md
   - docs/planning/prd.md
@@ -745,3 +745,131 @@ Opportunité identifiée : connecter les données PLU (Plan Local d'Urbanisme) e
 - Permis de construire accordés → anticipation d'évolution du quartier
 
 **Statut : hors scope V2, noté comme enrichissement V3 pour les layers contextuels.**
+
+## Component Strategy
+
+### Design System Components (shadcn/ui)
+
+Composants disponibles directement depuis shadcn/ui, avec customisation minimale :
+
+| Composant shadcn/ui | Usage Tacet | Customisation |
+|---|---|---|
+| `Command` / `Combobox` | **SearchBar** — autocomplétion adresse Photon | Style glass, placeholder, Paris-bounded results |
+| `Badge` | **TierBadge** — label de tier ("Calme", "Modéré"…) | Couleurs 5-tier custom, `rounded-full` |
+| `Button` | Actions (Share, Pin, Install) | Variantes glass + icon-only pour AppNav |
+| `Toggle` | Layer switches (RUMEUR, Chantiers, Ambient) | Couleur tier-aware |
+| `Alert` | **OfflineBanner** — mode dégradé calme | Tons neutres, jamais alarmiste |
+| `Dialog` | **PWAInstallPrompt** — prompt d'installation | Glass treatment, un seul CTA |
+| `Separator` | Divisions internes IrisPopup | Fine, `border-subtle` |
+| `Tooltip` | Info-bulles AppNav | Glass variant |
+
+### Custom Components
+
+#### IrisPopup
+
+**But :** Afficher le Score Sérénité d'une zone IRIS avec note de caractère, en < 1 seconde de lecture. Cœur de l'expérience Tacet.
+
+**Anatomie :**
+- Zone name + arrondissement (header)
+- Score `text-5xl font-bold` en couleur tier (centre visuel)
+- SerenityBar (barre de progression 4px, couleur tier)
+- TierBadge (label tier)
+- Note de caractère (italic, `text-muted-foreground`)
+- Actions : Share + Pin (boutons glass)
+- DataProvenance footer (`text-xs text-muted-foreground`)
+
+**États :** default (score visible), loading (skeleton), no-data ("—" + explication), expert-mode (+ dB jour/nuit), pinned (icône pleine)
+
+**Glass :**
+- Light : `bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg rounded-2xl`
+- Dark : `bg-white/6 backdrop-blur-[24px] border border-white/10 rounded-2xl`
+
+**Animation :** slide-up 300ms ease depuis `bottom-0`
+**Position :** `bottom-0 left-0 right-0`, `rounded-t-2xl`, `z-30`
+**Accessibilité :** focus trap quand ouvert, `aria-live="polite"` pour le score, `role="dialog"`, `aria-label="Score Sérénité de [zone]"`
+
+#### AppNav
+
+**But :** Accès aux layers, zones pinnées, paramètres — sans quitter la carte.
+
+**Contenu :** 5 icônes — Carte (home), RUMEUR (layer), Chantiers (layer), Paramètres, Pins (avec badge compteur)
+
+**États :** default, layer-active (icône colorée tier), pins-count (badge numérique 1-3), hidden (quand IrisPopup est open)
+
+**Glass :** même traitement que IrisPopup
+**Position :** `bottom-4 left-4 right-4`, `z-20`
+**Accessibilité :** `<nav>` landmark, `aria-label` sur chaque bouton icône, labels `text-[10px] font-medium tracking-wide uppercase`
+
+#### ComparisonTray
+
+**But :** Comparer jusqu'à 3 zones pinnées côte à côte (Sophie J3).
+
+**Contenu :** Liste de zones pinnées avec nom, arrondissement, score, tier, bouton unpin
+**États :** collapsed (badge compteur dans AppNav), expanded (overlay au-dessus de AppNav), empty (pas de zones pinnées)
+**Stockage :** `sessionStorage` — maximum 3 zones, reset à chaque session
+**Animation :** expand/collapse 200ms ease
+**Accessibilité :** `aria-label="Zones épinglées pour comparaison"`, navigation au clavier entre zones
+
+#### ScoreDot (MapLibre layer)
+
+**But :** Marqueur circulaire tier-coloré au centroïde de chaque zone IRIS sur la carte.
+
+**Note :** Pas un composant React — c'est un layer MapLibre `circle` configuré programmatiquement.
+
+**Specs :**
+- Source : GeoJSON des centroïdes IRIS
+- Rayon : 8px (zoom 13) → 12px (zoom 16), interpolation linéaire
+- Fill : couleur tier (`#34D399`, `#6EE7B7`, `#FCD34D`, `#FCA5A5`, `#D8B4FE`)
+- Stroke : white 1.5px (light) / `rgba(255,255,255,0.3)` (dark)
+- Selected : rayon 16px, pulse animation CSS, drop shadow
+- Clustering : MapLibre native cluster à zoom < 13, icône arrondissement + score moyen
+
+#### ShareCard
+
+**But :** Produire un visuel autonome et beau pour le partage WhatsApp/social (acquisition organique).
+
+**Contenu :** zone name + Score + tier label + note de caractère + branding Tacet discret
+**Génération :** côté client via `dom-to-image` ou Canvas API
+**Design :** même glass treatment que IrisPopup, logo Tacet en watermark discret
+**Format :** image PNG optimisée pour aperçu WhatsApp/iMessage
+
+#### TextAlternativeView
+
+**But :** Vue clavier-navigable alternative au canvas WebGL — exigence RGAA ≥ 95.
+
+**Contenu :** Tableau trié par arrondissement → zones IRIS avec Score, tier, dB jour/nuit
+**Accès :** raccourci clavier (`Alt+T`) ou lien dans le footer
+**Design :** première-classe, pas un fallback caché. Table clean avec filtres par arrondissement et par tier.
+**Accessibilité :** `role="table"`, en-têtes de colonnes, navigation cellule par cellule
+
+#### DataProvenance
+
+**But :** Afficher source + vintage des données de manière calme et transparente.
+
+**Style :** `text-xs text-muted-foreground`
+**Variantes :**
+- PPBE : "Bruitparif · PPBE 2024" (statique)
+- RUMEUR : "RUMEUR · mis à jour il y a 12 min" (timestamp dynamique)
+- Chantiers : "Open Data Paris · chantier du 15/01 au 30/04/2026" (dates)
+**Position :** footer de l'IrisPopup, sous les actions
+
+### Component Implementation Strategy
+
+**Phase 1 — Core (MVP, flux Maria J1) :**
+- `SearchBar` (shadcn/ui Command + Photon geocoding)
+- `IrisPopup` (custom, glass, auto-reveal)
+- `ScoreDot` (MapLibre circle layer)
+- `TierBadge` (shadcn/ui Badge, couleurs 5-tier)
+- `DataProvenance` (micro-composant footer)
+
+**Phase 2 — Depth (Maria J2 + Sophie J3) :**
+- `AppNav` (custom glass + shadcn Toggle/Button)
+- `ComparisonTray` (custom, sessionStorage, max 3 zones)
+- Layer toggles RUMEUR / Chantiers (shadcn Toggle)
+
+**Phase 3 — Polish :**
+- `ShareCard` (dom-to-image, acquisition organique)
+- `PWAInstallPrompt` (shadcn Dialog, après 1er tap zone)
+- `OfflineBanner` (shadcn Alert, calm degradation)
+- `TextAlternativeView` (RGAA table, première-classe)
+- Ambient Glow toggle (MapLibre circle layer, OFF par défaut)
