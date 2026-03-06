@@ -2,17 +2,14 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Search, X, Loader2 } from "lucide-react";
+import {
+  usePhotonSearch,
+  photonFeatureToDisplay,
+  photonFeatureToCoords,
+  type PhotonFeature,
+} from "@/hooks/usePhotonSearch";
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-const GEOCODING_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
-// Bbox Paris : [west, south, east, north]
-const PARIS_BBOX = "2.224,48.815,2.470,48.902";
-
-interface GeocodingFeature {
-  place_name: string;
-  text: string;
-  geometry: { coordinates: [number, number] };
-}
+const DEBOUNCE_MS = 350;
 
 export interface SearchBarProps {
   onAddressSelect: (lngLat: [number, number]) => void;
@@ -20,72 +17,44 @@ export interface SearchBarProps {
 
 export function SearchBar({ onAddressSelect }: SearchBarProps) {
   const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<GeocodingFeature[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Appel API Mapbox Geocoding avec les résultats limités à Paris
-  const fetchSuggestions = useCallback(async (q: string) => {
-    if (!MAPBOX_TOKEN || q.trim().length < 3) {
-      setSuggestions([]);
-      setIsOpen(false);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const url = new URL(`${GEOCODING_URL}/${encodeURIComponent(q.trim())}.json`);
-      url.searchParams.set("access_token", MAPBOX_TOKEN);
-      url.searchParams.set("bbox", PARIS_BBOX);
-      url.searchParams.set("country", "fr");
-      url.searchParams.set("language", "fr");
-      url.searchParams.set("types", "address,poi,neighborhood");
-      url.searchParams.set("limit", "5");
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(`Geocoding error: ${res.status}`);
-      const data = await res.json();
-      const features: GeocodingFeature[] = data.features ?? [];
-      setSuggestions(features);
-      setIsOpen(features.length > 0);
-    } catch {
-      setSuggestions([]);
-      setIsOpen(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setQuery(val);
+  useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (val.trim().length >= 3) {
-      debounceRef.current = setTimeout(() => fetchSuggestions(val), 350);
+    if (query.trim().length >= 2) {
+      debounceRef.current = setTimeout(() => setDebouncedQuery(query.trim()), DEBOUNCE_MS);
     } else {
-      setSuggestions([]);
-      setIsOpen(false);
+      setDebouncedQuery(null);
     }
-  };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  const { data, isLoading } = usePhotonSearch(debouncedQuery, DEBOUNCE_MS);
+  const suggestions = data?.features ?? [];
+
+  useEffect(() => {
+    setIsOpen(suggestions.length > 0);
+  }, [suggestions.length]);
 
   const handleSelect = useCallback(
-    (feature: GeocodingFeature) => {
-      setQuery(feature.place_name);
+    (feature: PhotonFeature) => {
+      setQuery(photonFeatureToDisplay(feature));
       setIsOpen(false);
-      setSuggestions([]);
-      onAddressSelect(feature.geometry.coordinates);
+      onAddressSelect(photonFeatureToCoords(feature));
     },
     [onAddressSelect]
   );
 
   const handleClear = () => {
     setQuery("");
-    setSuggestions([]);
+    setDebouncedQuery(null);
     setIsOpen(false);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
     inputRef.current?.focus();
   };
 
@@ -96,7 +65,6 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
     }
   };
 
-  // Fermeture au clic en dehors
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -107,19 +75,6 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Nettoyage debounce
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
-  // Formatage du sous-titre de suggestion (adresse sans le nom principal)
-  const formatSubtitle = (feature: GeocodingFeature) => {
-    const subtitle = feature.place_name.replace(feature.text, "").replace(/^[,\s]+/, "");
-    return subtitle || null;
-  };
-
   return (
     <div
       ref={containerRef}
@@ -127,7 +82,6 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
       role="search"
       aria-label="Rechercher une adresse à Paris"
     >
-      {/* Champ de saisie */}
       <div className="flex items-center gap-2.5 rounded-xl border border-white/15 bg-black/65 px-3.5 py-2.5 shadow-2xl backdrop-blur-xl">
         {isLoading ? (
           <Loader2 size={15} className="shrink-0 animate-spin text-white/40" aria-hidden />
@@ -138,7 +92,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
           ref={inputRef}
           type="text"
           value={query}
-          onChange={handleInputChange}
+          onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => suggestions.length > 0 && setIsOpen(true)}
           placeholder="Rechercher une adresse à Paris…"
@@ -160,31 +114,29 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
         )}
       </div>
 
-      {/* Suggestions */}
       {isOpen && suggestions.length > 0 && (
         <ul
           className="mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/70 shadow-2xl backdrop-blur-xl"
           role="listbox"
           aria-label="Suggestions d'adresses"
         >
-          {suggestions.map((feature, i) => {
-            const subtitle = formatSubtitle(feature);
-            return (
-              <li key={i} role="option" aria-selected={false}>
-                <button
-                  onClick={() => handleSelect(feature)}
-                  className="w-full px-4 py-2.5 text-left transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
-                >
-                  <span className="block text-sm font-medium text-white/90 truncate">
-                    {feature.text}
+          {suggestions.map((feature, i) => (
+            <li key={i} role="option" aria-selected={false}>
+              <button
+                onClick={() => handleSelect(feature)}
+                className="w-full px-4 py-2.5 text-left transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+              >
+                <span className="block text-sm font-medium text-white/90 truncate">
+                  {photonFeatureToDisplay(feature)}
+                </span>
+                {(feature.properties.district || feature.properties.city) && (
+                  <span className="block text-xs text-white/40 truncate">
+                    {feature.properties.district ?? feature.properties.city}
                   </span>
-                  {subtitle && (
-                    <span className="block text-xs text-white/40 truncate">{subtitle}</span>
-                  )}
-                </button>
-              </li>
-            );
-          })}
+                )}
+              </button>
+            </li>
+          ))}
         </ul>
       )}
     </div>
