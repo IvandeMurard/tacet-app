@@ -1,0 +1,89 @@
+# generated: 2026-03-06
+# project: Tacet
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-03-06
+project: Tacet
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Open-Source Map Foundation
+  epic-1: in-progress
+  1-1-maplibre-gl-js-migration-and-map-container: ready-for-dev
+  1-2-pmtiles-protocol-and-base-map-tiles: ready-for-dev
+  1-3-iris-score-dots-layer-and-zone-selection: ready-for-dev
+  1-4-zone-highlight-and-boundary-on-selection: ready-for-dev
+  1-5-ci-cd-pipeline-and-unit-tests: ready-for-dev
+  1-6-lighthouse-ci-budget-guards: ready-for-dev
+  epic-1-retrospective: optional
+
+  # Epic 2: Address Discovery & Acoustic Score
+  epic-2: in-progress
+  2-1-photon-komoot-geocoding-and-searchbar: ready-for-dev
+  2-2-irispopup-auto-reveal-and-score-display: ready-for-dev
+  2-3-data-vintage-disclaimer-and-methodology-link: ready-for-dev
+  2-4-native-share-and-sharecard: ready-for-dev
+  2-5-zone-pin-and-comparisontray: ready-for-dev
+  2-6-serenitybar-tierbadge-and-dataprovenance: ready-for-dev
+  epic-2-retrospective: optional
+
+  # Epic 3: Real-Time & Contextual Data Layers
+  epic-3: in-progress
+  3-1-rumeur-api-proxy-and-server-side-cache: ready-for-dev
+  3-2-userumeurdata-hook-and-rumeur-layer-on-map: ready-for-dev
+  3-3-rumeur-timestamp-and-stale-unavailable-indicator: ready-for-dev
+  3-4-chantiers-api-proxy-and-chantiers-layer: ready-for-dev
+  3-5-chantiers-limitation-disclosure-and-elections-layer: ready-for-dev
+  3-6-barometre-du-silence-page: ready-for-dev
+  epic-3-retrospective: optional
+
+  # Epic 4: Progressive Web App & Offline
+  epic-4: in-progress
+  4-1-serwist-service-worker-and-precache: ready-for-dev
+  4-2-offline-last-visited-zone-and-runtime-caching: ready-for-dev
+  4-3-pwa-install-prompt-and-offline-banner: ready-for-dev
+  4-4-manifest-icons-and-installability: ready-for-dev
+  epic-4-retrospective: optional
+
+  # Epic 5: Accessibility, Compliance & End-to-End Quality
+  epic-5: in-progress
+  5-1-textalternativeview-keyboard-navigable-zone-table: ready-for-dev
+  5-2-full-keyboard-navigation-and-focus-management: ready-for-dev
+  5-3-legal-notice-attributions-and-privacy-policy: ready-for-dev
+  5-4-feedback-and-b2b-contact-forms: ready-for-dev
+  5-5-rgpd-compliance-and-zero-third-party-tracking: ready-for-dev
+  5-6-e2e-playwright-scenarios: ready-for-dev
+  epic-5-retrospective: optional
