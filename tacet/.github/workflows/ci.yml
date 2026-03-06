@@ -64,8 +64,16 @@ jobs:
         working-directory: tacet
         run: |
           npm run start &
-          sleep 15
+          npx wait-on http://localhost:3000 --timeout 30000
           CI=true PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tacet/playwright-report/
+          retention-days: 14
 
   lighthouse:
     runs-on: ubuntu-latest
