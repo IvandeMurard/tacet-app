@@ -7,7 +7,7 @@ import { Legend } from "@/components/Legend";
 import { IrisPopup } from "@/components/IrisPopup";
 import { SearchBar } from "@/components/SearchBar";
 import { ComparisonTray } from "@/components/tacet/ComparisonTray";
-import { useMapContext } from "@/contexts/MapContext";
+import { useMapContext, MAX_PINNED } from "@/contexts/MapContext";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 
 const MapContainer = dynamic(
@@ -91,6 +91,7 @@ export function MapPageClient() {
   const [trayOpen, setTrayOpen] = useState(false);
 
   const isPinned = selectedZone ? pinnedZones.some((z) => z.code_iris === selectedZone.code_iris) : false;
+  const pinDisabled = !isPinned && pinnedZones.length >= MAX_PINNED;
 
   return (
     <main className="relative h-screen w-screen overflow-hidden">
@@ -111,6 +112,7 @@ export function MapPageClient() {
           onClose={() => setSelectedZone(null)}
           onPin={() => pinZone(selectedZone)}
           isPinned={isPinned}
+          pinDisabled={pinDisabled}
         />
       )}
       <ComparisonTray isOpen={trayOpen} onClose={() => setTrayOpen(false)} />
