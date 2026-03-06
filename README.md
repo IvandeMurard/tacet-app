@@ -70,17 +70,17 @@ Detailed tracking hosted on [Linear] (https://linear.app/ivanportfolio/project/t
 * [x] 2026 Paris Elections thematic layer
 * [x] Responsive web app (Next.js + Mapbox GL JS)
 
-### 🔄 V2 — In Progress (TAC-28→37)
+### 🔄 V2 — Finishing (TAC-28→37)
 
-* [] **Working on open-source & free infrastructure migration**
+* [] **Working on UX/UI, open-source, and free infrastructure migration**
 
 ### V3 — Planned
 
-* [] **Planning to work on real-time data integration and B2B features**
+* [] **I will work on real-time data integration and B2B features**
 
 ### V4+ — Vision
 
-* [] **Planning to work on natural language query and expand to other large cities**
+* [] **I will work on natural language queries and expand to other large cities**
 
 ## Sources and Attribution
 
