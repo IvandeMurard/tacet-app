@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tacet/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tacet
+        run: npm ci
+
+      - name: Lint
+        working-directory: tacet
+        run: npm run lint
+
+      - name: Unit tests
+        working-directory: tacet
+        run: npm run test
+
+      - name: Build
+        working-directory: tacet
+        run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tacet/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tacet
+        run: npm ci
+
+      - name: Build
+        working-directory: tacet
+        run: npm run build
+
+      - name: Install Playwright browsers
+        working-directory: tacet
+        run: npx playwright install --with-deps chromium
+
+      - name: Start server and run E2E
+        working-directory: tacet
+        run: |
+          npm run start &
+          sleep 15
+          CI=true PLAYWRIGHT_BASE_URL=http://localhost:3000 npx playwright test
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tacet/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tacet
+        run: npm ci
+
+      - name: Build
+        working-directory: tacet
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        working-directory: tacet
+        run: npx lhci autorun
