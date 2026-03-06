@@ -2,7 +2,7 @@
 # project: Tacet
 # project_key: NOKEY
 # tracking_system: file-system
-# story_location: _bmad-output/implementation-artifacts
+# story_location: _bmad-output/stories
 
 # STATUS DEFINITIONS:
 # ==================
@@ -32,58 +32,60 @@
 # - Stories can be worked in parallel if team capacity allows
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Stories 3.1–3.3 (RUMEUR) blocked by external dependency TAC-28 (Bruitparif API access)
 
 generated: 2026-03-06
 project: Tacet
 project_key: NOKEY
 tracking_system: file-system
-story_location: _bmad-output/implementation-artifacts
+story_location: _bmad-output/stories
 
 development_status:
-  # Epic 1: Open-Source Map Foundation
-  epic-1: in-progress
-  1-1-maplibre-gl-js-migration-and-map-container: ready-for-dev
-  1-2-pmtiles-protocol-and-base-map-tiles: ready-for-dev
-  1-3-iris-score-dots-layer-and-zone-selection: ready-for-dev
-  1-4-zone-highlight-and-boundary-on-selection: ready-for-dev
-  1-5-ci-cd-pipeline-and-unit-tests: ready-for-dev
-  1-6-lighthouse-ci-budget-guards: ready-for-dev
+  # Epic 1: Open-Source Map Foundation — DONE
+  epic-1: done
+  1-1-maplibre-gl-js-migration-and-map-container: done
+  1-2-pmtiles-protocol-and-base-map-tiles: done
+  1-3-iris-score-dots-layer-and-zone-selection: done
+  1-4-zone-highlight-and-boundary-on-selection: done
+  1-5-ci-cd-pipeline-and-unit-tests: done
+  1-6-lighthouse-ci-budget-guards: done
   epic-1-retrospective: optional
 
-  # Epic 2: Address Discovery & Acoustic Score
-  epic-2: in-progress
-  2-1-photon-komoot-geocoding-and-searchbar: ready-for-dev
-  2-2-irispopup-auto-reveal-and-score-display: ready-for-dev
-  2-3-data-vintage-disclaimer-and-methodology-link: ready-for-dev
-  2-4-native-share-and-sharecard: ready-for-dev
-  2-5-zone-pin-and-comparisontray: ready-for-dev
-  2-6-serenitybar-tierbadge-and-dataprovenance: ready-for-dev
+  # Epic 2: Address Discovery & Acoustic Score — DONE
+  epic-2: done
+  2-1-photon-komoot-geocoding-and-searchbar: done
+  2-2-irispopup-auto-reveal-and-score-display: done
+  2-3-data-vintage-disclaimer-and-methodology-link: done
+  2-4-native-share-and-sharecard: done
+  2-5-zone-pin-and-comparisontray: done
+  2-6-serenitybar-tierbadge-and-dataprovenance: done
   epic-2-retrospective: optional
 
-  # Epic 3: Real-Time & Contextual Data Layers
+  # Epic 3: Real-Time & Contextual Data Layers — IN PROGRESS
+  # Stories 3.1–3.3 blocked by TAC-28 (Bruitparif API access)
   epic-3: in-progress
   3-1-rumeur-api-proxy-and-server-side-cache: ready-for-dev
   3-2-userumeurdata-hook-and-rumeur-layer-on-map: ready-for-dev
   3-3-rumeur-timestamp-and-stale-unavailable-indicator: ready-for-dev
-  3-4-chantiers-api-proxy-and-chantiers-layer: ready-for-dev
-  3-5-chantiers-limitation-disclosure-and-elections-layer: ready-for-dev
-  3-6-barometre-du-silence-page: ready-for-dev
+  3-4-chantiers-api-proxy-and-chantiers-layer: done
+  3-5-chantiers-limitation-disclosure-and-elections-layer: done
+  3-6-barometre-du-silence-page: done
   epic-3-retrospective: optional
 
-  # Epic 4: Progressive Web App & Offline
-  epic-4: in-progress
-  4-1-serwist-service-worker-and-precache: ready-for-dev
-  4-2-offline-last-visited-zone-and-runtime-caching: ready-for-dev
-  4-3-pwa-install-prompt-and-offline-banner: ready-for-dev
-  4-4-manifest-icons-and-installability: ready-for-dev
+  # Epic 4: Progressive Web App & Offline — DONE
+  epic-4: done
+  4-1-serwist-service-worker-and-precache: done
+  4-2-offline-last-visited-zone-and-runtime-caching: done
+  4-3-pwa-install-prompt-and-offline-banner: done
+  4-4-manifest-icons-and-installability: done
   epic-4-retrospective: optional
 
-  # Epic 5: Accessibility, Compliance & End-to-End Quality
-  epic-5: in-progress
-  5-1-textalternativeview-keyboard-navigable-zone-table: ready-for-dev
-  5-2-full-keyboard-navigation-and-focus-management: ready-for-dev
-  5-3-legal-notice-attributions-and-privacy-policy: ready-for-dev
-  5-4-feedback-and-b2b-contact-forms: ready-for-dev
-  5-5-rgpd-compliance-and-zero-third-party-tracking: ready-for-dev
-  5-6-e2e-playwright-scenarios: ready-for-dev
+  # Epic 5: Accessibility, Compliance & End-to-End Quality — DONE
+  epic-5: done
+  5-1-textalternativeview-keyboard-navigable-zone-table: done
+  5-2-full-keyboard-navigation-and-focus-management: done
+  5-3-legal-notice-attributions-and-privacy-policy: done
+  5-4-feedback-and-b2b-contact-forms: done
+  5-5-rgpd-compliance-and-zero-third-party-tracking: done
+  5-6-e2e-playwright-scenarios: done
   epic-5-retrospective: optional
