@@ -6,7 +6,8 @@
   "scripts": {
     "build:data": "node scripts/build-paris-noise-iris.js",
     "prep:data": "node scripts/prep-data-sources.js",
-    "convert:bruitparif": "node scripts/convert-bruitparif-shp.js"
+    "convert:bruitparif": "node scripts/convert-bruitparif-shp.js",
+    "generate:centroids": "node scripts/generate-iris-centroids.js"
   },
   "dependencies": {
     "adm-zip": "^0.5.16",

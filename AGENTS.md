@@ -1,87 +1,122 @@
 # AGENTS.md
 
-This file provides guidance to WARP (warp.dev) when working with code in this repository.
+This file provides guidance to AI agents (Cursor, Claude Code, WARP, etc.) when working with code in this repository.
 
 ## Project Overview
-Tacet is an Expo-based React Native mobile application built with TypeScript. The project uses Expo Router for file-based routing and targets iOS, Android, and web platforms. Key integrations include Supabase for backend services and Mapbox for mapping functionality.
+
+Tacet is a **Next.js 14 Progressive Web App (PWA)** that visualizes Paris urban noise by IRIS zone using Bruitparif data. It is a mobile-first civic/environmental tool: raw acoustic data (Lden dB) is translated into a human-readable **Score Sérénité** (0–100) and shown on an interactive map. **V1 is live** at [tacet.vercel.app](https://tacet.vercel.app); **V2 is in progress** (open-source stack migration, real-time layer, PWA hardening).
+
+The app lives in the **`tacet/`** subfolder. The repository root also contains **data pipeline scripts** and **planning artifacts** (PRD, UX spec, BMAD outputs).
+
+## Repository Structure
+
+```
+/ (root)
+├── AGENTS.md
+├── .env.example                 # See "Environment" below; app uses tacet/.env.local
+├── package.json                 # Data pipeline scripts only (Node 18+)
+├── scripts/                     # build-paris-noise-iris.js, convert-bruitparif-shp.js, prep-data-sources.js
+├── data/                        # paris-noise-iris.geojson + Bruitparif shapefiles (sources/)
+├── docs/planning/               # prd.md, product-brief.md, research/
+├── _bmad-output/
+│   ├── planning-artifacts/      # UX spec, architecture, epics, project-context, PRD validation
+│   └── stories/                 # story-1.1.md … story-5.6.md (BMAD story spec files)
+└── tacet/                       # THE ACTUAL APP (Next.js 14)
+    ├── src/app/                 # page.tsx, layout.tsx, barometre/page.tsx, elections/page.tsx
+    ├── src/components/          # Map, IrisPopup, SearchBar, Legend, BarometreChart
+    ├── src/lib/                 # noise-categories.ts (Score Sérénité), utils.ts (cn)
+    └── public/data/             # paris-noise-iris.geojson (served statically)
+```
+
+**Leftover files (not part of the active app):** Root-level `components/MapView.tsx` and `config/mapbox.ts` are Expo/React Native artifacts. The active map is `tacet/src/components/Map.tsx` (react-map-gl + mapbox-gl).
 
 ## Architecture
 
-### Routing System
-The app uses Expo Router with file-based routing:
-- `app/_layout.tsx`: Root layout with font loading, splash screen management, and theme provider setup
-- `app/(tabs)/_layout.tsx`: Tab navigation layout with two tabs
-- `app/(tabs)/index.tsx` and `app/(tabs)/two.tsx`: Main tab screens
-- `app/modal.tsx`: Modal screen accessible via stack navigation
-- The initial route is configured to `(tabs)` via `unstable_settings.initialRouteName`
+### App and routing
 
-### Theming System
-Theme management is centralized and supports both light and dark modes:
-- `constants/Colors.ts`: Defines color palettes for light/dark themes
-- `components/Themed.tsx`: Provides `Text` and `View` components that automatically adapt to the current color scheme
-- `components/useColorScheme.ts` (and `.web.ts`): Platform-specific hooks for detecting color scheme
-- Theme colors are applied via React Navigation's `ThemeProvider`
+- **Framework:** Next.js 14 App Router, React 18, TypeScript (strict).
+- **Path alias:** `@/*` resolves to `tacet/src/*` (configured in `tacet/tsconfig.json`).
+- **Routes:**
+  - `/` — Main map page (choropleth IRIS zones, click → popup, address search).
+  - `/barometre` — Silence barometer view.
+  - `/elections` — 2026 Elections thematic layer.
+- **Layout:** `tacet/src/app/layout.tsx` — Inter font, `lang="fr"`, dark-only HTML, metadata and PWA manifest for tacet.vercel.app.
 
-### Path Aliases
-TypeScript is configured with the `@/*` path alias that resolves to the project root, enabling imports like `@/components/Themed` instead of relative paths.
+### Components (`tacet/src/components/`)
 
-### Platform-Specific Code
-The project uses `.web.ts` extensions for web-specific implementations (e.g., `useColorScheme.web.ts`, `useClientOnlyValue.web.ts`) to provide different behavior across platforms.
+| Component       | Purpose |
+|----------------|--------|
+| `Map.tsx`      | Mapbox map, GeoJSON IRIS fill layer, click/hover, address flyTo, NavigationControl, FullscreenControl. Loads `/data/paris-noise-iris.geojson`. |
+| `IrisPopup.tsx`| Popup for selected IRIS zone (Score Sérénité, noise level, zone info). |
+| `SearchBar.tsx`| Address geocoding (Mapbox); on select, flies to coords and selects IRIS at that point. |
+| `Legend.tsx`   | Map legend for noise categories. |
+| `BarometreChart.tsx` | Barometer chart on `/barometre`. |
 
-## Environment Configuration
+The map is loaded with `dynamic(..., { ssr: false })` in `app/page.tsx` to avoid SSR issues with mapbox-gl.
 
-### Required Environment Variables
-Copy `.env.example` to `.env` and configure:
-- `SUPABASE_URL`: Your Supabase project URL (found in Settings > API > Project URL)
-- `SUPABASE_ANON_KEY`: Supabase public/anon key (found in Settings > API > Project API keys)
-- `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`: Mapbox public token (starts with `pk.`, found at https://account.mapbox.com/)
-- `RNMAPBOX_MAPS_DOWNLOAD_TOKEN`: Mapbox download/secret token (starts with `sk.`, create with DOWNLOADS:READ scope at https://account.mapbox.com/access-tokens/)
+### Domain logic (`tacet/src/lib/`)
 
-**CRITICAL**: Never commit the `.env` file. The `.gitignore` is configured to exclude all `.env*` files except `.env.example`.
+- **`noise-categories.ts`** — Source of truth for Score Sérénité: `NOISE_CATEGORIES`, `SERENITE_SCORES`, `getNoiseCategory`, `getSereniteScore`, `getNoiseCategoryFromDb`, `getSereniteScoreFromDb`. Also `PARIS_CENTER`, `DEFAULT_ZOOM`, brand colors (`BRAND_COLOR`, etc.), `arLabel()` for arrondissement labels.
+- **`utils.ts`** — `cn()` (clsx + tailwind-merge) for class names.
+
+## Stack
+
+- **Next.js** 14.2, **React** 18, **TypeScript** 5 (strict).
+- **Styling:** Tailwind CSS 3, `tailwindcss-animate`; theme uses shadcn/ui-style CSS variables (e.g. `--background`, `--foreground`, `--brand`).
+- **Map:** `mapbox-gl` 3, `react-map-gl` 8 (Mapbox style `dark-v11`).
+- **UI:** `lucide-react`, `class-variance-authority`, `clsx`, `tailwind-merge`.
+
+## Environment
+
+The **Next.js app** reads env from **`tacet/.env.local`** (create from `tacet/.env.example` if present, or add the variable below).
+
+**Required variable:**
+
+- **`NEXT_PUBLIC_MAPBOX_TOKEN`** — Mapbox public token (starts with `pk.`). Get it at [account.mapbox.com](https://account.mapbox.com/). Used by `Map.tsx` and SearchBar geocoding.
+
+**CRITICAL:** Do not commit `tacet/.env.local`. The repo ignores `.env*` except `.env.example`.
 
 ## Development Commands
 
-### Running the App
+**Run the app (from repo root):**
+
 ```bash
-npm start              # Start Expo dev server with platform selector
-npm run android        # Start on Android emulator/device
-npm run ios            # Start on iOS simulator/device
-npm run web            # Start web version
+cd tacet && npm install
+cd tacet && npm run dev
 ```
 
-### EAS Build (Production)
-The project is configured with EAS (Expo Application Services):
-- Development builds: `eas build --profile development`
-- Preview builds: `eas build --profile preview`
-- Production builds: `eas build --profile production`
-- EAS project ID: `dca79a48-1c47-4034-89c5-f29214e50d29`
+Then open [http://localhost:3000](http://localhost:3000).
 
-## Key Dependencies
+**Build / start / lint:**
 
-### Core Framework
-- **Expo SDK 54**: Main framework with new architecture enabled (`newArchEnabled: true`)
-- **Expo Router 6**: File-based routing system
-- **React 19.1.0** and **React Native 0.81.5**
+```bash
+cd tacet && npm run build
+cd tacet && npm run start
+cd tacet && npm run lint
+```
 
-### Notable Libraries
-- `@supabase/supabase-js`: Backend integration (requires environment configuration)
-- `@rnmapbox/maps`: Mapbox integration for maps. Initialized in `config/mapbox.ts` with token from environment variables. Use the `MapView` component from `components/MapView.tsx` for basic map functionality.
-- `expo-location`: Location services (configured in app.json with permission message)
-- `@react-native-async-storage/async-storage`: Local storage
-- `react-native-reanimated` and `react-native-worklets`: Animation support
+**Data pipeline (root):**
 
-## Important Notes
+```bash
+npm run build:data      # build-paris-noise-iris.js
+npm run prep:data       # prep-data-sources.js
+npm run convert:bruitparif   # convert-bruitparif-shp.js
+```
 
-### TypeScript Configuration
-- Strict mode is enabled
-- Project extends `expo/tsconfig.base`
-- Typed routes are experimental and enabled via `app.json`
+Outputs go to `data/` and can be copied to `tacet/public/data/` for the app.
 
-### Native Folders
-The `/ios` and `/android` folders are generated and gitignored. They are created during development client builds and should not be manually edited or committed.
+## Planning and BMAD
 
-### Package Information
-The package is currently named `temp-expo-init` - this should be updated along with the app scheme (`tempexpoinit`) and Android package name (`com.ivandemurard.tacet`) if this is meant to be production-ready.
+- **PRD:** `docs/planning/prd.md`
+- **UX design (V2):** `_bmad-output/planning-artifacts/ux-design-specification.md`
+- **Architecture:** `_bmad-output/planning-artifacts/architecture.md`
+- **Epics (list):** `_bmad-output/planning-artifacts/epics.md`
+- **Project context:** `_bmad-output/planning-artifacts/project-context.md`
+- **Story spec files:** `_bmad-output/stories/story-X.Y.md` (e.g. story-1.1.md, story-2.1.md)
+- **PRD validation:** `_bmad-output/planning-artifacts/prd-validation-report.md` (5/5 Pass)
 
-### Web Support
-Web bundling uses Metro (not webpack), and static output is configured in `app.json`.
+BMAD agent commands live in **`.claude/commands/`** (e.g. `bmad-agent-bmm-dev.md`, `bmad-bmm-create-story.md`). These are Claude Code slash commands. **Cursor is configured to use BMAD** via `.cursor/rules/bmad-methodology.mdc`: the AI routes planning/sprint/story/PRD requests to the appropriate command file and follows it, with fallback when the `_bmad/` framework folder is absent. In Cursor, you can say e.g. "run sprint planning" or "create a story" and the AI will read the right command and execute the workflow intent.
+
+## V2 Roadmap (context only)
+
+V2 targets: migration to **MapLibre GL JS** + **PMTiles** (Protomaps) + **Photon** (Komoot) for geocoding to achieve **$0 variable API cost** at scale; real-time Bruitparif RUMEUR layer; PWA hardening (e.g. Serwist). Implementation follows the UX spec and PRD.
