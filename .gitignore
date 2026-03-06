@@ -3,7 +3,7 @@
 # dependencies
 node_modules/
 
-# Expo
+# Expo (legacy — kept for reference)
 .expo/
 dist/
 web-build/
@@ -22,14 +22,11 @@ expo-env.d.ts
 .metro-health-check*
 .metro/
 .expo-shared/
-.metro/
-.expo-shared/
 
 # debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
-*.log
 *.log
 
 # macOS
@@ -39,17 +36,13 @@ yarn-error.*
 # Windows
 Thumbs.db
 
-# Windows
-Thumbs.db
-
-# local env files - NE JAMAIS COMMITER
+# local env files — NE JAMAIS COMMITER
 .env
 .env*.local
 .env.production
 .env.development
 .env.backup
 *.env.backup
-# .env.example peut être commité (c'est un template)
 
 # typescript
 *.tsbuildinfo
@@ -58,16 +51,23 @@ Thumbs.db
 /ios
 /android
 
-# Claude Code — AI tooling (local only, not relevant for contributors)
+# AI tooling (local only)
 .claude/
+.cursor/
 _bmad/
 
+# legacy Expo artifacts (not part of active app)
+/components/
+/config/
+
 # data sources (large files, do not commit)
-/data/sources/*.geojson
-/data/sources/.bruitparif_extracted_temp/
-/data/sources/*.shp
-/data/sources/*.shx
-/data/sources/*.dbf
-/data/sources/*.gpkg
-# keep .gitkeep
+/data/sources/**
 !/data/sources/.gitkeep
+
+# test artifacts
+tacet/test-results/
+tacet/playwright-report/
+
+# generated service worker (built by Serwist)
+tacet/public/sw.js
+tacet/public/sw.js.map
