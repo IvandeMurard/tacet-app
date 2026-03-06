@@ -11,12 +11,15 @@
 - [x] `src/lib/utils.test.ts` — `cn()` class merge utility (5 tests)
 - [x] `src/lib/map-style.test.ts` — `getBaseMapStyle()` map config (5 tests)
 - [x] `src/hooks/usePhotonSearch.test.ts` — `photonFeatureToDisplay()`, `photonFeatureToCoords()` (5 tests)
+- [x] `src/hooks/useChantiersData.test.ts` — SWR hook enable/disable, fetch verification (2 tests)
+- [x] `src/app/api/chantiers/route.test.ts` — GET handler success, non-array, 502 errors (4 tests)
 
 ### Component Tests (Vitest + Testing Library)
 
 - [x] `src/components/tacet/SerenityBar.test.tsx` — Progressbar ARIA, width, color (4 tests)
 - [x] `src/components/tacet/TierBadge.test.tsx` — Label display, color styling (3 tests)
 - [x] `src/components/tacet/ShareCard.test.tsx` — Zone name, score, category badge (5 tests)
+- [x] `src/components/tacet/ComparisonTray.test.tsx` — Dialog, pinned zones, unpin, close (6 tests)
 - [x] `src/components/IrisPopup.test.tsx` — Dialog role, zone info, day/night levels, close/pin/share buttons (10 tests)
 
 ### E2E Tests (Playwright)
@@ -38,10 +41,10 @@
 
 | Type | Files | Tests |
 |------|-------|-------|
-| Unit | 4 (+3) | 33 (+15) |
-| Component | 4 (+4) | 22 (+22) |
+| Unit | 6 (+5) | 39 (+21) |
+| Component | 5 (+5) | 28 (+28) |
 | E2E  | 10 (+2) | 30 (+9) |
-| **Total** | **18 (+9)** | **85 (+46)** |
+| **Total** | **21 (+12)** | **97 (+58)** |
 
 ### Feature Coverage
 
@@ -51,6 +54,9 @@
 | utils (cn) | ✅ | — | — |
 | map-style | ✅ | — | — |
 | usePhotonSearch | ✅ | — | — |
+| useChantiersData | ✅ | — | — |
+| /api/chantiers | ✅ | — | — |
+| ComparisonTray | — | ✅ | — |
 | SerenityBar | — | ✅ | — |
 | TierBadge | — | ✅ | — |
 | ShareCard | — | ✅ | — |
@@ -78,8 +84,6 @@ cd tacet && npm run build && npm run e2e
 
 ## Next Steps
 
-- Add `useChantiersData` hook test (SWR wrapper — low value without API mocking)
-- Add `/api/chantiers` route test (requires Next.js test helpers for route handlers)
-- Add ComparisonTray component test (requires MapContext provider mock)
 - Run tests in CI pipeline
 - Add more edge cases as needed
+- Consider integration tests for MapContext + map interaction flows
