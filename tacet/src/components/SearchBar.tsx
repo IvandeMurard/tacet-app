@@ -19,6 +19,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,12 +41,14 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
 
   useEffect(() => {
     setIsOpen(suggestions.length > 0);
+    setActiveIndex(-1);
   }, [suggestions.length]);
 
   const handleSelect = useCallback(
     (feature: PhotonFeature) => {
       setQuery(photonFeatureToDisplay(feature));
       setIsOpen(false);
+      setActiveIndex(-1);
       onAddressSelect(photonFeatureToCoords(feature));
     },
     [onAddressSelect]
@@ -55,13 +58,27 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
     setQuery("");
     setDebouncedQuery(null);
     setIsOpen(false);
+    setActiveIndex(-1);
     inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsOpen(false);
+      setActiveIndex(-1);
       inputRef.current?.blur();
+      return;
+    }
+    if (!isOpen || suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault();
+      handleSelect(suggestions[activeIndex]);
     }
   };
 
@@ -69,11 +86,14 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setActiveIndex(-1);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const listboxId = "search-suggestions-listbox";
 
   return (
     <div
@@ -100,6 +120,8 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
           aria-label="Adresse parisienne"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-controls={isOpen ? listboxId : undefined}
+          aria-activedescendant={activeIndex >= 0 ? `search-option-${activeIndex}` : undefined}
           autoComplete="off"
           spellCheck={false}
         />
@@ -116,15 +138,26 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
 
       {isOpen && suggestions.length > 0 && (
         <ul
+          id={listboxId}
           className="mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/70 shadow-2xl backdrop-blur-xl"
           role="listbox"
           aria-label="Suggestions d'adresses"
         >
           {suggestions.map((feature, i) => (
-            <li key={i} role="option" aria-selected={false}>
+            <li
+              key={i}
+              id={`search-option-${i}`}
+              role="option"
+              aria-selected={i === activeIndex}
+            >
               <button
                 onClick={() => handleSelect(feature)}
-                className="w-full px-4 py-2.5 text-left transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                className={`w-full px-4 py-2.5 text-left transition-colors focus:outline-none ${
+                  i === activeIndex
+                    ? "bg-white/15"
+                    : "hover:bg-white/10 focus:bg-white/10"
+                }`}
+                tabIndex={-1}
               >
                 <span className="block text-sm font-medium text-white/90 truncate">
                   {photonFeatureToDisplay(feature)}
