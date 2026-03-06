@@ -32,6 +32,9 @@ export function Legend() {
       <p className="mt-2 text-[10px] text-white/60">
         Source : Cartographie air-bruit — Airparif et Bruitparif
       </p>
+      <p className="mt-1.5 text-[10px] text-amber-200/70">
+        Le Score annuel ne reflète pas les chantiers en cours.
+      </p>
     </div>
   );
 }
