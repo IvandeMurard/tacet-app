@@ -89,6 +89,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
           <Search size={15} className="shrink-0 text-white/40" aria-hidden />
         )}
         <input
+          role="combobox"
           ref={inputRef}
           type="text"
           value={query}
@@ -99,6 +100,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
           className="flex-1 bg-transparent text-sm text-white placeholder:text-white/30 outline-none"
           aria-label="Adresse parisienne"
           aria-expanded={isOpen}
+          aria-controls="search-suggestions"
           aria-haspopup="listbox"
           autoComplete="off"
           spellCheck={false}
@@ -116,6 +118,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
 
       {isOpen && suggestions.length > 0 && (
         <ul
+          id="search-suggestions"
           className="mt-1.5 overflow-hidden rounded-xl border border-white/10 bg-black/70 shadow-2xl backdrop-blur-xl"
           role="listbox"
           aria-label="Suggestions d'adresses"
