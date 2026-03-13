@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import type { RumeurData, RumeurMeasurement } from "@/types/rumeur";
+
+// Re-export for consumers that previously imported from this module.
+export type { RumeurData, RumeurMeasurement };
 
 const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
 
@@ -7,20 +11,6 @@ const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
 // Set BRUITPARIF_API_URL in environment to override (e.g. for staging or local mocks).
 const DEFAULT_API_URL =
   process.env.BRUITPARIF_API_URL ?? "https://api.bruitparif.fr/rumeur/v1/data";
-
-export interface RumeurMeasurement {
-  stationId: string;
-  timestamp: string;
-  leq?: number;
-  lmin?: number;
-  lmax?: number;
-  [key: string]: unknown;
-}
-
-export interface RumeurData {
-  measurements: RumeurMeasurement[];
-  [key: string]: unknown;
-}
 
 interface InternalCache {
   data: RumeurData;
@@ -35,20 +25,20 @@ let cache: InternalCache | null = null;
 let inflightFetch: Promise<RumeurData> | null = null;
 
 /**
- * Returns fresh mock data on every call.
- * Using a function (not a constant) ensures `timestamp` is current, preventing a false "stale"
- * indicator in story 3.3 during dev while TAC-28 is pending.
+ * Returns a RumeurData snapshot with the current timestamp.
+ * Result is cached for CACHE_TTL_MS (same as the real upstream path), so `cachedAt` and
+ * measurement timestamps are frozen for up to 3 minutes — realistic caching behaviour
+ * for story 3.3 stale-indicator dev testing while TAC-28 is pending.
  */
 function getMockData(): RumeurData {
+  const now = new Date().toISOString();
+  // Mock stations approximate real Bruitparif RUMEUR sensor locations in Paris.
+  // Coordinates will be replaced by actual API data once TAC-28 is resolved.
   return {
     measurements: [
-      {
-        stationId: "mock-paris-1",
-        timestamp: new Date().toISOString(),
-        leq: 55.2,
-        lmin: 42.1,
-        lmax: 68.5,
-      },
+      { stationId: "mock-paris-1", timestamp: now, leq: 55.2, lmin: 42.1, lmax: 68.5, lat: 48.8566, lon: 2.3522 },
+      { stationId: "mock-paris-2", timestamp: now, leq: 62.8, lmin: 51.0, lmax: 74.2, lat: 48.8738, lon: 2.2950 },
+      { stationId: "mock-paris-3", timestamp: now, leq: 48.5, lmin: 38.0, lmax: 59.3, lat: 48.8330, lon: 2.3708 },
     ],
   };
 }
@@ -79,8 +69,11 @@ export async function GET() {
   // No API key → return mock (dev/CI, TAC-28 pending).
   const apiKey = process.env.BRUITPARIF_API_KEY;
   if (!apiKey) {
+    const data = getMockData();
+    const cachedAt = new Date().toISOString();
+    cache = { data, cachedAt, expiresAt: Date.now() + CACHE_TTL_MS };
     return NextResponse.json(
-      { data: getMockData(), error: null, fallback: false, cachedAt: new Date().toISOString() },
+      { data, error: null, fallback: false, cachedAt },
       { headers: NO_STORE }
     );
   }

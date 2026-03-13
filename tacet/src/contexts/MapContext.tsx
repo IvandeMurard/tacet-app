@@ -61,7 +61,7 @@ function saveLastZoneToStorage(zone: IrisProperties | null) {
   }
 }
 
-export type LayerId = "chantiers" | "elections";
+export type LayerId = "chantiers" | "elections" | "rumeur";
 
 export interface MapContextValue {
   selectedZone: IrisProperties | null;
