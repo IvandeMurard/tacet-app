@@ -114,7 +114,7 @@ npm run e2e                     # Playwright E2E (requires: npm run build && npm
 ### V3 — Native iOS app
 
 - Native iOS app (the primary product direction)
-- Quiet route planner (foot + bike)
+- **Quiet route directions** — get from A to B by foot or bike, routed through the calmest zones (score 0 → 1)
 - Natural language address queries
 - B2B API: real estate, urban planning
 
