@@ -28,7 +28,7 @@ describe("GET /api/chantiers", () => {
     expect(body.cachedAt).toBeTruthy();
   });
 
-  it("returns empty array when API returns non-array", async () => {
+  it("returns 502 when API returns non-array", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ unexpected: "format" }),
@@ -37,8 +37,9 @@ describe("GET /api/chantiers", () => {
     const response = await GET();
     const body = await response.json();
 
-    expect(body.data).toEqual([]);
-    expect(body.error).toBeNull();
+    expect(response.status).toBe(502);
+    expect(body.data).toBeNull();
+    expect(body.error).toContain("unexpected response shape");
   });
 
   it("returns 502 with error message on fetch failure", async () => {
