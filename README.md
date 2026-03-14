@@ -16,7 +16,7 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 |---|---|
 | **Serenity Score** | 0–100 composite score across 992 IRIS zones, from official Bruitparif PPBE 2024 data |
 | **Address search** | Photon/Komoot geocoding — no API key, no rate limit |
-| **Zone comparison** | Pin up to 5 zones, compare side-by-side in a drawer |
+| **Zone comparison** | Pin up to 3 zones, compare side-by-side in a drawer |
 | **Baromètre du Silence** | District ranking by noise level (20 arrondissements) |
 | **RUMEUR sensor layer** | Real-time Bruitparif sensor readings, refreshed every 3 min via proxy API |
 | **Chantiers layer** | Active Paris construction sites from OpenData Paris API |
@@ -27,17 +27,17 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 
 ## Tech stack
 
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | Next.js 15 (App Router) | Server components, API routes, edge-ready |
-| Map | MapLibre GL JS + PMTiles | MIT license, zero map tile cost |
-| Geocoding | Photon Komoot | Free, no API key required |
-| Noise data | Bruitparif PPBE 2024 (static) + RUMEUR API (real-time) | Official source |
-| Admin data | OpenData Paris API v2.1 + IGN/INSEE IRIS | Official source |
-| Tests | Vitest + Playwright + Lighthouse CI | Unit, component, E2E, performance |
-| Styling | Tailwind CSS + shadcn/ui | |
-| PWA | Serwist | Service worker, offline cache, install prompt |
-| Language | TypeScript (strict) | |
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Map | MapLibre GL JS + PMTiles (MIT, zero tile cost) |
+| Geocoding | Photon Komoot (free, no API key) |
+| Noise data | Bruitparif PPBE 2024 (static) + RUMEUR API (real-time) |
+| Admin data | OpenData Paris API v2.1 + IGN/INSEE IRIS |
+| Tests | Vitest + Playwright + Lighthouse CI |
+| Styling | Tailwind CSS + `class-variance-authority` |
+| PWA | Serwist (service worker, offline cache, install prompt) |
+| Language | TypeScript (strict) |
 
 ---
 
@@ -45,18 +45,21 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 
 ```
 /
-├── tacet/                     # The app (Next.js 15)
+├── tacet/                     # The app (Next.js 14)
 │   ├── src/app/               # Pages: /, /barometre, /elections, /accessible
 │   │                          #   /contact, /mentions-legales, /confidentialite
 │   │                          #   /api/rumeur, /api/chantiers
 │   ├── src/components/        # Map, IrisPopup, SearchBar, Legend, BarometreChart
 │   ├── src/components/tacet/  # SerenityBar, TierBadge, ComparisonTray, ShareCard,
-│   │                          #   RumeurStatusBar, DataProvenance, OfflineBanner
+│   │                          #   RumeurStatusBar, DataProvenance, OfflineBanner,
+│   │                          #   PWAInstallPrompt, TextAlternativeView
+│   ├── src/contexts/          # MapContext (map ref, zone selection, pinning, layers)
 │   ├── src/hooks/             # useRumeurData, useChantiersData, usePhotonSearch
-│   ├── src/lib/               # noise-categories (score logic), map-style, format-date
+│   ├── src/lib/               # noise-categories (score logic), map-style, format-date,
+│   │                          #   utils (cn), constants
 │   ├── src/types/             # iris.ts, rumeur.ts
 │   ├── e2e/                   # Playwright end-to-end specs
-│   └── .github/workflows/ci.yml  # lint → Vitest → Playwright → Lighthouse CI
+│   └── .github/workflows/ci.yml  # CI: lint+test → E2E → Lighthouse (parallel)
 ├── scripts/                   # Data pipeline: build-paris-noise-iris.js, convert-bruitparif-shp.js
 ├── data/                      # paris-noise-iris.geojson (built) + raw sources (gitignored)
 └── _bmad-output/              # Product specs, UX design, BMAD stories (1.1–5.6), sprint status
@@ -68,19 +71,21 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 
 ```bash
 cd tacet
-cp ../.env.example .env.local   # add RUMEUR_API_KEY if you have Bruitparif access
+cp ../.env.example .env.local   # fill in values (see below)
 npm install
 npm run dev                     # http://localhost:3000
 npm test                        # Vitest unit + component tests
-npm run test:e2e                # Playwright E2E (needs: npm run build && npm start)
+npm run e2e                     # Playwright E2E (requires: npm run build && npm start)
 ```
 
 ### Environment variables
 
 | Variable | Required | Description |
 |---|---|---|
-| `RUMEUR_API_KEY` | No | Bruitparif RUMEUR API key. Without it, the sensor layer is hidden. |
+| `BRUITPARIF_API_KEY` | No | Bruitparif RUMEUR API key. Without it, sensor layer uses mock data in dev. |
+| `BRUITPARIF_API_URL` | No | Override the RUMEUR endpoint (defaults to official API URL). |
 | `NEXT_PUBLIC_ENABLE_RUMEUR` | No | Set `"true"` to show the sensor toggle in the UI. |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | No | Legacy V1 token — not needed for the map or geocoding. |
 
 ---
 
@@ -92,7 +97,7 @@ npm run test:e2e                # Playwright E2E (needs: npm run build && npm st
 - Serenity Score 0–100, human-readable tiers
 - Baromètre du Silence (district ranking)
 - Address search with per-zone score popup
-- Responsive web app (Next.js + Mapbox GL JS)
+- Responsive web app
 
 ### ✅ V2 — Shipped
 
