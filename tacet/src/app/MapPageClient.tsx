@@ -11,6 +11,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { ComparisonTray } from "@/components/tacet/ComparisonTray";
 import { useMapContext } from "@/contexts/MapContext";
 import { useRumeurData } from "@/hooks/useRumeurData";
+import { useRestoreLastZone } from "@/hooks/useRestoreLastZone";
 import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 
@@ -133,6 +134,7 @@ function RumeurStatus() {
 
 export function MapPageClient() {
   const { selectedZone, setSelectedZone, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier, selectedRumeur, setSelectedRumeur } = useMapContext();
+  useRestoreLastZone();
   const [trayOpen, setTrayOpen] = useState(false);
 
   const isPinned = selectedZone ? pinnedZones.some((z) => z.code_iris === selectedZone.code_iris) : false;
