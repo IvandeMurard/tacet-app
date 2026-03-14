@@ -16,7 +16,7 @@ import type { IrisProperties } from "@/types/iris";
 
 const PINNED_STORAGE_KEY = "tacet-pinned-zones";
 const LAST_ZONE_STORAGE_KEY = "tacet-last-zone";
-const MAX_PINNED = 3;
+export const MAX_PINNED = 3;
 
 function loadPinnedFromStorage(): IrisProperties[] {
   if (typeof window === "undefined") return [];
@@ -61,7 +61,7 @@ function saveLastZoneToStorage(zone: IrisProperties | null) {
   }
 }
 
-export type LayerId = "chantiers" | "elections";
+export type LayerId = "chantiers" | "elections" | "rumeur";
 
 export interface MapContextValue {
   selectedZone: IrisProperties | null;

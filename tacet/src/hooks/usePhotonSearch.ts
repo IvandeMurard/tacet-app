@@ -24,7 +24,11 @@ export interface PhotonResult {
   features: PhotonFeature[];
 }
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json() as Promise<PhotonResult>);
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Photon search failed: ${res.status}`);
+  return res.json() as Promise<PhotonResult>;
+};
 
 export function usePhotonSearch(query: string | null, _debounceMs = 350) {
   const searchParams = new URLSearchParams({

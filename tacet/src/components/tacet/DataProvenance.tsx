@@ -1,6 +1,6 @@
 "use client";
 
-const DATA_YEAR = 2024;
+import { DATA_YEAR } from "@/lib/constants";
 
 interface DataProvenanceProps {
   className?: string;
