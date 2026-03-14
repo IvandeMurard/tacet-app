@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Legend } from "@/components/Legend";
 import { IrisPopup } from "@/components/IrisPopup";
+import { ChantierPopup } from "@/components/tacet/ChantierPopup";
 import { SearchBar } from "@/components/SearchBar";
 import { ComparisonTray } from "@/components/tacet/ComparisonTray";
 import { useMapContext, MAX_PINNED } from "@/contexts/MapContext";
@@ -94,7 +95,7 @@ function RumeurStatus({ rumeurResponse, swrError }: {
 }
 
 export function MapPageClient() {
-  const { selectedZone, setSelectedZone, selectedZoneLngLat, flyToAndSelectZone, pinZone, pinnedZones } =
+  const { selectedZone, setSelectedZone, selectedZoneLngLat, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier } =
     useMapContext();
   const [trayOpen, setTrayOpen] = useState(false);
 
@@ -154,6 +155,12 @@ export function MapPageClient() {
           pinDisabled={pinDisabled}
           nearestSensor={nearestSensor}
           nearbyChantiers={nearbyChantiers}
+        />
+      )}
+      {selectedChantier && (
+        <ChantierPopup
+          properties={selectedChantier}
+          onClose={() => setSelectedChantier(null)}
         />
       )}
       <ComparisonTray isOpen={trayOpen} onClose={() => setTrayOpen(false)} />
