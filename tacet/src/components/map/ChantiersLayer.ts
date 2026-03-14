@@ -1,4 +1,4 @@
-import type { Map as MapLibreMap } from "maplibre-gl";
+import type { Map as MapLibreMap, GeoJSONSource } from "maplibre-gl";
 
 const SOURCE_ID = "chantiers";
 const LAYER_ID = "chantiers-circles";
@@ -43,7 +43,7 @@ export function addChantiersLayer(map: MapLibreMap, records: ChantierRecord[]) {
   const data = toGeoJSON(records);
 
   if (map.getSource(SOURCE_ID)) {
-    (map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource).setData(data);
+    (map.getSource(SOURCE_ID) as GeoJSONSource).setData(data);
     return;
   }
 
