@@ -1,10 +1,10 @@
 # Tacet
 
-**Find your quiet Paris — a serenity map for people who actually live here.**
+**Find your quiet Paris. The web app — iOS coming next.**
 
 [🌐 Live app](https://tacet.vercel.app) · [Landing page](https://listen-to-paris.lovable.app)
 
-Know if a neighborhood is calm enough before you sign a lease — one score, one tap. Search any Paris address, compare districts, track real-time sensor data, explore the silence barometer.
+Know if a neighborhood is calm enough before you sign a lease — one score, one tap. Search any Paris address, compare districts, track real-time sensor data, explore the silence barometer. The current web app is the foundation; the native iOS app is the product direction.
 
 > *Tacet* (from Latin "he falls silent") — a musical notation for silence.
 
@@ -20,7 +20,7 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 | **Baromètre du Silence** | District ranking by noise level (20 arrondissements) |
 | **RUMEUR sensor layer** | Real-time Bruitparif sensor readings, refreshed every 3 min via proxy API |
 | **Chantiers layer** | Active Paris construction sites from OpenData Paris API |
-| **Offline support** | PWA — last-visited zone cached, works without network |
+| **Offline support** | Last-visited zone cached via service worker, works without network |
 | **Accessibility** | Full keyboard navigation, ARIA, TextAlternativeView, WCAG-aligned |
 
 ---
@@ -36,7 +36,7 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 | Admin data | OpenData Paris API v2.1 + IGN/INSEE IRIS |
 | Tests | Vitest + Playwright + Lighthouse CI |
 | Styling | Tailwind CSS + `class-variance-authority` |
-| PWA | Serwist (service worker, offline cache, install prompt) |
+| Offline | Serwist service worker (offline cache, install prompt) |
 | Language | TypeScript (strict) |
 
 ---
@@ -106,13 +106,14 @@ npm run e2e                     # Playwright E2E (requires: npm run build && npm
 - Active construction sites overlay (OpenData Paris)
 - Zone pinning + side-by-side comparison tray
 - Native share + ShareCard
-- PWA: offline support, install prompt, Serwist service worker
+- Offline support: service worker, last-visited zone cached
 - Full accessibility: keyboard nav, ARIA, TextAlternativeView
 - Legal & compliance pages (RGPD, mentions légales, privacy)
 - Full test suite: Vitest unit/component + Playwright E2E + Lighthouse CI
 
-### V3 — Planned
+### V3 — Native iOS app
 
+- Native iOS app (the primary product direction)
 - Quiet route planner (foot + bike)
 - Natural language address queries
 - B2B API: real estate, urban planning
