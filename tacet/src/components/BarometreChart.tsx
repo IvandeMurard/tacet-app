@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Share2, ExternalLink } from "lucide-react";
 import { arLabel, getSereniteScoreFromDb, getNoiseCategoryFromDb } from "@/lib/noise-categories";
 
-interface ArrProperties {
+export interface ArrProperties {
   c_ar: number;
   nom: string;
   l_ar: string;
@@ -15,27 +15,13 @@ interface ArrProperties {
 
 const MEDALS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
-export function BarometreChart() {
-  const [arrondissements, setArrondissements] = useState<ArrProperties[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+interface BarometreChartProps {
+  /** Pre-sorted arrondissement data (calme→bruyant) supplied by the Server Component parent. */
+  arrondissements: ArrProperties[];
+}
 
-  useEffect(() => {
-    fetch("/data/paris-noise-arrondissements.geojson")
-      .then((res) => res.json())
-      .then((geojson) => {
-        const props: ArrProperties[] = geojson.features.map(
-          (f: { properties: ArrProperties }) => f.properties
-        );
-        // Classement : plus calme (lden_db bas) en premier
-        props.sort((a, b) => a.lden_db - b.lden_db);
-        setArrondissements(props);
-      })
-      .catch(() => {
-        /* silently fail — user sees empty state */
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
+export function BarometreChart({ arrondissements }: BarometreChartProps) {
+  const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
     const text =
@@ -56,14 +42,6 @@ export function BarometreChart() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-16" aria-busy="true" aria-label="Chargement du classement">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-      </div>
-    );
-  }
 
   if (arrondissements.length === 0) {
     return (

@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BarometreChart } from "@/components/BarometreChart";
+import { BarometreChart, type ArrProperties } from "@/components/BarometreChart";
 import { BRAND_COLOR } from "@/lib/noise-categories";
+// Static import — webpack inlines the GeoJSON at build time (resolveJsonModule: true)
+// No runtime fetch needed; data is pre-rendered in the initial HTML.
+import arrondissementsJson from "../../../public/data/paris-noise-arrondissements.geojson";
+
+// Statically generate this page — data is fixed between deployments
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Baromètre du Silence — Tacet Paris",
@@ -16,6 +22,14 @@ export const metadata: Metadata = {
 };
 
 export default function BarometrePage() {
+  // Sort arrondissements quietest → noisiest at build time
+  // Double-cast: geojson.d.ts uses Record<string,unknown> props; we know the actual shape
+  const arrondissements: ArrProperties[] = (
+    arrondissementsJson as unknown as { features: { properties: ArrProperties }[] }
+  ).features
+    .map((f) => f.properties)
+    .sort((a, b) => a.lden_db - b.lden_db);
+
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
       {/* Header sticky */}
@@ -64,8 +78,8 @@ export default function BarometrePage() {
           </p>
         </div>
 
-        {/* Classement */}
-        <BarometreChart />
+        {/* Classement — data pre-computed server-side */}
+        <BarometreChart arrondissements={arrondissements} />
 
         {/* Explication méthodologique */}
         <div className="mt-10 rounded-xl border border-white/8 bg-white/[0.03] px-5 py-4 text-xs text-white/30 space-y-2">
