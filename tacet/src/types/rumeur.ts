@@ -1,3 +1,17 @@
+/**
+ * Properties extracted from a GeoJSON feature rendered in the rumeur-circles layer.
+ * Mirrors the properties object built in RumeurLayer.ts#toGeoJSON.
+ */
+export interface RumeurFeatureProperties {
+  stationId: string;
+  /** ISO 8601 timestamp of the measurement; may be null if unavailable. */
+  timestamp: string | null;
+  /** Equivalent continuous sound level in dB; null when sensor has no reading. */
+  leq: number | null;
+  lmin: number | null;
+  lmax: number | null;
+}
+
 /** Represents a single Bruitparif RUMEUR noise measurement from a fixed monitoring station. */
 export interface RumeurMeasurement {
   stationId: string;

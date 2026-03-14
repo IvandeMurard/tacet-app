@@ -14,6 +14,7 @@ import {
 import type { Map as MapLibreMap } from "maplibre-gl";
 import type { IrisProperties } from "@/types/iris";
 import type { ChantierProperties } from "@/types/chantier";
+import type { RumeurFeatureProperties } from "@/types/rumeur";
 
 const PINNED_STORAGE_KEY = "tacet-pinned-zones";
 const LAST_ZONE_STORAGE_KEY = "tacet-last-zone";
@@ -70,6 +71,8 @@ export interface MapContextValue {
   lastVisitedZone: IrisProperties | null;
   selectedChantier: ChantierProperties | null;
   setSelectedChantier: (c: ChantierProperties | null) => void;
+  selectedRumeur: RumeurFeatureProperties | null;
+  setSelectedRumeur: (r: RumeurFeatureProperties | null) => void;
   activeLayers: Set<LayerId>;
   toggleLayer: (id: LayerId) => void;
   pinnedZones: IrisProperties[];
@@ -85,6 +88,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [selectedZone, setSelectedZoneRaw] = useState<IrisProperties | null>(null);
   const [lastVisitedZone] = useState<IrisProperties | null>(loadLastZoneFromStorage);
   const [selectedChantier, setSelectedChantier] = useState<ChantierProperties | null>(null);
+  const [selectedRumeur, setSelectedRumeur] = useState<RumeurFeatureProperties | null>(null);
   const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set());
   const [pinnedZones, setPinnedZones] = useState<IrisProperties[]>(loadPinnedFromStorage);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -144,6 +148,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
       lastVisitedZone,
       selectedChantier,
       setSelectedChantier,
+      selectedRumeur,
+      setSelectedRumeur,
       activeLayers,
       toggleLayer,
       pinnedZones,
@@ -152,7 +158,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       mapRef,
       flyToAndSelectZone,
     }),
-    [selectedZone, setSelectedZone, lastVisitedZone, selectedChantier, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
+    [selectedZone, setSelectedZone, lastVisitedZone, selectedChantier, selectedRumeur, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
   );
 
   return (
