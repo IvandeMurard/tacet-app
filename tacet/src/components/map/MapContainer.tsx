@@ -14,6 +14,7 @@ import { useRumeurData } from "@/hooks/useRumeurData";
 import { useElectionsData } from "@/hooks/useElectionsData";
 import type { IrisProperties } from "@/types/iris";
 import type { ChantierProperties } from "@/types/chantier";
+import type { RumeurFeatureProperties } from "@/types/rumeur";
 
 const GEOJSON_URL = "/data/paris-noise-iris.geojson";
 const CENTROIDS_URL = "/data/iris-centroids.geojson";
@@ -30,7 +31,7 @@ const NEIGHBORHOOD_ZOOM = 13;
 
 export function MapContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { mapRef, setSelectedZone, selectedZone, activeLayers, setSelectedChantier } = useMapContext();
+  const { mapRef, setSelectedZone, selectedZone, activeLayers, setSelectedChantier, setSelectedRumeur } = useMapContext();
   const chantiersEnabled = activeLayers.has("chantiers");
   const rumeurEnabled = activeLayers.has("rumeur");
   const electionsEnabled = activeLayers.has("elections");
@@ -44,7 +45,23 @@ export function MapContainer() {
       const map = mapRef.current;
       if (!map) return;
 
-      // Chantier circles take priority — open the chantier popup and suppress IRIS logic
+      // RUMEUR circles — open sensor dB popup and suppress other popup logic
+      if (map.getLayer("rumeur-circles")) {
+        const rumeurFeatures = map.queryRenderedFeatures(e.point, {
+          layers: ["rumeur-circles"],
+        });
+        if (rumeurFeatures.length > 0 && rumeurFeatures[0].properties) {
+          setSelectedRumeur(rumeurFeatures[0].properties as unknown as RumeurFeatureProperties);
+          setSelectedChantier(null);
+          setSelectedZone(null);
+          return;
+        }
+      }
+
+      // Clicking anywhere other than a RUMEUR circle — close any open RUMEUR popup
+      setSelectedRumeur(null);
+
+      // Chantier circles take priority over IRIS — open the chantier popup and suppress IRIS logic
       if (map.getLayer("chantiers-circles")) {
         const chantierFeatures = map.queryRenderedFeatures(e.point, {
           layers: ["chantiers-circles"],
@@ -86,14 +103,14 @@ export function MapContainer() {
         setSelectedZone(null);
       }
     },
-    [mapRef, setSelectedZone, setSelectedChantier]
+    [mapRef, setSelectedZone, setSelectedChantier, setSelectedRumeur]
   );
 
   const handleMouseMove = useCallback(
     (e: MapMouseEvent) => {
       if (!containerRef.current || !mapRef.current) return;
       const features = mapRef.current.queryRenderedFeatures(e.point, {
-        layers: ["iris-fill", "score-dots-circles", "score-dots-cluster", "chantiers-circles"],
+        layers: ["iris-fill", "score-dots-circles", "score-dots-cluster", "chantiers-circles", "rumeur-circles"],
       });
       containerRef.current.style.cursor = features.length > 0 ? "pointer" : "";
     },
@@ -305,6 +322,7 @@ export function MapContainer() {
         addRumeurLayer(map, rumeurResponse.data.measurements);
       } else {
         removeRumeurLayer(map);
+        setSelectedRumeur(null);
       }
     };
 
@@ -318,7 +336,7 @@ export function MapContainer() {
     }
 
     applyLayerState();
-  }, [rumeurEnabled, rumeurResponse, mapRef]);
+  }, [rumeurEnabled, rumeurResponse, mapRef, setSelectedRumeur]);
 
   useEffect(() => {
     const map = mapRef.current;

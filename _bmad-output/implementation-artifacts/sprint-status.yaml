@@ -58,7 +58,7 @@ development_status:
   3-8-chantier-location-popup-address-end-date-type: review
   3-9-elections-2026-thematic-layer-full-implementation: review
   3-10-barometre-server-side-data-fetch-and-isr: review
-  3-11-rumeur-sensor-db-popup-fr17: ready-for-dev
+  3-11-rumeur-sensor-db-popup-fr17: review
   epic-3-retrospective: optional
 
   # Epic 4: Progressive Web App & Offline — DONE
