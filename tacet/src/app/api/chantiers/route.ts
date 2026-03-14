@@ -22,10 +22,22 @@ export async function GET() {
     if (!res.ok) {
       throw new Error(`Open Data Paris: ${res.status}`);
     }
-    const data = (await res.json()) as ChantierRecord[];
+    const raw: unknown = await res.json();
+    if (!Array.isArray(raw)) {
+      throw new Error("Open Data Paris: unexpected response shape (not an array)");
+    }
+    const data = (raw as Record<string, unknown>[]).filter(
+      (r): r is ChantierRecord =>
+        r != null &&
+        typeof r === "object" &&
+        (r.geo_point_2d == null ||
+          (typeof r.geo_point_2d === "object" &&
+            typeof (r.geo_point_2d as Record<string, unknown>).lon === "number" &&
+            typeof (r.geo_point_2d as Record<string, unknown>).lat === "number"))
+    );
     const cachedAt = new Date().toISOString();
     return NextResponse.json({
-      data: Array.isArray(data) ? data : [],
+      data,
       error: null,
       fallback: false,
       cachedAt,

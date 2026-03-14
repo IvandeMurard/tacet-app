@@ -10,8 +10,15 @@ interface ChantierRecord {
   type_chantier?: string;
 }
 
+let cachedRecords: ChantierRecord[] | null = null;
+let cachedGeoJSON: GeoJSON.FeatureCollection | null = null;
+
 function toGeoJSON(records: ChantierRecord[]): GeoJSON.FeatureCollection {
-  return {
+  if (cachedRecords === records && cachedGeoJSON) {
+    return cachedGeoJSON;
+  }
+  cachedRecords = records;
+  cachedGeoJSON = {
     type: "FeatureCollection",
     features: records
       .filter((r) => r.geo_point_2d?.lon && r.geo_point_2d?.lat)
@@ -29,6 +36,7 @@ function toGeoJSON(records: ChantierRecord[]): GeoJSON.FeatureCollection {
         },
       })),
   };
+  return cachedGeoJSON;
 }
 
 export function addChantiersLayer(map: MapLibreMap, records: ChantierRecord[]) {

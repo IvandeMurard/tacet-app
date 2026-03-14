@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X, Share2, Sun, Moon, Pin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Share2, Sun, Moon, Pin, Check } from "lucide-react";
 import Link from "next/link";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
+import { DATA_YEAR } from "@/lib/constants";
 import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
@@ -16,11 +17,10 @@ interface IrisPopupProps {
   onClose: () => void;
   onPin?: () => void;
   isPinned?: boolean;
+  pinDisabled?: boolean;
 }
 
-const DATA_YEAR = 2024;
-
-export function IrisPopup({ properties, onClose, onPin, isPinned = false }: IrisPopupProps) {
+export function IrisPopup({ properties, onClose, onPin, isPinned = false, pinDisabled = false }: IrisPopupProps) {
   const { code_iris, name, c_ar, noise_level, primary_sources, day_level, night_level, description } =
     properties;
 
@@ -38,6 +38,7 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
       : "#c084fc";
 
   const popupRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const el = popupRef.current;
@@ -66,8 +67,12 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
         }
       }
     };
+    document.body.style.overflow = "hidden";
     el.addEventListener("keydown", onKeyDown);
-    return () => el.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      el.removeEventListener("keydown", onKeyDown);
+    };
   }, [onClose]);
 
   const handleShare = async () => {
@@ -84,6 +89,8 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
       }
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -107,10 +114,22 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
             <button
               type="button"
               onClick={onPin}
+              disabled={pinDisabled}
               className={`rounded-full p-1.5 transition-colors ${
-                isPinned ? "text-teal-400" : "text-white/30 hover:bg-white/10 hover:text-white/70"
+                isPinned
+                  ? "text-teal-400"
+                  : pinDisabled
+                  ? "cursor-not-allowed text-white/15"
+                  : "text-white/30 hover:bg-white/10 hover:text-white/70"
               }`}
-              aria-label={isPinned ? "Retirer des favoris" : "Épingler pour comparer"}
+              aria-label={
+                isPinned
+                  ? "Retirer des favoris"
+                  : pinDisabled
+                  ? "Maximum 3 zones épinglées"
+                  : "Épingler pour comparer"
+              }
+              title={pinDisabled ? "Maximum 3 zones épinglées" : undefined}
             >
               <Pin size={16} />
             </button>
@@ -184,15 +203,15 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
         onClick={handleShare}
         className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-medium transition-colors"
         style={{
-          backgroundColor: "rgba(13,148,136,0.12)",
-          color: "#2DD4BF",
-          border: "1px solid rgba(13,148,136,0.25)",
+          backgroundColor: copied ? "rgba(34,197,94,0.15)" : "rgba(13,148,136,0.12)",
+          color: copied ? "#4ade80" : "#2DD4BF",
+          border: copied ? "1px solid rgba(34,197,94,0.3)" : "1px solid rgba(13,148,136,0.25)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.22)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.12)"; }}
+        onMouseEnter={(e) => { if (!copied) e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.22)"; }}
+        onMouseLeave={(e) => { if (!copied) e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.12)"; }}
       >
-        <Share2 size={13} />
-        Partager ce score
+        {copied ? <Check size={13} /> : <Share2 size={13} />}
+        {copied ? "Copié !" : "Partager ce score"}
       </button>
     </div>
   );
