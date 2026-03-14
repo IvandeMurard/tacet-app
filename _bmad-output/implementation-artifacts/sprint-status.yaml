@@ -70,7 +70,7 @@ development_status:
   4-3-pwa-install-prompt-and-offline-banner: done
   4-4-manifest-icons-and-installability: done
   4-5-geojson-runtime-cache-offline-map: review
-  4-6-auto-restore-last-visited-zone: ready-for-dev
+  4-6-auto-restore-last-visited-zone: review
   4-7-rumeur-chantiers-api-sw-runtime-cache: review
   4-8-unit-tests-offlinebanner-pwainstallprompt: ready-for-dev
   4-9-pwa-polish-maskable-icon-deferred-prompt: ready-for-dev

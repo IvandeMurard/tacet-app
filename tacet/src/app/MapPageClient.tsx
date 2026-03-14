@@ -12,6 +12,7 @@ import { ComparisonTray } from "@/components/tacet/ComparisonTray";
 import { useMapContext, MAX_PINNED } from "@/contexts/MapContext";
 import { useRumeurData } from "@/hooks/useRumeurData";
 import { useChantiersData } from "@/hooks/useChantiersData";
+import { useRestoreLastZone } from "@/hooks/useRestoreLastZone";
 import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 import type { RumeurMeasurement } from "@/types/rumeur";
@@ -98,6 +99,7 @@ function RumeurStatus({ rumeurResponse, swrError }: {
 export function MapPageClient() {
   const { selectedZone, setSelectedZone, selectedZoneLngLat, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier, selectedRumeur, setSelectedRumeur } =
     useMapContext();
+  useRestoreLastZone();
   const [trayOpen, setTrayOpen] = useState(false);
 
   // Always-on data fetching — no toggles

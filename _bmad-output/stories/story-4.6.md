@@ -2,7 +2,7 @@
 id: story-4.6
 title: "Auto-restore last visited zone on load (E4-M1)"
 epic: "Epic 4: Progressive Web App & Offline"
-status: ready-for-dev
+status: review
 depends: [story-4.2]
 priority: medium
 storyPoints: 1
