@@ -2,7 +2,7 @@
 id: story-4.5
 title: "GeoJSON runtime cache for offline map rendering (E4-H1)"
 epic: "Epic 4: Progressive Web App & Offline"
-status: ready-for-dev
+status: review
 depends: [story-4.1]
 priority: high
 storyPoints: 1

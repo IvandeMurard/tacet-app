@@ -2,7 +2,7 @@
 id: story-4.7
 title: "RUMEUR + Chantiers API runtime cache in service worker (E4-M2)"
 epic: "Epic 4: Progressive Web App & Offline"
-status: ready-for-dev
+status: review
 depends: [story-4.1, story-3.1, story-3.4]
 priority: medium
 storyPoints: 1
