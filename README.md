@@ -1,8 +1,10 @@
 # Tacet
 
-**Visualize noise pollution in Paris.**
+**Discover your quiet Paris. Coming to iOS.**
 
-Tacet is a mobile-first Progressive Web App that transforms technical noise data from [Bruitparif](https://www.bruitparif.fr/) into an intuitive choropleth map. Decibel measurements are converted into 4 simple categories — Quiet, Moderate, Noisy, Very Noisy — presented on a soothing interface.
+[🌐 Landing Page](https://listen-to-paris.lovable.app) · [📍 V1 Web App](https://tacet.vercel.app)
+
+Know if a neighborhood is calm enough before you sign a lease — one score, one tap. Compare addresses, follow quiet routes on foot or by bike, get real-time noise briefings. **V2 (iOS)** adds thematic routes and voice-guided discovery; the current **V1** web app is at the link below.
 
 > *Tacet* (from Latin "he falls silent") is a musical indication signifying silence.
 
@@ -10,13 +12,15 @@ Tacet is a mobile-first Progressive Web App that transforms technical noise data
 
 ## Features
 
-* 🗺️ **Choropleth Map** — Noise levels by district and IRIS zone on a Mapbox background
-* 🔍 **Address Search** — Geocoding with a serenity score
-* 📊 **Silence Barometer** — Ranking of the quietest districts
-* 📱 **PWA** — Installable on mobile, works offline
-* 🎨 **Glassmorphism Design** — Calm and accessible interface
+* **See calm at a glance** — One map, 992 Paris zones by serenity (no decibels to interpret).
+* **Get a score for any address** — Search an address, see its calm score instantly.
+* **Compare the quietest districts** — Rank districts by calm so you can narrow your search.
+* **Trust the source** — Bruitparif official data, 992 IRIS zones; same data as institutional portals, human-readable.
+* **Calm, readable interface** — Designed for quick decisions, not dashboards.
 
 ## Tech Stack
+
+V1 (web) and V2 (iOS) share the same data and scoring logic; V2 is the product direction.
 
 | Component | V1 (current) | V2 (in progress) |
 | --- | --- | --- |
@@ -24,7 +28,6 @@ Tacet is a mobile-first Progressive Web App that transforms technical noise data
 | Map | Mapbox GL JS v3 / react-map-gl | **MapLibre GL JS** (MIT, $0) |
 | Tiles | GeoJSON static | **PMTiles** (Protomaps, Vercel Blob) |
 | Geocoding | Mapbox Geocoding v6 | **Photon Komoot** (free, no key) |
-| PWA | — | **Serwist** (`@serwist/next`) |
 | Tests | — | **Vitest + Playwright + LHCI** |
 | Language | TypeScript | TypeScript |
 | Style | Tailwind CSS + shadcn/ui | Tailwind CSS + shadcn/ui |
@@ -55,13 +58,13 @@ docs/
 └── data-bruitparif.md                 # Spatial join documentation
 
 ```
-```
-```
 ## Roadmap
 
 Detailed tracking hosted on [Linear] (https://linear.app/ivanportfolio/project/tacet-8a0e70262193).
 
 ### ✅ V1 — Delivered
+
+You can already search any Paris address and see its serenity score on the web.
 
 * [x] 992 IRIS zones choropleth map (Bruitparif PPBE 2024 data)
 * [x] Serenity Score (0–100 composite score, human-readable)

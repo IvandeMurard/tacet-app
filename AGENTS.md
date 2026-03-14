@@ -4,7 +4,7 @@ This file provides guidance to AI agents (Cursor, Claude Code, WARP, etc.) when 
 
 ## Project Overview
 
-Tacet is a **Next.js 14 Progressive Web App (PWA)** that visualizes Paris urban noise by IRIS zone using Bruitparif data. It is a mobile-first civic/environmental tool: raw acoustic data (Lden dB) is translated into a human-readable **Score Sérénité** (0–100) and shown on an interactive map. **V1 is live** at [tacet.vercel.app](https://tacet.vercel.app); **V2 is in progress** (open-source stack migration, real-time layer, PWA hardening).
+Tacet is a **Paris acoustic companion** that translates Bruitparif noise data into a human-readable **Score Sérénité** (0–100). **V1** is a Next.js 14 PWA live at [tacet.vercel.app](https://tacet.vercel.app). **V2 is a native iOS app** (in active development) — landing page at [listen-to-paris.lovable.app](https://listen-to-paris.lovable.app).
 
 The app lives in the **`tacet/`** subfolder. The repository root also contains **data pipeline scripts** and **planning artifacts** (PRD, UX spec, BMAD outputs).
 
@@ -119,4 +119,4 @@ BMAD agent commands live in **`.claude/commands/`** (e.g. `bmad-agent-bmm-dev.md
 
 ## V2 Roadmap (context only)
 
-V2 targets: migration to **MapLibre GL JS** + **PMTiles** (Protomaps) + **Photon** (Komoot) for geocoding to achieve **$0 variable API cost** at scale; real-time Bruitparif RUMEUR layer; PWA hardening (e.g. Serwist). Implementation follows the UX spec and PRD.
+V2 is a **native iOS app**. Landing page: [listen-to-paris.lovable.app](https://listen-to-paris.lovable.app). Targets: calm-route navigation, real-time Bruitparif RUMEUR alerts, thematic routes (nature, history, art, food), voice guide, noise-pollution education. Implementation follows the UX spec and PRD.

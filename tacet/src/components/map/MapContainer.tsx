@@ -7,7 +7,9 @@ import { useMapContext } from "@/contexts/MapContext";
 import { PARIS_CENTER, DEFAULT_ZOOM, NOISE_CATEGORIES } from "@/lib/noise-categories";
 import { getBaseMapStyle } from "@/lib/map-style";
 import { addChantiersLayer, removeChantiersLayer } from "@/components/map/ChantiersLayer";
+import { addRumeurLayer, removeRumeurLayer } from "@/components/map/RumeurLayer";
 import { useChantiersData } from "@/hooks/useChantiersData";
+import { useRumeurData } from "@/hooks/useRumeurData";
 import type { IrisProperties } from "@/types/iris";
 
 const GEOJSON_URL = "/data/paris-noise-iris.geojson";
@@ -26,7 +28,9 @@ export function MapContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const { mapRef, setSelectedZone, selectedZone, activeLayers } = useMapContext();
   const chantiersEnabled = activeLayers.has("chantiers");
+  const rumeurEnabled = activeLayers.has("rumeur");
   const { data: chantiersResponse } = useChantiersData(chantiersEnabled);
+  const { data: rumeurResponse } = useRumeurData(rumeurEnabled);
 
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
@@ -258,6 +262,30 @@ export function MapContainer() {
       removeChantiersLayer(map);
     }
   }, [chantiersEnabled, chantiersResponse, mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const applyLayerState = () => {
+      if (!map.isStyleLoaded()) return;
+      if (rumeurEnabled && rumeurResponse?.data?.measurements) {
+        addRumeurLayer(map, rumeurResponse.data.measurements);
+      } else {
+        removeRumeurLayer(map);
+      }
+    };
+
+    if (!map.isStyleLoaded()) {
+      const onLoad = () => {
+        applyLayerState();
+        map.off("load", onLoad);
+      };
+      map.on("load", onLoad);
+      return () => { map.off("load", onLoad); };
+    }
+
+    applyLayerState();
+  }, [rumeurEnabled, rumeurResponse, mapRef]);
 
   return (
     <div

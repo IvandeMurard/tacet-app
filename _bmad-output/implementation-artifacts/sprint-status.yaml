@@ -61,12 +61,11 @@ development_status:
   2-6-serenitybar-tierbadge-and-dataprovenance: done
   epic-2-retrospective: optional
 
-  # Epic 3: Real-Time & Contextual Data Layers — IN PROGRESS
-  # Stories 3.1–3.3 blocked by TAC-28 (Bruitparif API access)
-  epic-3: in-progress
-  3-1-rumeur-api-proxy-and-server-side-cache: ready-for-dev
-  3-2-userumeurdata-hook-and-rumeur-layer-on-map: ready-for-dev
-  3-3-rumeur-timestamp-and-stale-unavailable-indicator: ready-for-dev
+  # Epic 3: Real-Time & Contextual Data Layers — DONE
+  epic-3: done
+  3-1-rumeur-api-proxy-and-server-side-cache: done
+  3-2-userumeurdata-hook-and-rumeur-layer-on-map: done
+  3-3-rumeur-timestamp-and-stale-unavailable-indicator: done
   3-4-chantiers-api-proxy-and-chantiers-layer: done
   3-5-chantiers-limitation-disclosure-and-elections-layer: done
   3-6-barometre-du-silence-page: done
