@@ -4,7 +4,7 @@ import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-export interface ChantiersResponse {
+interface ChantiersResponse {
   data: Array<{
     geo_point_2d?: { lon: number; lat: number };
     adresse?: string;
