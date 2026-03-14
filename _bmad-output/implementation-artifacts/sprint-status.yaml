@@ -17,6 +17,7 @@
 # WORKFLOW NOTES:
 # - Stories 3.1–3.3 (RUMEUR) blocked by TAC-28 (Bruitparif API access)
 # - Stories 3.7–3.11 are remediation items from epic-3 exhaustive review (2026-03-14)
+# - Stories 4.5–4.9 are remediation items from epic-4 exhaustive review (2026-03-14)
 
 generated: 2026-03-06
 project: Tacet
@@ -61,12 +62,18 @@ development_status:
   3-11-rumeur-sensor-db-popup-fr17: review
   epic-3-retrospective: optional
 
-  # Epic 4: Progressive Web App & Offline — DONE
-  epic-4: done
+  # Epic 4: Progressive Web App & Offline — IN PROGRESS
+  # Stories 4.5-4.9 are remediation items from exhaustive review (2026-03-14)
+  epic-4: in-progress
   4-1-serwist-service-worker-and-precache: done
   4-2-offline-last-visited-zone-and-runtime-caching: done
   4-3-pwa-install-prompt-and-offline-banner: done
   4-4-manifest-icons-and-installability: done
+  4-5-geojson-runtime-cache-offline-map: ready-for-dev
+  4-6-auto-restore-last-visited-zone: ready-for-dev
+  4-7-rumeur-chantiers-api-sw-runtime-cache: ready-for-dev
+  4-8-unit-tests-offlinebanner-pwainstallprompt: ready-for-dev
+  4-9-pwa-polish-maskable-icon-deferred-prompt: ready-for-dev
   epic-4-retrospective: optional
 
   # Epic 5: Accessibility, Compliance & End-to-End Quality — DONE
