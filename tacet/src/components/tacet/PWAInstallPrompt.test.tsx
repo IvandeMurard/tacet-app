@@ -29,22 +29,28 @@ describe("PWAInstallPrompt", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when sessionStorage flag is already set", () => {
+  it("renders nothing when sessionStorage flag is already set (even with triggered=true)", () => {
     sessionStorage.setItem(PROMPT_SHOWN_KEY, "1");
-    render(<PWAInstallPrompt />);
+    render(<PWAInstallPrompt triggered={true} />);
     fireInstallPromptEvent();
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("shows the install dialog when beforeinstallprompt fires", () => {
-    render(<PWAInstallPrompt />);
+  it("renders nothing when triggered=false even after beforeinstallprompt fires", () => {
+    render(<PWAInstallPrompt triggered={false} />);
+    fireInstallPromptEvent();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("shows the install dialog when triggered=true and beforeinstallprompt fires", () => {
+    render(<PWAInstallPrompt triggered={true} />);
     fireInstallPromptEvent();
     expect(screen.getByRole("dialog")).toBeDefined();
     expect(screen.getByRole("button", { name: "Installer" })).toBeDefined();
   });
 
   it("'Plus tard' button sets sessionStorage flag and hides the dialog", () => {
-    render(<PWAInstallPrompt />);
+    render(<PWAInstallPrompt triggered={true} />);
     fireInstallPromptEvent();
     fireEvent.click(screen.getByText(/plus tard/i));
     expect(screen.queryByRole("dialog")).toBeNull();
@@ -52,10 +58,10 @@ describe("PWAInstallPrompt", () => {
   });
 
   it("'Installer' button calls deferredPrompt.prompt()", async () => {
-    render(<PWAInstallPrompt />);
+    render(<PWAInstallPrompt triggered={true} />);
     const promptFn = fireInstallPromptEvent();
     await act(async () => {
-      fireEvent.click(screen.getByText(/^Installer$/));
+      fireEvent.click(screen.getByRole("button", { name: "Installer" }));
     });
     expect(promptFn).toHaveBeenCalledTimes(1);
   });

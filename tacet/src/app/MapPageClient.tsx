@@ -14,6 +14,7 @@ import { useRumeurData } from "@/hooks/useRumeurData";
 import { useChantiersData } from "@/hooks/useChantiersData";
 import { useRestoreLastZone } from "@/hooks/useRestoreLastZone";
 import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
+import { PWAInstallPrompt } from "@/components/tacet/PWAInstallPrompt";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 import type { RumeurMeasurement } from "@/types/rumeur";
 
@@ -176,6 +177,7 @@ export function MapPageClient() {
       {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && (
         <RumeurStatus rumeurResponse={rumeurResponse} swrError={rumeurSwrError} />
       )}
+      <PWAInstallPrompt triggered={selectedZone !== null} />
       <AppNav onOpenCompare={() => setTrayOpen((v) => !v)} />
     </main>
   );

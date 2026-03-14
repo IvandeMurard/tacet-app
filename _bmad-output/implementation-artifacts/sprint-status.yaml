@@ -73,7 +73,7 @@ development_status:
   4-6-auto-restore-last-visited-zone: review
   4-7-rumeur-chantiers-api-sw-runtime-cache: review
   4-8-unit-tests-offlinebanner-pwainstallprompt: review
-  4-9-pwa-polish-maskable-icon-deferred-prompt: ready-for-dev
+  4-9-pwa-polish-maskable-icon-deferred-prompt: review
   epic-4-retrospective: optional
 
   # Epic 5: Accessibility, Compliance & End-to-End Quality — DONE
