@@ -56,7 +56,7 @@ development_status:
   3-6-barometre-du-silence-page: done
   3-7-chantiers-api-in-memory-cache-and-fallback: review
   3-8-chantier-location-popup-address-end-date-type: review
-  3-9-elections-2026-thematic-layer-full-implementation: ready-for-dev
+  3-9-elections-2026-thematic-layer-full-implementation: review
   3-10-barometre-server-side-data-fetch-and-isr: ready-for-dev
   3-11-rumeur-sensor-db-popup-fr17: ready-for-dev
   epic-3-retrospective: optional
