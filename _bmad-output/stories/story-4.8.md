@@ -2,7 +2,7 @@
 id: story-4.8
 title: "Unit tests for OfflineBanner and PWAInstallPrompt (E4-M3)"
 epic: "Epic 4: Progressive Web App & Offline"
-status: ready-for-dev
+status: review
 depends: [story-4.2, story-4.3]
 priority: medium
 storyPoints: 1
