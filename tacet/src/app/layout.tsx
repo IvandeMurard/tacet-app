@@ -69,7 +69,6 @@ export const metadata: Metadata = {
 
 import { Footer } from "@/components/Footer";
 import { OfflineBanner } from "@/components/tacet/OfflineBanner";
-import { PWAInstallPrompt } from "@/components/tacet/PWAInstallPrompt";
 
 export default function RootLayout({
   children,
@@ -81,7 +80,6 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <OfflineBanner />
         {children}
-        <PWAInstallPrompt />
         <Footer />
       </body>
     </html>

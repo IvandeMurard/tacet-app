@@ -2,7 +2,7 @@
 id: story-4.9
 title: "PWA polish: maskable icon, deferred install prompt, reloadOnOnline fix (E4-L1, L2, L3)"
 epic: "Epic 4: Progressive Web App & Offline"
-status: ready-for-dev
+status: review
 depends: [story-4.3, story-4.4]
 priority: low
 storyPoints: 1
@@ -52,12 +52,13 @@ So that users get a polished install experience and Lighthouse CI stays green.
 
 ## Tasks/Subtasks
 
-- [ ] Update `manifest.json`: 512 icon → `"purpose": "any maskable"`
-- [ ] Refactor `PWAInstallPrompt`: accept `triggered` prop; gate `setShowPrompt(true)` on `triggered`
-- [ ] Update `MapPageClient`: pass `triggered={selectedZone !== null}` prop
-- [ ] Update `next.config.mjs`: `reloadOnOnline: false`
-- [ ] Run full test suite — all green, no regressions
+- [x] Update `manifest.json`: 512 icon → `"purpose": "any maskable"`
+- [x] Refactor `PWAInstallPrompt`: accept `triggered` prop; gate `setShowPrompt(true)` on `triggered`
+- [x] Update `MapPageClient`: pass `triggered={selectedZone !== null}` prop
+- [x] Update `next.config.mjs`: `reloadOnOnline: false`
+- [x] Run full test suite — all green, no regressions (130/130)
 
 ## Change Log
 
 - 2026-03-14: Story created from epic-4 exhaustive review findings E4-L1, E4-L2, E4-L3
+- 2026-03-14: Implementation complete — 130/130 tests pass, TypeScript clean

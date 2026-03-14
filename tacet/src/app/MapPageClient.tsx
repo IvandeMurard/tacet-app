@@ -13,6 +13,7 @@ import { useMapContext } from "@/contexts/MapContext";
 import { useRumeurData } from "@/hooks/useRumeurData";
 import { useRestoreLastZone } from "@/hooks/useRestoreLastZone";
 import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
+import { PWAInstallPrompt } from "@/components/tacet/PWAInstallPrompt";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 
 const MapContainer = dynamic(
@@ -174,6 +175,7 @@ export function MapPageClient() {
       )}
       <ComparisonTray isOpen={trayOpen} onClose={() => setTrayOpen(false)} />
       {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && <RumeurStatus />}
+      <PWAInstallPrompt triggered={selectedZone !== null} />
       <AppNav onOpenCompare={() => setTrayOpen((v) => !v)} />
     </main>
   );

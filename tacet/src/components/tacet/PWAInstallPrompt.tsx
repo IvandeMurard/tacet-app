@@ -9,7 +9,16 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function PWAInstallPrompt() {
+interface PWAInstallPromptProps {
+  /**
+   * Set to true once the user has performed a meaningful action (e.g. first zone tap).
+   * The install dialog is only shown after this flag becomes true, preventing the
+   * prompt from appearing immediately on page load (E4-L1).
+   */
+  triggered?: boolean;
+}
+
+export function PWAInstallPrompt({ triggered = false }: PWAInstallPromptProps) {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
@@ -20,12 +29,19 @@ export function PWAInstallPrompt() {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      // Don't show yet — wait until triggered (first meaningful action)
     };
 
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  // Show the dialog once the user has done something meaningful AND we have a deferred event
+  useEffect(() => {
+    if (triggered && deferredPrompt && !sessionStorage.getItem(PROMPT_SHOWN_KEY)) {
+      setShowPrompt(true);
+    }
+  }, [triggered, deferredPrompt]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -47,7 +63,7 @@ export function PWAInstallPrompt() {
     <div
       className="fixed bottom-24 left-1/2 z-40 w-[320px] -translate-x-1/2 rounded-2xl border border-white/15 bg-black/90 p-4 shadow-2xl backdrop-blur-xl"
       role="dialog"
-      aria-label="Installer l’application"
+      aria-label="Installer l'application"
     >
       <p className="mb-3 text-sm text-white/90">
         Installer Tacet sur votre appareil pour un accès rapide ?
