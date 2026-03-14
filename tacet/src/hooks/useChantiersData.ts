@@ -2,9 +2,13 @@
 
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Chantiers fetch failed: ${res.status}`);
+  return res.json();
+};
 
-export interface ChantiersResponse {
+interface ChantiersResponse {
   data: Array<{
     geo_point_2d?: { lon: number; lat: number };
     adresse?: string;

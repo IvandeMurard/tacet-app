@@ -7,7 +7,9 @@ import { Legend } from "@/components/Legend";
 import { IrisPopup } from "@/components/IrisPopup";
 import { SearchBar } from "@/components/SearchBar";
 import { ComparisonTray } from "@/components/tacet/ComparisonTray";
-import { useMapContext } from "@/contexts/MapContext";
+import { useMapContext, MAX_PINNED } from "@/contexts/MapContext";
+import { useRumeurData } from "@/hooks/useRumeurData";
+import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
 import { BRAND_COLOR } from "@/lib/noise-categories";
 
 const MapContainer = dynamic(
@@ -68,6 +70,14 @@ function AppNav({ onOpenCompare }: { onOpenCompare: () => void }) {
         onToggle={() => toggleLayer("chantiers")}
         ariaLabel="Afficher les chantiers en cours"
       />
+      {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && (
+        <LayerToggle
+          label="Capteurs"
+          active={activeLayers.has("rumeur")}
+          onToggle={() => toggleLayer("rumeur")}
+          ariaLabel="Afficher les capteurs de bruit RUMEUR"
+        />
+      )}
       <button
         type="button"
         onClick={onOpenCompare}
@@ -86,11 +96,39 @@ function AppNav({ onOpenCompare }: { onOpenCompare: () => void }) {
   );
 }
 
+/**
+ * Connector: reads RUMEUR state from context + SWR, renders the status pill.
+ * Returns null when the layer is off — no polling, no rendering.
+ * Mounted only when NEXT_PUBLIC_ENABLE_RUMEUR === "true" (feature flag in MapPageClient JSX).
+ */
+function RumeurStatus() {
+  const { activeLayers } = useMapContext();
+  const rumeurEnabled = activeLayers.has("rumeur");
+  const { data: rumeurResponse, error: swrError } = useRumeurData(rumeurEnabled);
+
+  if (!rumeurEnabled) return null;
+
+  // Prefer response-envelope error over SWR network error (see story-3.2 review L1):
+  // the fetcher does not throw on non-2xx, so data.error is the primary signal.
+  const error: string | null =
+    rumeurResponse?.error ??
+    (swrError instanceof Error ? swrError.message : swrError ? "Erreur réseau" : null);
+
+  return (
+    <RumeurStatusBar
+      cachedAt={rumeurResponse?.cachedAt ?? null}
+      error={error}
+      fallback={rumeurResponse?.fallback ?? false}
+    />
+  );
+}
+
 export function MapPageClient() {
   const { selectedZone, setSelectedZone, flyToAndSelectZone, pinZone, pinnedZones } = useMapContext();
   const [trayOpen, setTrayOpen] = useState(false);
 
   const isPinned = selectedZone ? pinnedZones.some((z) => z.code_iris === selectedZone.code_iris) : false;
+  const pinDisabled = !isPinned && pinnedZones.length >= MAX_PINNED;
 
   return (
     <main className="relative h-screen w-screen overflow-hidden">
@@ -111,9 +149,11 @@ export function MapPageClient() {
           onClose={() => setSelectedZone(null)}
           onPin={() => pinZone(selectedZone)}
           isPinned={isPinned}
+          pinDisabled={pinDisabled}
         />
       )}
       <ComparisonTray isOpen={trayOpen} onClose={() => setTrayOpen(false)} />
+      {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && <RumeurStatus />}
       <AppNav onOpenCompare={() => setTrayOpen((v) => !v)} />
     </main>
   );
