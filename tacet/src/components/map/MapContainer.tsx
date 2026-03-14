@@ -8,8 +8,10 @@ import { PARIS_CENTER, DEFAULT_ZOOM, NOISE_CATEGORIES } from "@/lib/noise-catego
 import { getBaseMapStyle } from "@/lib/map-style";
 import { addChantiersLayer, removeChantiersLayer } from "@/components/map/ChantiersLayer";
 import { addRumeurLayer, removeRumeurLayer } from "@/components/map/RumeurLayer";
+import { addElectionsLayer, removeElectionsLayer } from "@/components/map/ElectionsLayer";
 import { useChantiersData } from "@/hooks/useChantiersData";
 import { useRumeurData } from "@/hooks/useRumeurData";
+import { useElectionsData } from "@/hooks/useElectionsData";
 import type { IrisProperties } from "@/types/iris";
 import type { ChantierProperties } from "@/types/chantier";
 
@@ -30,8 +32,10 @@ export function MapContainer() {
   const { mapRef, setSelectedZone, selectedZone, activeLayers, setSelectedChantier } = useMapContext();
   const chantiersEnabled = activeLayers.has("chantiers");
   const rumeurEnabled = activeLayers.has("rumeur");
+  const electionsEnabled = activeLayers.has("elections");
   const { data: chantiersResponse } = useChantiersData(chantiersEnabled);
   const { data: rumeurResponse } = useRumeurData(rumeurEnabled);
+  const { data: electionsResponse } = useElectionsData(electionsEnabled);
 
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
@@ -304,6 +308,30 @@ export function MapContainer() {
 
     applyLayerState();
   }, [rumeurEnabled, rumeurResponse, mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const applyElectionsState = () => {
+      if (!map.isStyleLoaded()) return;
+      if (electionsEnabled && electionsResponse) {
+        addElectionsLayer(map, electionsResponse);
+      } else {
+        removeElectionsLayer(map);
+      }
+    };
+
+    if (!map.isStyleLoaded()) {
+      const onLoad = () => {
+        applyElectionsState();
+        map.off("load", onLoad);
+      };
+      map.on("load", onLoad);
+      return () => { map.off("load", onLoad); };
+    }
+
+    applyElectionsState();
+  }, [electionsEnabled, electionsResponse, mapRef]);
 
   return (
     <div

@@ -79,6 +79,12 @@ function AppNav({ onOpenCompare }: { onOpenCompare: () => void }) {
           ariaLabel="Afficher les capteurs de bruit RUMEUR"
         />
       )}
+      <LayerToggle
+        label="Élections"
+        active={activeLayers.has("elections")}
+        onToggle={() => toggleLayer("elections")}
+        ariaLabel="Afficher la couche thématique Élections 2026"
+      />
       <button
         type="button"
         onClick={onOpenCompare}
