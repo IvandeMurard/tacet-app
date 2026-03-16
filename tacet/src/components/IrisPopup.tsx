@@ -1,16 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Share2, Sun, Moon, Pin, Check } from "lucide-react";
+import { X, Share2, Sun, Moon, Pin, Check, Volume2, Construction } from "lucide-react";
 import Link from "next/link";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
 import { DATA_YEAR } from "@/lib/constants";
 import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
+import { useNoiseReports } from "@/hooks/useNoiseReports";
 import type { IrisProperties } from "@/types/iris";
+import type { RumeurMeasurement } from "@/types/rumeur";
 
 export type { IrisProperties };
+
+interface NearbyChantier {
+  adresse?: string;
+  date_fin?: string;
+  type_chantier?: string;
+  distanceM: number;
+}
 
 interface IrisPopupProps {
   properties: IrisProperties;
@@ -18,9 +27,19 @@ interface IrisPopupProps {
   onPin?: () => void;
   isPinned?: boolean;
   pinDisabled?: boolean;
+  nearestSensor?: { measurement: RumeurMeasurement; distanceM: number } | null;
+  nearbyChantiers?: NearbyChantier[];
 }
 
-export function IrisPopup({ properties, onClose, onPin, isPinned = false, pinDisabled = false }: IrisPopupProps) {
+export function IrisPopup({
+  properties,
+  onClose,
+  onPin,
+  isPinned = false,
+  pinDisabled = false,
+  nearestSensor = null,
+  nearbyChantiers = [],
+}: IrisPopupProps) {
   const { code_iris, name, c_ar, noise_level, primary_sources, day_level, night_level, description } =
     properties;
 
@@ -39,6 +58,25 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false, pinDis
 
   const popupRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
+  const { recentCount, canReport, addReport } = useNoiseReports(code_iris);
+  const [reported, setReported] = useState(false);
+
+  const handleReport = () => {
+    addReport();
+    setReported(true);
+    setTimeout(() => setReported(false), 3000);
+  };
+
+  const sensorColor =
+    nearestSensor?.measurement.leq == null
+      ? "#9ca3af"
+      : nearestSensor.measurement.leq < 50
+      ? "#4ade80"
+      : nearestSensor.measurement.leq < 60
+      ? "#fbbf24"
+      : nearestSensor.measurement.leq < 70
+      ? "#f97316"
+      : "#ef4444";
 
   useEffect(() => {
     const el = popupRef.current;
@@ -183,6 +221,44 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false, pinDis
         </div>
       )}
 
+      {(nearestSensor || nearbyChantiers.length > 0 || recentCount > 0) && (
+        <div className="mb-4 space-y-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+          {nearestSensor && nearestSensor.measurement.leq != null && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sensorColor }} />
+              <span>
+                Capteur à {nearestSensor.distanceM < 1000
+                  ? `${Math.round(nearestSensor.distanceM)} m`
+                  : `${(nearestSensor.distanceM / 1000).toFixed(1)} km`}{" "}
+                · <strong className="text-white/80">{nearestSensor.measurement.leq} dB</strong> en ce moment
+              </span>
+            </div>
+          )}
+          {nearbyChantiers.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Construction size={12} className="shrink-0 text-amber-400" />
+              <span>
+                {nearbyChantiers.length === 1
+                  ? "1 chantier actif"
+                  : `${nearbyChantiers.length} chantiers actifs`}{" "}
+                à proximité
+              </span>
+            </div>
+          )}
+          {recentCount > 0 && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Volume2 size={12} className="shrink-0 text-rose-400" />
+              <span>
+                {recentCount === 1
+                  ? "1 signalement bruit"
+                  : `${recentCount} signalements bruit`}{" "}
+                dans la dernière heure
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {primary_sources && (
         <p className="mb-4 text-[10px] leading-relaxed text-white/25">
           Source : {Array.isArray(primary_sources) ? primary_sources.join(", ") : primary_sources}
@@ -198,6 +274,23 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false, pinDis
         </p>
         <DataProvenance />
       </div>
+
+      <button
+        type="button"
+        onClick={handleReport}
+        disabled={!canReport}
+        className={`mb-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-medium transition-colors ${
+          reported
+            ? "border border-rose-500/30 bg-rose-500/15 text-rose-400"
+            : canReport
+            ? "border border-white/10 bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
+            : "cursor-default border border-white/5 bg-transparent text-white/20"
+        }`}
+        aria-label="Signaler un bruit inhabituel dans cette zone"
+      >
+        <Volume2 size={13} />
+        {reported ? "Signalement enregistré" : canReport ? "Signaler bruit inhabituel" : "Déjà signalé récemment"}
+      </button>
 
       <button
         onClick={handleShare}
