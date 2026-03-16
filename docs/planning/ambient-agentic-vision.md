@@ -1,7 +1,7 @@
 # Tacet — Ambient Agentic Vision
 
 **Status:** Active reference — source of truth for ongoing and next building steps
-**Last updated:** 2026-03-16
+**Last updated:** 2026-03-16 (rev 2 — Zone enrichment agent added)
 **Author:** IVAN + Claude
 
 ---
@@ -20,6 +20,15 @@ Not account-based personalisation, but session-inferred personalisation. Tacet d
 The micro-report system (built 2026-03-16) is the seed of this. User signals — even anonymous, even low-volume — feed back into the experience. A zone with 5 recent noise reports should feel different from a zone with 0, regardless of its annual PPBE score. Over time, the gap between the static score and lived experience becomes visible and useful.
 
 The pattern across all three: **pull becomes push**. The current app answers questions you ask. The agentic version notices things and tells you before you ask.
+
+---
+
+### Aino (Sustainable Design Network)
+An AI agent tool for architects and urban planners: enter a location, the agent gathers spatial data from multiple sources in parallel, outputs a structured site profile (demographics, amenities, transport, terrain). Demonstrated as "site analysis in 5 minutes, any location worldwide."
+
+**What it does architecturally:** The agent decides what data to gather based on the location — not a fixed pipeline of pre-chosen APIs. Multiple sources are fetched in parallel, synthesised, and presented as a coherent document rather than a data card.
+
+**Why it matters for Tacet:** It reframes the information presentation problem. Instead of designing a UI that gracefully accommodates 5+ signal types, a synthesis agent decides which 1–2 signals matter for this zone, this user, right now — and the UI only has to render those. The agent handles signal prioritisation; the UI handles rendering. See Story 6.0 below.
 
 ---
 
@@ -74,6 +83,79 @@ See Epic 6 below.
 *This epic does not exist in the original BMAD epics.md. It is appended here as the next phase of the product.*
 
 The goal of Epic 6 is to move Tacet from a **map you consult** to an **environment that notices things for you**.
+
+---
+
+### Story 6.0: Zone enrichment agent
+
+**The idea (inspired by Aino):** A server-side Claude API call sits between data fetching and the IrisPopup. It takes the zone context as input, decides which signals are relevant, and returns a ranked synthesis. The UI renders what the agent returns — not a fixed template with conditional blocks.
+
+This solves two problems at once:
+- The **information presentation problem**: the agent handles signal prioritisation, the UI only handles rendering 1–2 pre-selected signals
+- The **scalability of contextual logic**: adding a new data source (OSM venues, micro-reports, weather) doesn't require new UI branches — the agent incorporates it automatically
+
+**Architecture:**
+
+```
+[zone selected]
+      ↓
+POST /api/enrich
+  body: {
+    zone_code, zone_name, arrondissement,
+    noise_level, day_level, night_level,
+    score_serenite,
+    current_iso_timestamp,
+    intent?,              // "logement" | "calme_maintenant" | null
+    rumeur_sensor?,       // { leq, distanceM } | null
+    nearby_chantiers?,    // count + nearest distanceM | null
+    recent_reports?       // count in last hour | null
+  }
+      ↓
+Claude API (haiku — low latency, low cost)
+  system: "Tu es un assistant de Tacet, application de bruit urbain à Paris.
+           Tu résumes en 1-2 phrases le contexte sonore d'une zone
+           pour un utilisateur mobile. Ton ton est calme, factuel, utile.
+           Tu ne répètes pas le score — tu l'enrichis."
+  user:   [structured zone context]
+      ↓
+  response: {
+    summary: string,          // 1–2 sentences, French, mobile-readable
+    primary_signal: "rumeur" | "chantier" | "reports" | "score" | "night",
+    secondary_signal?: same,
+    confidence: "high" | "low"  // low = agent unsure, UI falls back to default
+  }
+      ↓
+[IrisPopup renders summary + 1–2 ranked signals]
+```
+
+**Example outputs:**
+
+| Input context | Summary |
+|---------------|---------|
+| Score 72, night 58 dB, no live data | "Zone résidentielle calme. Les niveaux nocturnes restent modérés — bon signal pour un logement." |
+| Score 31, Rumeur 71 dB at 200m, 3 reports | "Bruit élevé en ce moment. Capteur à 200 m relevait 71 dB — probablement lié à l'activité du quartier ce soir." |
+| Score 58, 2 chantiers, intent=logement | "Score moyen, mais 2 chantiers actifs à proximité. À vérifier : leurs dates de fin avant de signer." |
+| Score 85, nothing notable | "L'une des zones les plus calmes de Paris. Données cohérentes jour et nuit." |
+
+**Cost and latency profile:**
+
+- Model: `claude-haiku-4-5` (fastest, cheapest — ~$0.0004 per call)
+- Target latency: < 800ms server-side (fires in parallel with Rumeur/Chantiers fetches)
+- Caching: cache per `(zone_code, hour_bucket, intent)` — same zone at the same hour gets the same summary. TTL: 15 min.
+- Graceful degradation: if the agent call fails or exceeds 1.5s, IrisPopup renders the current default template. The summary is additive, never blocking.
+
+**Acceptance criteria (draft):**
+- `POST /api/enrich` Route Handler accepts the zone context body, calls Claude API server-side (key never client-exposed), returns `{ summary, primary_signal, secondary_signal?, confidence, cachedAt }`
+- IrisPopup receives `enrichment` prop (optional); if present, renders `summary` below the score and uses `primary_signal` + `secondary_signal` to select which contextual blocks to show
+- If `enrichment` is null (loading, error, or feature-flagged off), IrisPopup falls back to current default rendering — no regression
+- Feature-flagged: `NEXT_PUBLIC_ENABLE_ENRICHMENT=true` (off by default, on in staging)
+- Server-side cache keyed on `zone_code + Math.floor(Date.now() / 900_000) + intent` (15-min buckets)
+- Haiku model hardcoded — do not upgrade to Sonnet without cost review
+
+**What this unlocks for subsequent stories:**
+Stories 6.1–6.4 can pass their signal data through the enrichment agent rather than building separate UI logic. The agent becomes the centralised reasoning layer for all contextual signals. This means the IrisPopup redesign (design sprint) only needs to solve one problem: how to render `{ summary, primary_signal, secondary_signal }` beautifully — not how to accommodate every possible combination of signals.
+
+**Dependencies:** Claude API key (server-side env var `ANTHROPIC_API_KEY`); `@anthropic-ai/sdk` npm package; existing `/api/rumeur` and `/api/chantiers` data shapes
 
 ---
 
@@ -205,12 +287,13 @@ Before any implementation of Epic 6 UI, run a design sprint with these inputs:
 
 | Priority | Story | Rationale |
 |----------|-------|-----------|
-| 1 | 6.1 Time-aware weighting | Zero new UI, immediate value, uses existing data |
-| 2 | Design sprint (IrisPopup) | Unblocks all visual Epic 6 work |
-| 3 | 6.2 Intent layer | Highest leverage personalisation with minimal complexity |
-| 4 | 6.3 Proactive alternatives | Natural extension of existing proximity logic |
-| 5 | 6.4 Service worker push | High value but requires UX care on permission request |
-| 6 | 6.5 Route serenity | Highest complexity, highest differentiation |
+| 1 | 6.1 Time-aware weighting | Zero new UI, immediate value, uses existing data — good first proof of ambient behaviour |
+| 2 | 6.0 Zone enrichment agent | Solves information presentation problem architecturally; unblocks the design sprint by defining what the UI must render |
+| 3 | Design sprint (IrisPopup) | Now scoped: render `{ summary, primary_signal, secondary_signal }` beautifully, not every signal combination |
+| 4 | 6.2 Intent layer | Highest leverage personalisation; feeds intent signal into enrichment agent |
+| 5 | 6.3 Proactive alternatives | Natural extension; agent can surface alternatives as part of summary |
+| 6 | 6.4 Service worker push | High value but requires UX care on permission request |
+| 7 | 6.5 Route serenity | Highest complexity, highest differentiation — worth the investment once agent layer is stable |
 
 ---
 
@@ -223,3 +306,11 @@ When implementing any story from Epic 6:
 4. Intent layer must degrade gracefully (dismissed = default experience, no broken state)
 5. All new signals in IrisPopup must be **conditionally rendered** — shown only when present and relevant, never as empty placeholders
 6. Do not build the IrisPopup redesign until the design sprint output exists
+
+**Additional rules for Story 6.0 (enrichment agent):**
+7. Claude API key lives in `ANTHROPIC_API_KEY` server-side env var — never client-side
+8. Use `claude-haiku-4-5-20251001` model — do not upgrade without explicit approval
+9. The enrichment call must always be non-blocking: IrisPopup renders immediately with default view, enrichment updates it when ready
+10. Cache key format: `enrich-${zone_code}-${Math.floor(Date.now() / 900_000)}-${intent ?? 'none'}`
+11. System prompt must be in French and stay under 150 tokens — keep it tight
+12. `confidence: "low"` means the agent had insufficient data; UI must fall back to default rendering, not show the low-confidence summary
