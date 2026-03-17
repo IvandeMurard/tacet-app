@@ -53,13 +53,14 @@ export function MapContainer() {
           return;
         }
         if (props && !props.cluster) {
-          setSelectedZone(props as unknown as IrisProperties);
+          const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+          setSelectedZone(props as unknown as IrisProperties, coords);
           return;
         }
       }
       const fillFeatures = map.queryRenderedFeatures(e.point, { layers: ["iris-fill"] });
       if (fillFeatures.length > 0 && fillFeatures[0].properties) {
-        setSelectedZone(fillFeatures[0].properties as unknown as IrisProperties);
+        setSelectedZone(fillFeatures[0].properties as unknown as IrisProperties, [e.lngLat.lng, e.lngLat.lat]);
       } else {
         setSelectedZone(null);
       }

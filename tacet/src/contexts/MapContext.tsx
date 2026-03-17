@@ -65,7 +65,8 @@ export type LayerId = "chantiers" | "elections" | "rumeur";
 
 export interface MapContextValue {
   selectedZone: IrisProperties | null;
-  setSelectedZone: (zone: IrisProperties | null) => void;
+  setSelectedZone: (zone: IrisProperties | null, lngLat?: [number, number]) => void;
+  selectedZoneLngLat: [number, number] | null;
   lastVisitedZone: IrisProperties | null;
   activeLayers: Set<LayerId>;
   toggleLayer: (id: LayerId) => void;
@@ -80,13 +81,15 @@ const MapContext = createContext<MapContextValue | null>(null);
 
 export function MapProvider({ children }: { children: ReactNode }) {
   const [selectedZone, setSelectedZoneRaw] = useState<IrisProperties | null>(null);
+  const [selectedZoneLngLat, setSelectedZoneLngLat] = useState<[number, number] | null>(null);
   const [lastVisitedZone] = useState<IrisProperties | null>(loadLastZoneFromStorage);
-  const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set());
+  const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set<LayerId>(["chantiers", "rumeur"]));
   const [pinnedZones, setPinnedZones] = useState<IrisProperties[]>(loadPinnedFromStorage);
   const mapRef = useRef<MapLibreMap | null>(null);
 
-  const setSelectedZone = useCallback((zone: IrisProperties | null) => {
+  const setSelectedZone = useCallback((zone: IrisProperties | null, lngLat?: [number, number]) => {
     setSelectedZoneRaw(zone);
+    setSelectedZoneLngLat(lngLat ?? null);
     if (zone) saveLastZoneToStorage(zone);
   }, []);
 
@@ -137,6 +140,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     () => ({
       selectedZone,
       setSelectedZone,
+      selectedZoneLngLat,
       lastVisitedZone,
       activeLayers,
       toggleLayer,
@@ -146,7 +150,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       mapRef,
       flyToAndSelectZone,
     }),
-    [selectedZone, setSelectedZone, lastVisitedZone, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
+    [selectedZone, setSelectedZone, selectedZoneLngLat, lastVisitedZone, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
   );
 
   return (
