@@ -735,8 +735,8 @@ See Mobile App / Device Permissions for the full permission request matrix (FR-0
 - **FR-007:** The system displays time-appropriate acoustic signals based on the current hour without user configuration
 - **FR-008:** The system enriches a selected zone with a contextual narrative summary via `/api/enrich` when the enrichment feature flag is enabled
 - **FR-009:** A user can set a session intent (logement / calme maintenant / s'informer) that shapes which signals are emphasised for the duration of the session
-- **FR-010:** The system displays a proactive quieter zone alternative when the selected zone scores below threshold and a quieter alternative exists within proximity
-- **FR-011:** A user can view the nearest live RUMEUR sensor reading in a zone popup when a sensor is within relevant proximity
+- **FR-010:** The system displays a proactive quieter zone alternative when the selected zone scores below Score 40 and a quieter alternative exists within 500m
+- **FR-011:** A user can view the nearest live RUMEUR sensor reading in a zone popup when a sensor is within 1km
 - **FR-012:** A user can view active construction zones relevant to a selected IRIS zone
 - **FR-013:** The system falls back to static PPBE data and displays a data-status indicator when live RUMEUR data is unavailable
 
@@ -794,7 +794,7 @@ See Mobile App / Device Permissions for the full permission request matrix (FR-0
 ### Performance
 
 - **NFR-P1:** `/api/enrich` responds within 800ms server-side when called in parallel with RUMEUR/chantier fetches; IrisPopup falls back to default rendering if response exceeds 1,500ms
-- **NFR-P2:** Calm route computation (turf.js IRIS adjacency graph) completes within 4 seconds of route form submission for any A→B within Paris intra-muros
+- **NFR-P2:** Calm route computation completes within 4 seconds of route form submission for any A→B within Paris intra-muros
 - **NFR-P3:** Web PWA Core Web Vitals: LCP < 2.0s on mobile 4G; INP < 100ms; CLS < 0.1
 - **NFR-P4:** Web PWA initial JS bundle < 250 KB; PMTiles Paris intra-muros tile layer initial load < 1.5s
 - **NFR-P5:** Lighthouse Performance ≥ 90; Lighthouse Accessibility ≥ 95 — enforced in CI via `lighthouserc.js` budget
@@ -815,13 +815,13 @@ See Mobile App / Device Permissions for the full permission request matrix (FR-0
 
 - **NFR-R1:** Zone score display and static-data route planning must succeed when RUMEUR API is fully unavailable — no RUMEUR dependency on the critical render path
 - **NFR-R2:** `/api/enrich` failure (timeout, 5xx, network error) must not block IrisPopup render — default template visible within 300ms of zone selection regardless of enrichment status
-- **NFR-R3:** Vercel cron ambient push jobs must be idempotent — re-running the same cron window must not deliver duplicate push notifications to any user
+- **NFR-R3:** Scheduled ambient push jobs must be idempotent — re-running the same cron window must not deliver duplicate push notifications to any user
 - **NFR-R4:** EAS Update OTA deploys must not break offline-cached routes — backward-compatible JS updates only; breaking changes require a full EAS Build
 
 ### Scalability
 
 - **NFR-SC1:** System sustains 10× user growth from MVP baseline without architectural change — Vercel serverless auto-scaling is the primary mechanism; no pre-provisioned capacity
-- **NFR-SC2:** `/api/enrich` Claude Haiku calls capped via a 15-minute cache keyed on `(zone_code, hour_bucket, intent)` — cache hit rate ≥ 80% at sustained load expected
+- **NFR-SC2:** `/api/enrich` calls capped via a 15-minute cache keyed on `(zone_code, hour_bucket, intent)` — cache hit rate ≥ 80% at sustained load expected
 - **NFR-SC3:** NLQ free tier rate-limited to 10 queries/day/user enforced server-side; B2B Pro and Enterprise tiers exempt
 
 ### Accessibility
