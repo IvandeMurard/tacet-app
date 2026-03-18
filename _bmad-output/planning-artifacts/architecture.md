@@ -3,6 +3,7 @@ stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
 lastStep: 8
 status: 'complete'
 completedAt: '2026-03-05'
+v3AddedAt: '2026-03-18'
 inputDocuments:
   - docs/planning/prd.md
   - docs/planning/product-brief.md
@@ -10,10 +11,13 @@ inputDocuments:
   - docs/planning/research/technical-research.md
   - docs/planning/research/domain-research.md
   - docs/planning/research/market-research.md
+  - _bmad-output/planning-artifacts/prd-v3.md
+  - docs/planning/ambient-agentic-vision.md
+  - _bmad-output/planning-artifacts/prd-v3-validation-report.md
 workflowType: 'architecture'
 project_name: 'Tacet'
 user_name: 'IVAN'
-date: '2026-03-05'
+date: '2026-03-18'
 ---
 
 # Architecture Decision Document
@@ -1052,3 +1056,890 @@ All 7 NFR categories covered: Performance (LHCI guards), Security (CSP + proxy),
 - When in doubt, choose the simpler option that respects $0 infra and calm-first UX
 
 **First Implementation Priority:** TAC-29 (MapLibre migration) — replace mapbox-gl and react-map-gl with direct MapLibre GL JS 5.19 + PMTiles 4.4. This unblocks all subsequent TACs.
+
+---
+
+## V3 Architecture — Ambient Intelligence, Routing & B2B
+
+### V3 Context & Scope Delta
+
+**What V3 adds on top of V2:**
+
+V2 made Paris acoustic data visible and searchable. V3 makes it **actionable and ambient**: the city becomes navigable by sound, and the app acts as a background agent that surfaces insights without being asked. V3 also introduces the first revenue layer (B2B certified reports) and the first native mobile distribution channel (iOS via Expo).
+
+**Baseline assumption:** V2 architecture (above) is fully delivered. All V2 decisions, patterns, and boundaries remain in force unless explicitly superseded below. V3 is a delta — not a rewrite.
+
+**Five net-new capability clusters:**
+
+| # | Capability | V3 Phase | Key New Dependencies |
+|---|-----------|----------|---------------------|
+| 1 | **Zone Intelligence Agent** (`/api/enrich`) | V3.0 MVP | Claude Haiku API, `@anthropic-ai/sdk` |
+| 2 | **Calm Route Planner** (acoustic-weighted pedestrian routing) | V3.0 MVP | `@turf/turf`, IRIS adjacency graph |
+| 3 | **iOS Native App** (React Native / Expo) | V3.0 MVP | Expo SDK, `@maplibre/maplibre-react-native`, EAS Build |
+| 4 | **Ambient Push Agent** (proactive RUMEUR-triggered notifications) | V3.1 Growth | Expo Push Service, Vercel Cron |
+| 5 | **B2B Certified Reports** (auth, dashboard, PDF export, Stripe billing) | V3.1 Growth | NextAuth.js / custom JWT, Stripe, server-side PDF |
+
+**New architectural constraints vs V2:**
+
+| Constraint | Source | Impact |
+|-----------|--------|--------|
+| **Multi-platform** (web PWA + iOS RN) | PRD V3 | Shared business logic ≥ 70%; platform-specific UI layers |
+| **LLM in the critical path** | Story 6.0 `/api/enrich` | Non-blocking by design; 1.5s timeout + fallback; 15-min cache |
+| **Server-side secrets expansion** | Claude API + Stripe + B2B JWT | `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `JWT_SECRET` — all server-only |
+| **App Store compliance** | iOS distribution | Privacy manifest, `Info.plist` rationale strings, no IDFA |
+| **EU AI Act (Art. 52)** | NLQ + ambient agent use LLM | Transparency disclosure on first NLQ interaction |
+| **Location-sensitive personal data** | Ambient agent + saved routes | RGPD Art. 9 — explicit opt-in; data minimisation; deletion flow |
+| **Solo founder sequencing** | Resource reality | All stories sequenceable without parallel workstreams; no story blocks another unless noted |
+| **$0 variable infra for V3.0 MVP** | Continuity from V2 | Vercel Hobby for MVP; Vercel Pro ($20/mo) accepted for V3.1 SSE + push cron |
+
+### Phase Breakdown
+
+**V3.0 MVP — Ambient Intelligence + Routing + iOS Shell**
+
+The MVP is validated when:
+1. Expo Go QR scan → app running on physical iPhone in < 60s
+2. Calm pedestrian route A→B computed and displayed in < 4s
+3. `/api/enrich` (Story 6.0) enriches zone popup with Haiku summary
+4. Story 6.1 time-aware weighting live (zero UI, automatic)
+5. Story 6.2 intent layer (one-tap, localStorage)
+6. IrisPopup design sprint output implemented
+7. EAS Build → TestFlight pipeline running in CI (< 15 min)
+
+**V3.1 Growth — Push + NLQ + B2B + Android**
+
+Sequenced priorities:
+1. Story 6.4: Ambient push alerts (highest retention leverage)
+2. NLQ: structured spatial query + `/api/enrich` formatting
+3. B2B: auth + acoustic dashboard + Stripe billing
+4. B2B: certified PDF export
+5. Android EAS Build
+6. NLQ conversation history
+7. Offline route caching
+8. Ambient agent personalisation (threshold learning)
+
+**V3.2+ Expansion — Routes + Scale + Cities**
+
+- Thematic routes (nature, street art, food, coffee)
+- OSRM/GraphHopper integration (replace turf.js for longer routes)
+- Waze-for-Noise crowdsourcing
+- B2B team seats + white-label
+- Expansion hors Paris (Lyon, Marseille, Bruxelles)
+- Voice-first NLQ
+- SSE real-time streaming (Vercel Pro)
+
+### V3 Core Architectural Decisions
+
+#### Decision 6.1 — React Native / Expo Bridge
+
+**Context:** V3 requires a native iOS app for App Store distribution, push notifications, and background location access. The existing V2 codebase is Next.js web-only.
+
+**Decision:** React Native via Expo SDK. Expo Go for dev iteration (QR scan → device in < 60s). EAS Build for TestFlight / App Store distribution. Shared business logic with Next.js PWA at ≥ 70%.
+
+**Monorepo structure:**
+
+```
+tacet/                          # Existing Next.js PWA (V2 — unchanged)
+tacet-mobile/                   # New RN/Expo app (V3)
+packages/shared/                # Shared business logic (V3)
+```
+
+**Shared layer (`packages/shared/`):**
+- `noise-categories.ts` — Score Sérénité computation (moved from `tacet/src/lib/`)
+- `constants.ts` — `PARIS_CENTER`, `DEFAULT_ZOOM`, tier colors, etc.
+- `types/` — `IrisZone`, `RumeurSensor`, `ChantierFeature`, `LayerId`, `EnrichmentResponse`
+- `hooks/` — `useRumeurData`, `useChantiersData`, `usePhotonSearch`, `useEnrichment` (SWR hooks — platform-agnostic via `swr`)
+- `lib/fetcher.ts` — SWR global fetcher
+- `lib/format-date.ts` — relative time helper
+
+**Platform-specific layers:**
+- `tacet/` — Next.js pages, MapLibre GL JS (WebGL), Serwist SW, shadcn/ui components
+- `tacet-mobile/` — Expo screens, `@maplibre/maplibre-react-native`, `react-native-safe-area-context`, Expo Push
+
+**Map library split:**
+- Web: MapLibre GL JS 5.19 (direct, `useRef` + `useEffect`, dynamic import) — unchanged from V2
+- iOS: `@maplibre/maplibre-react-native` — React Native wrapper, declarative API, PMTiles via custom tile source
+
+**Key version decisions (V3):**
+
+| Dependency | Target | Rationale |
+|-----------|--------|-----------|
+| Expo SDK | latest stable | Expo Go + EAS Build + OTA updates |
+| `@maplibre/maplibre-react-native` | latest stable | Official RN binding for MapLibre |
+| `react-native-safe-area-context` | latest | Dynamic Island, notch, home indicator |
+| `@anthropic-ai/sdk` | latest | Claude Haiku calls in `/api/enrich` |
+| `@turf/turf` | latest (modular imports) | IRIS adjacency graph, routing, spatial ops |
+| Stripe SDK (`stripe`) | latest | B2B billing (server-side) |
+| `expo-notifications` | latest | Push notification handling |
+
+**Rationale for Expo over bare RN:** Solo founder velocity. Expo Go eliminates simulator build cycles during dev. EAS Build handles signing, TestFlight upload, and OTA updates. The geospatial + LLM feature set does not require native modules outside Expo's managed workflow.
+
+**Next.js version:** Stays at 14.2.x for V3.0. Upgrade to 15.x deferred to V3.1 or later — same rationale as V2 (avoid mid-migration framework upgrade).
+
+#### Decision 6.2 — `/api/enrich` Zone Intelligence Agent
+
+**Context:** IrisPopup now has 5+ signal types (PPBE score, RUMEUR live, Chantiers, micro-reports, day/night levels, intent). Adding signals without a synthesis layer creates visual noise. Inspired by Aino (urban planning agent).
+
+**Decision:** Server-side Route Handler that assembles zone context and calls Claude Haiku to produce a ranked, human-readable synthesis. The agent decides which 1–2 signals matter; the UI renders only those.
+
+**Route Handler:** `app/api/enrich/route.ts`
+
+```typescript
+// POST /api/enrich
+// Request body:
+{
+  zone_code: string,
+  zone_name: string,
+  arrondissement: string,
+  noise_level: number,
+  day_level: number,
+  night_level: number,
+  score_serenite: number,
+  current_iso_timestamp: string,
+  intent?: "logement" | "calme_maintenant" | "informer" | "ambient_push" | "nlq" | null,
+  rumeur_sensor?: { leq: number, distanceM: number } | null,
+  nearby_chantiers?: { count: number, nearestDistanceM: number } | null,
+  recent_reports?: number | null
+}
+
+// Response:
+{
+  summary: string,           // 1–2 sentences, French, mobile-readable
+  primary_signal: "rumeur" | "chantier" | "reports" | "score" | "night",
+  secondary_signal?: same,
+  confidence: "high" | "low",
+  cachedAt: string           // ISO timestamp
+}
+```
+
+**LLM configuration:**
+- Model: `claude-haiku-4-5-20251001` — hardcoded. No upgrade without explicit cost review.
+- System prompt: French, < 150 tokens. Tone: calm, factual, useful. Never repeats the score — enriches it.
+- Target latency: < 800ms server-side (fires in parallel with RUMEUR/Chantiers fetches)
+- Cache key: `enrich-${zone_code}-${Math.floor(Date.now() / 900_000)}-${intent ?? 'none'}` (15-min TTL)
+- Cost: ~$0.0004/call. At 10k MAU with 80% cache hit rate: ~$24/month.
+
+**Graceful degradation:** If call fails or exceeds 1.5s → IrisPopup renders current default template unchanged. The enrichment is **additive, never blocking**. `confidence: "low"` → UI falls back to default rendering.
+
+**Feature flag:** `NEXT_PUBLIC_ENABLE_ENRICHMENT` (off by default, on in staging).
+
+**What this unlocks:** Stories 6.1–6.4 pass signal data through the agent rather than building separate UI logic. The IrisPopup design sprint only needs to solve one problem: render `{ summary, primary_signal, secondary_signal }` beautifully.
+
+#### Decision 6.3 — Calm Route Engine
+
+**Context:** No competitor routes pedestrians by acoustic quality. The PPBE + RUMEUR combination is unique to Tacet.
+
+**Decision (V3.0 MVP):** IRIS zone adjacency graph computed from `paris-noise-iris.geojson` via `@turf/turf`. Walking routes weighted by Score Sérénité of traversed zones. No external routing API for MVP.
+
+**Routing algorithm (MVP):**
+
+1. **Adjacency graph generation** (build-time script):
+   - Input: `paris-noise-iris.geojson` (992 IRIS polygons)
+   - Compute: `@turf/boolean-touches` or shared-boundary detection for all IRIS pairs
+   - Output: `public/data/iris-adjacency.json` — `{ [irisCode]: { neighbors: string[], centroid: [lng, lat], score: number } }`
+   - One-time generation; regenerated only when GeoJSON source updates
+
+2. **Route computation** (client-side):
+   - Input: origin + destination (Photon geocoding → coordinates)
+   - `@turf/point-in-polygon` to identify origin/destination IRIS zones
+   - Dijkstra/A* over adjacency graph, edge weight = `100 - score_serenite` (lower score = higher cost)
+   - Output: ordered list of IRIS zone codes + composite serenity score + estimated walk time (centroid-to-centroid distances)
+   - Target: < 4s for any A→B within Paris intra-muros
+
+3. **Route display**:
+   - Polyline connecting zone centroids (simplified for MVP)
+   - Colored by per-segment serenity score (reuses tier color palette)
+   - Composite score shown in route card
+
+**Decision (V3.2+ Growth):** Replace turf.js adjacency with OSRM or GraphHopper for street-level routing. Acoustic weighting applied as a custom cost function on street segments (mapped to IRIS zone scores). Self-hosted or managed instance. Deferred until adjacency routing proves the concept.
+
+**Mid-route rerouting (V3.1):** When RUMEUR detects a noise spike along an active route, the `/api/enrich` agent with `intent: "route_reroute"` suggests a detour. Deterministic trigger (RUMEUR delta ≥ 15 dB from zone baseline), LLM only for copy.
+
+#### Decision 6.4 — Push Notification Architecture
+
+**Context:** Ambient agent surfaces insights without user initiation — noise spikes, quiet windows, construction starts near saved zones.
+
+**Decision:** Expo Push Notification service (APNs for iOS, FCM for Android). Server-side trigger logic via Vercel Cron. LLM generates notification copy only — never the trigger.
+
+**Architecture:**
+
+```
+[Vercel Cron — every 3 min]
+      ↓
+[/api/cron/ambient-check]
+  1. Fetch current RUMEUR readings
+  2. Compare vs 7-day rolling average per zone
+  3. Check micro-report accumulation per pinned zone
+  4. For each triggered event:
+      ↓
+  [/api/enrich with intent="ambient_push"]
+      ↓
+  [Expo Push API → APNs/FCM]
+      ↓
+  [User device notification]
+```
+
+**Trigger rules (deterministic, no LLM):**
+- Zone score improves ≥ 10 pts vs 7-day rolling average → quiet window notification
+- RUMEUR reading ≥ 75 dB in a pinned zone → noise spike notification
+- ≥ 3 micro-reports in 1 hour for a pinned zone → crowd signal notification
+- New chantier starts within 400m of a saved route → construction alert
+
+**Cadence cap:** Maximum 1 push/day/user regardless of trigger count. Server-side enforcement.
+
+**Permission request timing:** After first value moment only (first route completed or first NLQ result). Never on first launch.
+
+**Copy generation:** `/api/enrich` with `intent: "ambient_push"`. Sentiment calibrates to context:
+- Quiet window → warm, inviting ("Ce matin, ton quartier respire")
+- Noise spike → calm, informative ("Niveau inhabituel détecté — probablement temporaire")
+- Chantier start → practical ("Un chantier commence rue de la Roquette lundi")
+
+**V3.0 MVP:** Push architecture is designed but **not shipped**. Story 6.4 is V3.1. V3.0 builds the `/api/enrich` and cron infrastructure that V3.1 push depends on.
+
+**Vercel Cron:** Hobby tier supports cron (1/day minimum interval). 3-min ambient check requires **Vercel Pro** ($20/mo) — accepted for V3.1.
+
+#### Decision 6.5 — B2B Auth & Billing
+
+**Context:** B2B certified reports are the first revenue layer. Studios, architects, coworkings need acoustic evidence for lease negotiations and sound-proofing budgets.
+
+**Decision:** Self-contained B2B module. JWT auth + Stripe billing + server-side PDF generation. Entirely V3.1 — not in V3.0 MVP.
+
+**Auth:**
+- Email + password registration (no OAuth for MVP B2B)
+- Short-lived JWTs (< 1h expiry) with refresh token rotation
+- Server-side session validation on every B2B Route Handler
+- TOTP 2FA as growth feature (V3.2+)
+- User data stored in a lightweight database (Vercel Postgres or Supabase — first database in Tacet, B2B only)
+
+**RBAC:**
+
+| Role | Capabilities |
+|------|-------------|
+| **Free (B2C)** | Map, zones, NLQ (10 queries/day), routes, ambient agent |
+| **B2B Pro** (€99/mo) | All Free + acoustic dashboard + unlimited PDF export + address history + priority support |
+| **B2B Enterprise** (€200/mo) | All Pro + multi-address batch export + API access + white-label + SLA |
+
+**Billing:**
+- Stripe Checkout for subscription creation
+- Stripe Webhooks for payment events (validated via HMAC signature — NFR-S3)
+- Invoice PDF download via Stripe Dashboard link
+- Route Handlers: `app/api/b2b/subscribe/route.ts`, `app/api/b2b/webhook/route.ts`
+
+**PDF Export:**
+- Server-side only (NFR-S5) — no client-side PDF construction
+- Content: data source attribution (Bruitparif, PPBE cycle, Etalab), methodology disclaimer, acoustic profile (day/night/weekend breakdown), risk flags, generation timestamp
+- Disclaimer: "à titre informatif — ne constitue pas un acte réglementaire" (non-removable footer)
+- Route Handler: `app/api/b2b/report/route.ts`
+- Target: < 10s generation time
+
+**Database (first in Tacet):**
+- Vercel Postgres (managed, serverless-friendly) or Supabase
+- Tables: `users`, `subscriptions`, `report_history`, `api_keys`
+- B2B data only — B2C remains zero-database (localStorage/sessionStorage)
+- RGPD deletion flow: account + all associated data within 30 days
+
+#### Decision 6.6 — NLQ Pipeline
+
+**Context:** Natural language query collapses UX complexity — a single sentence replaces zone selection → layer toggle → filter. "Café calme sous 55 dB près de République avec Wi-Fi."
+
+**Decision:** Structured spatial query → LLM formatting pipeline. The LLM translates intent; the data is ground truth. Entirely V3.1.
+
+**Pipeline:**
+
+```
+[User NLQ input]
+      ↓
+[/api/nlq/route.ts]
+  1. Send query to Claude Haiku with structured prompt
+  2. LLM extracts: { type, location, maxNoise, amenities, radius }
+  3. Structured spatial query against IRIS data + OSM POI
+  4. Candidate set ranked by acoustic score
+  5. /api/enrich with intent="nlq" formats results
+      ↓
+[Ranked, mapped result set → UI]
+```
+
+**Constraints:**
+- NLQ free tier: 10 queries/day/user (server-side rate limit — NFR-SC3)
+- B2B Pro/Enterprise: unlimited
+- EU AI Act transparency: disclosure on first NLQ use per device (NFR-C3)
+- Results always sourced from structured Tacet data — LLM formats, does not invent
+- Source citation mandatory in every result ("basé sur PPBE 2024 + RUMEUR en direct")
+- Target: query → map render total < 3s (NFR-P7)
+
+**NLQ queries referencing identifiable location data:** Not persisted beyond session without explicit consent (NFR-S7).
+
+#### Decision 6.7 — State Management Evolution
+
+**Context:** V2 uses a single `MapContext` for UI state + SWR for server data. V3 adds cross-platform shared state, routing state, intent state, and B2B session state.
+
+**Decision:** Preserve V2 patterns. Extend, don't replace.
+
+**V3 state additions:**
+
+| State | Storage | Platform | Scope |
+|-------|---------|----------|-------|
+| `intent` | localStorage | Web + RN (AsyncStorage) | Session — persists across sessions, resettable |
+| `enrichment` | SWR cache (15-min TTL) | Web + RN | Per zone per hour bucket |
+| `activeRoute` | React state (MapContext extension) | Web + RN | Ephemeral — cleared on navigation |
+| `savedRoutes` | localStorage / AsyncStorage | Web + RN | Persistent |
+| `pushOptIn` | localStorage / AsyncStorage | Web + RN | Persistent |
+| `b2bSession` | JWT in httpOnly cookie (web) / SecureStore (RN) | Web + RN | Short-lived (< 1h) |
+| `nlqHistory` | sessionStorage (web) / React state (RN) | Web + RN | Ephemeral per session |
+
+**MapContext extension (V3):**
+
+```typescript
+interface MapContextValue {
+  // V2 (preserved)
+  selectedZone: IrisZone | null
+  setSelectedZone: (zone: IrisZone | null) => void
+  activeLayers: Set<LayerId>
+  toggleLayer: (id: LayerId) => void
+  pinnedZones: IrisZone[]
+  pinZone: (zone: IrisZone) => void
+  unpinZone: (zoneId: string) => void
+  expertMode: boolean
+  toggleExpertMode: () => void
+  mapRef: React.RefObject<maplibregl.Map | null>
+
+  // V3 additions
+  intent: Intent | null                    // "logement" | "calme_maintenant" | "informer"
+  setIntent: (intent: Intent | null) => void
+  activeRoute: CalmRoute | null            // computed route being displayed
+  setActiveRoute: (route: CalmRoute | null) => void
+  savedRoutes: CalmRoute[]                 // localStorage-backed
+  saveRoute: (route: CalmRoute) => void
+  removeRoute: (routeId: string) => void
+}
+```
+
+**Rule:** Shared hooks in `packages/shared/hooks/` use SWR (works in both web and RN). Platform-specific state (MapContext) stays in each app. No Zustand, no Redux — state surface remains small enough for Context + SWR.
+
+#### Decision 6.8 — Security & Compliance Additions
+
+**New secrets (V3):**
+
+| Secret | Location | Used By |
+|--------|----------|---------|
+| `ANTHROPIC_API_KEY` | Vercel env var | `/api/enrich`, `/api/nlq` |
+| `STRIPE_SECRET_KEY` | Vercel env var | `/api/b2b/subscribe`, `/api/b2b/webhook` |
+| `STRIPE_WEBHOOK_SECRET` | Vercel env var | `/api/b2b/webhook` (HMAC validation) |
+| `JWT_SECRET` | Vercel env var | B2B auth token signing |
+| `DATABASE_URL` | Vercel env var | B2B Postgres connection |
+
+All server-side only. None bundled in RN app binary or web client JS.
+
+**EU AI Act compliance (Art. 52):**
+- NLQ and ambient agent are limited-risk AI systems requiring transparency disclosure
+- First NLQ session: one-time banner "Vous interagissez avec un système IA" — persisted in localStorage (NFR-C3)
+- All NLQ results: "basé sur PPBE 2024 + RUMEUR en direct" source citation
+- NLQ results are advisory only — no automated decision-making with legal effects
+
+**App Store compliance:**
+- Privacy manifest (`PrivacyInfo.xcprivacy`) complete before first submission
+- All `Info.plist` location usage strings specific and honest
+- No IDFA (NFR-C4)
+- Permissions requested only at value moments (Decision 6.4)
+- TestFlight external beta review before public submission
+
+**RGPD additions (V3):**
+- Location data (saved zones, route history, ambient agent triggers): explicit opt-in consent
+- NLQ queries with location references: not persisted beyond session without consent (NFR-S7)
+- B2B user data: RGPD data subject rights — deletion within 30 days (NFR-C2)
+- Data minimisation: collect only per-session needs; no passive location tracking unless ambient agent explicitly enabled
+
+**CSP header update (V3):**
+
+```
+connect-src 'self'
+  https://photon.komoot.io
+  https://*.protomaps.com
+  https://api.anthropic.com        # /api/enrich server-side (not client — but CORS preflight)
+  https://api.stripe.com           # B2B billing
+  https://exp.host                 # Expo Push (RN only)
+```
+
+Note: Claude API and Stripe calls are server-side only. CSP `connect-src` additions are for webhook/redirect flows, not direct client calls.
+
+### V3 Implementation Patterns & Consistency Rules
+
+#### LLM Call Pattern (Non-Blocking, Cached, Feature-Flagged)
+
+Every LLM integration in V3 follows the same pattern:
+
+```typescript
+// Pattern: non-blocking enrichment call
+async function fetchEnrichment(zoneContext: EnrichmentRequest): Promise<EnrichmentResponse | null> {
+  const cacheKey = `enrich-${zoneContext.zone_code}-${Math.floor(Date.now() / 900_000)}-${zoneContext.intent ?? 'none'}`
+
+  // 1. Check cache first
+  const cached = cache.get(cacheKey)
+  if (cached) return cached
+
+  // 2. Call with timeout
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 1500)
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 200,
+      system: ENRICHMENT_SYSTEM_PROMPT,    // French, < 150 tokens
+      messages: [{ role: 'user', content: JSON.stringify(zoneContext) }],
+      signal: controller.signal
+    })
+    const result = parseEnrichmentResponse(response)
+    cache.set(cacheKey, result, TTL_15_MIN)
+    return result
+  } catch {
+    return null   // Graceful degradation — UI renders default
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+```
+
+**Rules:**
+1. Model hardcoded to `claude-haiku-4-5-20251001` — no upgrade without cost review
+2. Always behind a feature flag (`NEXT_PUBLIC_ENABLE_ENRICHMENT`, `NEXT_PUBLIC_ENABLE_NLQ`)
+3. Cache per `(zone_code, hour_bucket, intent)` — 15-min TTL
+4. 1.5s hard timeout — abort and return null
+5. `confidence: "low"` → UI falls back to default rendering
+6. Never in client bundle — server-side Route Handler only
+7. System prompt in French, < 150 tokens, calm/factual tone
+
+#### Push Notification Pattern (Deterministic Trigger → LLM Copy)
+
+```
+[Trigger Logic]        →  [Copy Generation]     →  [Delivery]
+Server-side cron          /api/enrich               Expo Push API
+Deterministic rules       intent="ambient_push"     APNs / FCM
+No LLM involved           Sentiment-calibrated      1/day/user cap
+```
+
+**Rules:**
+1. The LLM is never the trigger — it is the voice
+2. Trigger logic is deterministic: RUMEUR delta ≥ 10 pts, micro-reports ≥ 3/hour, chantier start
+3. Cadence cap: 1 push/day/user — server-side enforcement, no exceptions
+4. Permission requested only after first value moment (route completed or NLQ result)
+5. Deep link: every notification opens directly to the relevant zone
+6. Idempotent: re-running the same cron window must not duplicate notifications (NFR-R3)
+
+#### B2B Route Handler Gating Pattern
+
+Every B2B-gated endpoint follows this middleware pattern:
+
+```typescript
+// app/api/b2b/report/route.ts
+import { verifyB2BSession } from '@/lib/auth'
+
+export async function POST(request: Request) {
+  const session = await verifyB2BSession(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  if (!session.hasActiveSubscription) {
+    return NextResponse.json({ error: 'Subscription required' }, { status: 403 })
+  }
+  // ... proceed with B2B logic
+}
+```
+
+**Rules:**
+1. Subscription status checked server-side on every request (NFR-S4) — never client-side only
+2. JWT validation via `verifyB2BSession` — checks expiry, signature, and subscription status
+3. All B2B routes under `app/api/b2b/` — clear boundary separation from B2C routes
+4. Stripe webhook signature validation on all billing events (NFR-S3)
+5. Rate limiting on NLQ: 10/day for free tier, unlimited for B2B Pro/Enterprise
+
+#### Expo/RN Component Sharing Pattern
+
+```
+packages/shared/              # Platform-agnostic (pure TS, no JSX)
+├── hooks/useEnrichment.ts    # SWR hook — works in web + RN
+├── hooks/useRumeurData.ts    # SWR hook
+├── lib/noise-categories.ts   # Pure computation
+├── lib/constants.ts          # Shared constants
+└── types/                    # Shared TypeScript types
+
+tacet/src/components/         # Web-specific (React + DOM)
+├── tacet/IrisPopup.tsx       # Web IrisPopup (shadcn/ui, bottom sheet)
+└── map/MapContainer.tsx      # Web MapLibre GL JS
+
+tacet-mobile/src/screens/     # RN-specific (React Native)
+├── ZoneDetail.tsx            # RN equivalent of IrisPopup
+└── MapScreen.tsx             # @maplibre/maplibre-react-native
+```
+
+**Rules:**
+1. Shared layer = pure TypeScript + SWR hooks — no JSX, no platform imports
+2. `packages/shared/` never imports from `react-native` or `next`
+3. Platform-specific UI stays in its app directory
+4. SWR works in both environments — the fetcher is the only platform-specific part
+5. Types are defined once in `packages/shared/types/` — both apps import from there
+
+#### Routing Computation Pattern
+
+```typescript
+// packages/shared/lib/route-engine.ts
+export function computeCalmRoute(
+  origin: [number, number],       // [lng, lat]
+  destination: [number, number],
+  adjacencyGraph: AdjacencyGraph,
+  irisZones: Map<string, IrisZone>
+): CalmRoute | null {
+  const originZone = findContainingZone(origin, irisZones)    // @turf/boolean-point-in-polygon
+  const destZone = findContainingZone(destination, irisZones)
+  if (!originZone || !destZone) return null
+
+  // Dijkstra with acoustic cost: weight = 100 - score_serenite
+  const path = dijkstra(adjacencyGraph, originZone.code, destZone.code)
+  if (!path) return null
+
+  return {
+    id: generateId(),
+    zones: path.zones,
+    polyline: path.zones.map(z => adjacencyGraph[z].centroid),
+    compositeScore: mean(path.zones.map(z => irisZones.get(z)!.score)),
+    estimatedMinutes: estimateWalkTime(path.totalDistanceM),
+    createdAt: new Date().toISOString()
+  }
+}
+```
+
+**Rules:**
+1. Route engine is pure TypeScript in `packages/shared/` — works in web + RN
+2. Adjacency graph is a static JSON file generated at build time (not computed per request)
+3. Edge weight = `100 - score_serenite` — lower score = higher cost = avoided
+4. RUMEUR live data optional overlay: if available, adjust edge weights for zones with active RUMEUR readings
+5. Fallback: "Aucun itinéraire calme trouvé" if no path exists — never crash
+
+#### V3 Naming Patterns (Additions)
+
+| Category | Convention | Example |
+|----------|-----------|---------|
+| RN screens | PascalCase `.tsx` | `MapScreen.tsx`, `ZoneDetail.tsx`, `RouteInput.tsx` |
+| Shared hooks | camelCase `use` prefix `.ts` | `useEnrichment.ts`, `useCalmRoute.ts` |
+| Shared lib | kebab-case `.ts` | `route-engine.ts`, `adjacency-graph.ts` |
+| B2B Route Handlers | `app/api/b2b/{resource}/route.ts` | `app/api/b2b/report/route.ts` |
+| Cron Route Handlers | `app/api/cron/{job}/route.ts` | `app/api/cron/ambient-check/route.ts` |
+| Feature flags | `NEXT_PUBLIC_ENABLE_{FEATURE}` | `NEXT_PUBLIC_ENABLE_ENRICHMENT`, `NEXT_PUBLIC_ENABLE_NLQ` |
+
+#### V3 Enforcement Rules (Additions to V2 Rules)
+
+All V2 enforcement rules (1–10) remain in force. V3 adds:
+
+11. All LLM calls use `claude-haiku-4-5-20251001` — no model upgrade without explicit cost review
+12. All LLM calls are non-blocking with 1.5s hard timeout — UI renders default on failure
+13. All LLM integrations behind feature flags — off by default in production until validated
+14. All B2B Route Handlers verify JWT + subscription status server-side — never client-side gating
+15. Push notification trigger logic is deterministic — LLM generates copy only, never triggers
+16. Push cadence capped at 1/day/user — server-side enforcement
+17. Shared business logic lives in `packages/shared/` — no platform-specific imports
+18. Route engine uses IRIS adjacency graph (static JSON) — no runtime graph computation
+19. All V3 secrets (`ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, `JWT_SECRET`, `DATABASE_URL`) server-side only — never in client or RN bundle
+20. EU AI Act transparency disclosure on first NLQ session — persisted in localStorage
+
+### V3 Project Structure Additions
+
+```
+project-root/
+├── tacet/                                    # THE WEB APP (Next.js 14 — V2, preserved)
+│   └── src/
+│       └── app/
+│           └── api/
+│               ├── rumeur/route.ts           # V2 (preserved)
+│               ├── chantiers/route.ts        # V2 (preserved)
+│               ├── enrich/route.ts           # V3.0: Zone intelligence agent
+│               ├── nlq/route.ts              # V3.1: NLQ query pipeline
+│               ├── cron/
+│               │   └── ambient-check/route.ts # V3.1: Push trigger cron
+│               └── b2b/
+│                   ├── auth/route.ts          # V3.1: B2B login/register
+│                   ├── subscribe/route.ts     # V3.1: Stripe subscription
+│                   ├── webhook/route.ts       # V3.1: Stripe webhooks
+│                   ├── report/route.ts        # V3.1: PDF export
+│                   └── dashboard/route.ts     # V3.1: Acoustic dashboard data
+│
+├── tacet-mobile/                             # THE MOBILE APP (React Native / Expo — V3.0)
+│   ├── app/                                  # Expo Router file-based routing
+│   │   ├── (tabs)/
+│   │   │   ├── index.tsx                     # Map screen (main)
+│   │   │   ├── route.tsx                     # Route planner screen
+│   │   │   └── settings.tsx                  # Settings + push opt-in
+│   │   ├── zone/[code].tsx                   # Zone detail (IrisPopup equivalent)
+│   │   └── _layout.tsx                       # Root layout + safe area
+│   ├── components/
+│   │   ├── MapView.tsx                       # @maplibre/maplibre-react-native wrapper
+│   │   ├── ZonePopup.tsx                     # RN zone detail card
+│   │   ├── RouteCard.tsx                     # Route result display
+│   │   ├── IntentPicker.tsx                  # One-tap intent selector
+│   │   └── SerenityBadge.tsx                 # Score badge (RN)
+│   ├── app.json                              # Expo config
+│   ├── eas.json                              # EAS Build config (TestFlight + App Store)
+│   ├── metro.config.js                       # Metro bundler (monorepo support)
+│   └── tsconfig.json
+│
+├── packages/
+│   └── shared/                               # SHARED BUSINESS LOGIC (V3.0)
+│       ├── hooks/
+│       │   ├── useEnrichment.ts              # SWR: /api/enrich
+│       │   ├── useCalmRoute.ts               # Route computation hook
+│       │   ├── useRumeurData.ts              # Moved from tacet/src/hooks/
+│       │   ├── useChantiersData.ts           # Moved from tacet/src/hooks/
+│       │   ├── usePhotonSearch.ts            # Moved from tacet/src/hooks/
+│       │   └── useOnlineStatus.ts            # Moved from tacet/src/hooks/
+│       ├── lib/
+│       │   ├── noise-categories.ts           # Moved from tacet/src/lib/
+│       │   ├── noise-categories.test.ts
+│       │   ├── constants.ts                  # Moved from tacet/src/lib/
+│       │   ├── fetcher.ts                    # Moved from tacet/src/lib/
+│       │   ├── format-date.ts               # Moved from tacet/src/lib/
+│       │   ├── route-engine.ts               # IRIS adjacency Dijkstra (V3.0)
+│       │   ├── route-engine.test.ts
+│       │   └── adjacency-graph.ts            # Graph loader/query helpers
+│       ├── types/
+│       │   ├── iris.ts                       # IrisZone, IrisFeature, IrisProperties
+│       │   ├── rumeur.ts                     # RumeurSensor, RumeurResponse
+│       │   ├── chantiers.ts                  # ChantierFeature, ChantierProperties
+│       │   ├── layers.ts                     # LayerId union type
+│       │   ├── enrichment.ts                 # EnrichmentRequest, EnrichmentResponse
+│       │   ├── routes.ts                     # CalmRoute, RouteSegment, AdjacencyGraph
+│       │   └── intent.ts                     # Intent union type
+│       ├── package.json
+│       └── tsconfig.json
+│
+├── scripts/
+│   ├── generate-centroids.ts                 # V2 (preserved)
+│   └── generate-adjacency-graph.ts           # V3.0: IRIS adjacency from GeoJSON
+│
+├── data/                                     # V2 (preserved)
+│   └── public/data/
+│       ├── paris-noise-iris.geojson          # 992 IRIS zones
+│       ├── iris-centroids.geojson            # Zone centroids
+│       └── iris-adjacency.json              # V3.0: Adjacency graph (generated)
+│
+├── package.json                              # Root workspace config
+├── pnpm-workspace.yaml                       # Monorepo workspace definition
+└── turbo.json                                # Turborepo config (optional, for build orchestration)
+```
+
+### V3 Component Boundary Diagram
+
+```
+packages/shared/ (pure TS — platform-agnostic)
+├── useEnrichment()       → SWR → /api/enrich
+├── useCalmRoute()        → route-engine.ts → adjacency graph
+├── useRumeurData()       → SWR → /api/rumeur
+├── useChantiersData()    → SWR → /api/chantiers
+├── usePhotonSearch()     → SWR → Photon Komoot
+├── noise-categories.ts   → Score Sérénité computation
+└── types/                → shared interfaces
+
+tacet/ (Next.js PWA — web platform)
+├── MapContext (extended V3: + intent, activeRoute, savedRoutes)
+│   ├── MapContainer + all V2 map layers (preserved)
+│   ├── SearchBar (preserved)
+│   ├── IrisPopup (V3: + enrichment rendering + intent picker)
+│   ├── RoutePanel (V3.0: route input + result display)
+│   ├── AppNav (preserved, + route entry point)
+│   └── OfflineBanner (preserved)
+└── /api/ Route Handlers
+    ├── /api/enrich (V3.0)
+    ├── /api/nlq (V3.1)
+    ├── /api/cron/ambient-check (V3.1)
+    └── /api/b2b/* (V3.1)
+
+tacet-mobile/ (Expo/RN — iOS platform)
+├── MapScreen → @maplibre/maplibre-react-native
+├── ZoneDetail → uses useEnrichment() from shared
+├── RouteInput → uses useCalmRoute() from shared
+├── IntentPicker → localStorage equivalent (AsyncStorage)
+└── Push handling → expo-notifications
+```
+
+**Data Flow (V3):**
+
+```
+                    ┌─────────────────┐
+                    │  Bruitparif API  │
+                    └────────┬────────┘
+                             │ (3-min poll)
+                    ┌────────▼────────┐     ┌──────────────┐
+                    │  /api/rumeur    │     │  Claude API   │
+                    └────────┬────────┘     │  (Haiku)      │
+                             │              └──────┬───────┘
+    ┌──────────┐    ┌────────▼────────┐           │
+    │  Photon  │◄───│   SWR Hooks     │◄──────────┘ /api/enrich
+    │  Komoot  │    │ (shared layer)  │
+    └──────────┘    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  MapContext (V3) │ + intent, activeRoute, savedRoutes
+                    └────────┬────────┘
+                             │
+       ┌─────────────────────┼─────────────────────┐
+       │                     │                     │
+┌──────▼──────┐    ┌────────▼────────┐    ┌───────▼───────┐
+│  Web PWA    │    │  iOS App (RN)   │    │  /api/b2b/*   │
+│  (tacet/)   │    │ (tacet-mobile/) │    │  V3.1         │
+└─────────────┘    └─────────────────┘    └───────────────┘
+       │                     │
+┌──────▼─────────────────────▼──────┐
+│  Serwist SW (web) / Expo Push    │
+│  Offline cache    Push delivery  │
+└──────────────────────────────────┘
+```
+
+### V3 Phase → Decision → File Mapping
+
+#### V3.0 MVP Files
+
+| Decision | Story | New/Modified Files |
+|----------|-------|--------------------|
+| 6.1 Expo bridge | — | `tacet-mobile/` (entire directory), `packages/shared/` (entire directory), `pnpm-workspace.yaml`, root `package.json`, `turbo.json` |
+| 6.2 `/api/enrich` | 6.0 | `tacet/src/app/api/enrich/route.ts`, `packages/shared/hooks/useEnrichment.ts`, `packages/shared/types/enrichment.ts` |
+| 6.2 (time-aware) | 6.1 | `tacet/src/app/api/enrich/route.ts` (time context in prompt), `packages/shared/lib/noise-categories.ts` (night weighting) |
+| 6.2 (intent) | 6.2 | `packages/shared/types/intent.ts`, IrisPopup (intent picker UI), MapContext (intent state) |
+| 6.2 (alternatives) | 6.3 | `/api/enrich` (alternatives in response), IrisPopup (alternative zone link) |
+| 6.3 Route engine | 6.5a | `packages/shared/lib/route-engine.ts`, `packages/shared/lib/adjacency-graph.ts`, `scripts/generate-adjacency-graph.ts`, `public/data/iris-adjacency.json` |
+| 6.3 Route display | 6.5b | `tacet/src/components/tacet/RoutePanel.tsx`, `tacet/src/components/map/RouteLayer.ts`, `tacet-mobile/src/screens/RouteInput.tsx` |
+| Design sprint | IrisPopup | `tacet/src/components/tacet/IrisPopup.tsx` (redesign), `tacet-mobile/src/components/ZonePopup.tsx` |
+| Shared lib migration | — | Move `noise-categories.ts`, `constants.ts`, `fetcher.ts`, `format-date.ts`, SWR hooks from `tacet/src/` → `packages/shared/` |
+
+#### V3.1 Growth Files
+
+| Decision | Feature | New/Modified Files |
+|----------|---------|-------------------|
+| 6.4 Push | Ambient alerts | `tacet/src/app/api/cron/ambient-check/route.ts`, `tacet-mobile/` (expo-notifications setup), `packages/shared/types/push.ts` |
+| 6.5 B2B auth | Auth + billing | `tacet/src/app/api/b2b/auth/route.ts`, `tacet/src/app/api/b2b/subscribe/route.ts`, `tacet/src/app/api/b2b/webhook/route.ts`, `tacet/src/lib/auth.ts` |
+| 6.5 B2B report | PDF export | `tacet/src/app/api/b2b/report/route.ts`, `tacet/src/lib/pdf-generator.ts` |
+| 6.5 B2B dashboard | Dashboard data | `tacet/src/app/api/b2b/dashboard/route.ts`, `tacet/src/app/b2b/page.tsx` |
+| 6.6 NLQ | Query pipeline | `tacet/src/app/api/nlq/route.ts`, `packages/shared/hooks/useNLQ.ts`, `packages/shared/types/nlq.ts` |
+| 6.1 Expo Android | Android build | `tacet-mobile/eas.json` (Android profile), `.github/workflows/eas-build.yml` |
+
+#### V3.2+ Expansion Files
+
+| Feature | New Files |
+|---------|----------|
+| Thematic routes | `packages/shared/lib/thematic-routes.ts`, editorial content data files |
+| OSRM/GraphHopper | `tacet/src/app/api/route/route.ts` (external routing proxy), `packages/shared/lib/route-engine-osrm.ts` |
+| SSE streaming | `tacet/src/app/api/rumeur-stream/route.ts`, `packages/shared/hooks/useRumeurStream.ts` |
+| Multi-city | `public/data/{city}-noise-iris.geojson`, `public/data/{city}-adjacency.json` |
+
+### V3 Story → TAC Cross-Reference
+
+| Story | PRD V3 FRs | Architecture Decision | Phase |
+|-------|-----------|----------------------|-------|
+| 6.0 Zone enrichment agent | FR-008 | Decision 6.2 | V3.0 |
+| 6.1 Time-aware weighting | FR-007 | Decision 6.2 (time context) | V3.0 |
+| 6.2 Intent layer | FR-009 | Decision 6.7 (intent state) | V3.0 |
+| 6.3 Proactive alternatives | FR-010 | Decision 6.2 (alternatives) | V3.0 |
+| 6.4 Push alerts | FR-020–024 | Decision 6.4 | V3.1 |
+| 6.5 Route serenity | FR-014–019 | Decision 6.3 | V3.0 |
+| Expo setup | FR-001–004, FR-042–044 | Decision 6.1 | V3.0 |
+| IrisPopup design sprint | FR-006, FR-008–012 | Decision 6.2 (UI rendering) | V3.0 |
+| NLQ | FR-025–029 | Decision 6.6 | V3.1 |
+| B2B auth + billing | FR-030–035 | Decision 6.5 | V3.1 |
+| B2B PDF export | FR-032–033 | Decision 6.5 (PDF) | V3.1 |
+| Data compliance | FR-036–041 | Decision 6.8 | V3.0–V3.1 |
+
+### V3 Architecture Validation
+
+#### Requirements Coverage
+
+**Functional Requirements Coverage: 44/44 FRs**
+
+| FR Category | FRs | Architectural Support |
+|-------------|-----|----------------------|
+| Mobile App Foundation (FR-001–004) | 4 | Decision 6.1 — Expo SDK + EAS Build + VoiceOver |
+| Acoustic Map & Zone Intelligence (FR-005–013) | 9 | Decision 6.2 — `/api/enrich` + time-aware + intent + alternatives + V2 map preserved |
+| Calm Route Planning (FR-014–019) | 6 | Decision 6.3 — turf.js adjacency graph + route display + mid-route reroute |
+| Ambient Agent & Push (FR-020–024) | 5 | Decision 6.4 — Expo Push + Vercel Cron + deterministic triggers + LLM copy |
+| Natural Language Query (FR-025–029) | 5 | Decision 6.6 — structured spatial query → LLM formatting pipeline |
+| B2B Reports & Billing (FR-030–035) | 6 | Decision 6.5 — JWT auth + Stripe + server-side PDF |
+| Data Compliance & Attribution (FR-036–041) | 6 | Decision 6.8 — EU AI Act, App Store, RGPD, ODbL |
+| Developer Workflow (FR-042–044) | 3 | Decision 6.1 — Expo Go QR dev + HMR + EAS Build CI/CD |
+
+**Non-Functional Requirements Coverage: 34/34 NFRs**
+
+| NFR Category | Count | Architectural Support |
+|-------------|-------|----------------------|
+| Performance (NFR-P1–P7) | 7 | `/api/enrich` 800ms target + 1.5s timeout (P1), route < 4s (P2), LCP/CWV (P3–P5), Expo Go < 60s (P6), NLQ < 3s (P7) |
+| Security (NFR-S1–S7) | 7 | All secrets server-side (S1), JWT short-lived (S2), Stripe HMAC (S3), server-side gating (S4), server-side PDF (S5), TLS (S6), NLQ privacy (S7) |
+| Reliability (NFR-R1–R4) | 4 | RUMEUR fallback (R1), enrichment non-blocking (R2), idempotent cron (R3), OTA backward-compat (R4) |
+| Scalability (NFR-SC1–SC3) | 3 | Vercel auto-scale (SC1), enrich cache 80%+ hit (SC2), NLQ rate limit (SC3) |
+| Accessibility (NFR-A1–A5) | 5 | RGAA web (A1), VoiceOver RN (A2), contrast (A3), push copy (A4), LHCI guard (A5) |
+| Integration (NFR-I1–I4) | 4 | RUMEUR fallback tested (I1), push retry + cap (I2), EAS Build < 15min (I3), privacy manifest (I4) |
+| Compliance (NFR-C1–C5) | 5 | ODbL lint (C1), RGPD deletion 30d (C2), AI Act disclosure (C3), no IDFA (C4), PDF disclaimer (C5) |
+
+#### Gap Analysis
+
+**Critical Gaps:** None.
+
+**Important Gaps (non-blocking, to resolve during implementation):**
+
+1. **Monorepo tooling choice** — pnpm workspaces vs Turborepo vs Nx. Recommendation: pnpm workspaces (minimal, no overhead). Add Turborepo only if build orchestration becomes a pain point.
+2. **Database selection for B2B** — Vercel Postgres vs Supabase. Decision deferred to V3.1 sprint planning. Either works; prefer Vercel Postgres for deployment simplicity.
+3. **IRIS adjacency graph quality** — Must validate on ≥ 3 test corridors (PRD risk mitigation) before committing to turf.js approach. Fallback: "Aucun itinéraire calme trouvé" if graph coverage insufficient.
+4. **MapLibre React Native + PMTiles compatibility** — Spike in Week 1 of Expo setup. Fallback: WebView wrapper if blocked.
+5. **IrisPopup design sprint output** — Blocks Stories 6.1–6.4 UI implementation. Must run before coding the enrichment rendering.
+6. **Vercel Cron interval** — Hobby tier = 1/day minimum. V3.1 push requires 3-min check → Vercel Pro ($20/mo).
+
+**Nice-to-Have Gaps:**
+7. **Route share format** — deep link URL pattern for shared calm routes. Define during implementation.
+8. **B2B PDF template design** — visual design of the certified report. Deferred to V3.1 sprint.
+
+#### Architecture Completeness Checklist (V3)
+
+**Requirements Analysis**
+- [x] PRD V3 validated (5/5 quality rating, 44 FRs, 34 NFRs)
+- [x] Phased development defined (V3.0 → V3.1 → V3.2+)
+- [x] New constraints identified (multi-platform, LLM, B2B, App Store, EU AI Act)
+- [x] Cross-cutting concerns mapped (LLM non-blocking, push determinism, shared state)
+
+**Architectural Decisions**
+- [x] 8 core decisions documented with rationale (6.1–6.8)
+- [x] Technology stack specified per phase
+- [x] Integration patterns defined (LLM, push, B2B, routing)
+- [x] Performance targets mapped to decisions
+
+**Implementation Patterns**
+- [x] LLM call pattern (non-blocking, cached, feature-flagged)
+- [x] Push notification pattern (deterministic trigger → LLM copy)
+- [x] B2B gating pattern (JWT middleware)
+- [x] Cross-platform sharing pattern (shared hooks + platform-specific UI)
+- [x] Routing computation pattern (adjacency graph + Dijkstra)
+
+**Project Structure**
+- [x] Monorepo layout defined (tacet/ + tacet-mobile/ + packages/shared/)
+- [x] Component boundaries established per platform
+- [x] Data flow diagram updated for V3
+- [x] Phase → file mapping complete
+
+**Validation**
+- [x] 44/44 FRs covered
+- [x] 34/34 NFRs covered
+- [x] Gap analysis: 0 critical, 6 important (non-blocking), 2 nice-to-have
+
+### V3 Architecture Readiness Assessment
+
+**Overall Status:** READY FOR IMPLEMENTATION (V3.0 MVP)
+
+**Confidence Level:** High for V3.0 MVP, Medium-High for V3.1 Growth (B2B database + NLQ pipeline need implementation spikes)
+
+**V3 Implementation Priority:**
+
+1. **Shared library extraction** — Move `noise-categories.ts`, hooks, types from `tacet/src/` to `packages/shared/`. Unblocks all V3 work.
+2. **Story 6.1 (time-aware weighting)** — Zero new UI, immediate value, uses existing data. Good first proof of ambient behaviour.
+3. **Story 6.0 (`/api/enrich`)** — Route Handler + Haiku integration. Solves information presentation architecturally. Unblocks design sprint.
+4. **`scripts/generate-adjacency-graph.ts`** — Build-time prerequisite for routing. Validate on 3 corridors.
+5. **Expo SDK setup + MapLibre RN spike** — Validate RN map + PMTiles before committing to the mobile story sequence.
+
+**Key Architectural Strengths (V3):**
+1. V2 baseline is fully preserved — V3 is additive, not a rewrite
+2. LLM integration is non-blocking by design — the app works identically if Claude API is down
+3. Shared business logic (≥ 70%) reduces cross-platform maintenance burden
+4. B2B is entirely self-contained (V3.1) — does not affect B2C architecture
+5. Routing engine starts simple (adjacency graph) with a clear upgrade path (OSRM/GraphHopper)
+6. Every innovation has a deterministic fallback — no LLM dependency on the critical path
