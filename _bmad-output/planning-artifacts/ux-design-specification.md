@@ -29,7 +29,14 @@ author: IVAN
 
 Tacet V2 is the first B2C urban companion making Paris's acoustic data beautiful, readable, and actionable. The core UX premise: same Bruitparif data as institutional portals, opposite emotional register. Where AirParif creates anxiety through density and technical framing, Tacet creates serenity through progressive disclosure, positive scoring, and a calm-first visual language.
 
-V1 established the foundation: dark glass-morphism UI, teal brand identity (#0D9488), 4-tier noise choropleth (green/amber/red/violet), IrisPopup with score + day/night dB + share. V2 is a clean-slate redesign opportunity — extending and refining V1 patterns rather than starting from zero.
+V1 established the foundation: dark glass-morphism UI, teal brand identity (#0D9488), 4-tier noise choropleth (green/amber/red/violet), IrisPopup with score + day/night dB + share. V2 is a clean-slate redesign opportunity — extending and refining V1 patterns rather than starting from zero. The IrisPopup evolves from a flat information panel (V1) to a **layered answer surface** (V2) with a 3-layer visibility model (L1 answer / L2 context / L3 depth) — architecturally ready for V3 ambient agentic context-awareness.
+
+**Governing design philosophy — Ambient Agentic (V3 trajectory):**
+Tacet's UX evolves across versions toward two principles that shape every architectural decision:
+1. **Minimalism of information** — not "less data available" but less data competing for attention at any moment. The system shows one clear answer; everything else exists only when pulled.
+2. **Right-time disclosure** — the system uses context (time of day, user history, pinned zones, input intent) to surface the right information without being asked. This is what distinguishes ambient agentic from simple progressive disclosure: the system decides what's relevant, not the user.
+
+V2 implements the structural foundation (L1/L2/L3 layers, polymorphic bottom sheet, intent-classifiable SearchBar). V3 activates the intelligence (context-aware visibility rules, intent detection, calm routing). V4 completes the vision (NLQ, the SearchBar becomes a conversational surface). Every V2 component is built to accept V3 context — even if V2 ignores it.
 
 **Strategic deadline**: Q2 2026, before Paris municipal elections where urban noise is an explicit campaign issue. Tacet is the only consumer product making this data beautiful. The UX must be good enough to be shared organically before the media window opens.
 
@@ -131,6 +138,8 @@ The following interactions must require **zero cognitive load** — they should 
 4. **Trust through transparency** — Data type (annual PPBE / real-time RUMEUR / event Chantiers), data vintage, and known limitations are always visible but presented calmly — as context, not as warnings.
 
 5. **Designed to be shared** — Every state the app can produce must look beautiful as a screenshot. The IrisPopup layout is a shareable visual card first, an information panel second.
+
+6. **Ambient agentic (V3 trajectory)** — The system surfaces the right information at the right time without being asked. V2 builds the structural layers (L1/L2/L3) and the polymorphic bottom sheet. V3 activates context-aware visibility and intent detection. The user never manipulates filters or modes — they ask, and the system responds with exactly what's relevant. Every V2 component accepts a `contextHints` prop, even if V2 ignores it.
 
 ---
 
@@ -317,11 +326,14 @@ A Tacet design token layer sits on top of shadcn/ui defaults, defined in `global
 
 ### Defining Experience Statement
 
-> **"Type any Paris address — your neighborhood's acoustic serenity appears in seconds."**
+> **V2: "Type any Paris address — your neighborhood's acoustic serenity appears in seconds."**
+> **V3: "Ask anything about noise in Paris — the right answer appears."**
 
-This is Tacet's defining moment. Like Tinder's swipe or Citymapper's "4 min," the entire product promise is fulfilled in a single gesture. There is no second step between "I want to know" and "I know."
+V2's defining moment is address → score in one gesture. Like Tinder's swipe or Citymapper's "4 min," the entire product promise is fulfilled in a single input. There is no second step between "I want to know" and "I know."
 
-The product is not the map. It is not the data. It is this moment of instant, legible, calm clarity — delivered to someone who just wants to know if they can sleep.
+V3's defining moment extends this: the SearchBar accepts not just addresses but intents — routes, explorations, questions. The answer surface (bottom sheet) adapts to the intent. The user never changes mode, never navigates to a different screen, never learns a new interaction pattern. They ask → they get an answer → they go deeper if they want. Same gesture, broader vocabulary.
+
+The product is not the map. It is not the data. It is this moment of instant, legible, calm clarity — delivered to someone who just wants to know if they can sleep, which route is quieter, or where to find a calm café.
 
 ### User Mental Model
 
@@ -408,12 +420,12 @@ The address-to-score experience is **successful** when:
 
 #### Completion
 
-- Maria has her answer: Score + label + (optionally) character note
-- **Immediate actions available from the panel:**
+- Maria has her answer: **L1 only** — Score + tier label + SerenityBar. That's the entire default surface. No scrolling required, no cognitive load beyond the answer.
+- **Immediate actions available inline (L1) :**
   - 📤 Share → native share sheet, one tap, no account required
   - 📍 Pin → save zone to comparison mini-tray (up to 3 zones, session-only)
 - **PWA install prompt** — appears after first zone interaction if not yet installed (earned, not intrusive)
-- **Depth on demand** — character note, day/night levels, noise factors are all in the panel, scrollable — visible to those who want more, invisible to those who don't
+- **Depth on demand (L2 → L3) :** A subtle chevron `▾` below SerenityBar signals expandability. One tap reveals L2 (character note, contextual dB, comparison delta). A second scroll-or-tap reveals L3 (full dB data, sources, provenance, methodology). The popup never auto-expands in V2 — Maria controls the depth. V3 ambient rules may auto-surface L2 elements based on context (see IrisPopup component spec).
 
 ---
 
@@ -713,9 +725,51 @@ flowchart TD
 | Layers | Score + RUMEUR | Score + RUMEUR + Chantiers |
 | Décision | Personnelle (signer le bail) | Familiale (choix école + conjoint) |
 
+### Journey 4 — Maria V3: Route Calme & NLQ (architecture-ready)
+
+**Statut :** Hors scope V2. Ce parcours documente l'expérience cible V3 pour valider la cohérence architecturale des sections Route Flow et NLQ.
+
+Maria a signé son bail (parcours V2 accompli). Elle utilise maintenant Tacet comme compagnon quotidien. Elle veut marcher au calme vers son nouveau bureau.
+
+**Parcours détaillé :**
+
+```mermaid
+flowchart TD
+    A["Maria ouvre Tacet (PWA)"] --> B["Tape 'De Bastille à Opéra' dans SearchBar"]
+    B --> C["Intent classifier → route détecté"]
+    C --> D["Carte affiche 2 itinéraires : calme (teal) + rapide (gris)"]
+    D --> E["Bottom sheet L1 : 22 min · 1.8 km · Score moyen 71 · Calme"]
+    E --> F{"Maria veut plus de détail ?"}
+    F -->|"Non"| G["Part marcher — expérience complète en < 8s"]
+    F -->|"Oui"| H["Expand L2 : zones traversées + delta vs rapide"]
+    H --> I["'12 min de plus, 15 dB de moins en moyenne'"]
+    I --> J["Active filtre ☕ Cafés"]
+    J --> K["2 cafés calmes apparaissent sur la route"]
+    K --> L["Tap café → IrisPopup zone du café"]
+
+    M["--- Semaine suivante ---"] --> N["Maria tape 'Parc calme près de chez moi'"]
+    N --> O["Intent classifier → NLQ détecté"]
+    O --> P["Carte zoom sur son quartier + 3 markers parcs"]
+    P --> Q["Bottom sheet L1 : '3 résultats · Très calme'"]
+    Q --> R["Tap parc → IrisPopup zone du parc"]
+
+    style A fill:#f0fdf4,stroke:#34D399
+    style E fill:#f0fdf4,stroke:#34D399
+    style Q fill:#eff6ff,stroke:#60a5fa
+```
+
+**Patterns V3 illustrés dans ce parcours :**
+- **SearchBar intent detection** — même champ, input différent, réponse adaptée
+- **Bottom sheet polymorphe** — Route summary card remplace l'IrisPopup, même position, même L1/L2/L3
+- **Thematic filter chips** — apparaissent uniquement quand l'intent est `route`
+- **NLQ → carte + résultats** — la requête en langage naturel produit des markers + une liste dans le bottom sheet
+- **Transition route → IrisPopup** — taper un POI sur la route ouvre l'IrisPopup dans le même bottom sheet (content switch, pas navigation)
+
+**Ce que V2 prépare :** L'architecture SearchBar (`onInputClassified`), le bottom sheet polymorphe (`BottomSheetContent` union type), et le layer registry MapLibre extensible rendent ce parcours implémentable sans refactoring.
+
 ### Journey Patterns
 
-5 patterns réutilisables identifiés à travers les 3 parcours :
+6 patterns réutilisables identifiés à travers les 4 parcours :
 
 1. **Score-in-Seconds** — Recherche → vol carte → popup auto → score lisible en < 5s. Aucun tap intermédiaire entre sélection d'adresse et affichage du score. Ce pattern est le cœur de chaque parcours.
 
@@ -726,6 +780,8 @@ flowchart TD
 4. **Calm Degradation** — Quand les données ne correspondent pas au vécu (Maria J2), le système offre des couches d'explication (RUMEUR, Chantiers) plutôt que des alertes. Le ton reste informatif, jamais alarmiste. "Les données sont transparentes, pas anxiogènes."
 
 5. **Share as Acquisition** — Chaque moment de partage (WhatsApp, screenshot) est un canal d'acquisition organique. La share card est conçue comme un objet visuel autonome : zone + score + label + note de caractère. Chaque partage est une publicité gratuite.
+
+6. **One Input, Adapted Answer (V3)** — La SearchBar est le seul point d'entrée quel que soit l'intent (adresse, route, NLQ). Le bottom sheet est la seule surface de réponse. Le contenu s'adapte à l'intent — le conteneur et le pattern (slide-up, L1/L2/L3, dismiss) restent identiques. L'utilisateur n'apprend qu'une seule interaction, applicable à tout.
 
 ### Flow Optimization Principles
 
@@ -748,6 +804,134 @@ Opportunité identifiée : connecter les données PLU (Plan Local d'Urbanisme) e
 
 **Statut : hors scope V2, noté comme enrichissement V3 pour les layers contextuels.**
 
+### V3 Architecture-Ready: Calm Route Flow
+
+**Statut :** Hors scope V2. Cette section documente l'architecture UX pour que V2 ne bloque pas l'implémentation V3.
+
+**But :** Permettre à l'utilisateur de naviguer d'un point A à un point B par les rues les plus calmes de Paris. Pas un GPS turn-by-turn — un **planificateur d'itinéraire serein** qui propose une route optimisée pour le calme, avec variantes thématiques optionnelles.
+
+**Principe ambient agentic :** La route n'est pas une fonctionnalité séparée avec un écran dédié. C'est une **réponse** à une intention de déplacement, surfacée dans le même espace que toutes les autres réponses Tacet (la carte + un overlay). L'utilisateur ne "change pas de mode" — il pose une question différente au même endroit.
+
+#### Entrée dans le flux route
+
+Le point d'entrée est la **SearchBar** — le même champ que pour la recherche d'adresse. L'intent detection (V3) distingue :
+
+| Input utilisateur | Intent détecté | Réponse |
+|---|---|---|
+| "12 rue de Rivoli" | Adresse → geocoding | IrisPopup (flux existant) |
+| "De Bastille à République" | Route → A→B | Route overlay (nouveau) |
+| "Balade calme depuis Marais" | Route → exploration | Route boucle (nouveau) |
+| "Café calme près de République" | NLQ → recherche sémantique | Résultats POI (voir section NLQ) |
+
+**V2 SearchBar :** Reste un geocoder pur. Aucun intent detection. Placeholder = *"Rechercher une adresse à Paris…"*
+
+**V3 SearchBar :** Intent detection côté client (regex patterns simples : "de…à", "depuis", "vers", "balade", "itinéraire") OU côté serveur (LLM classification). Placeholder évolue vers *"Adresse, itinéraire, ou question…"*. L'architecture V2 doit prévoir un `onInputClassified(intent, payload)` callback même s'il ne retourne que `{ intent: 'address' }` en V2.
+
+#### Anatomie de la réponse route
+
+La route calme se superpose sur la carte exactement comme le choropleth — c'est un **layer**, pas un écran.
+
+**Éléments visuels :**
+
+| Élément | Description | Position |
+|---|---|---|
+| **Route line** | Polyline sur la carte, couleur teal brand (`#0D9488`), épaisseur 4px, avec halo blanc 8px pour lisibilité | Layer MapLibre, `z-index` au-dessus du choropleth |
+| **Route summary card** | Remplace l'IrisPopup dans la même position bottom sheet | Bottom sheet (`z-30`) |
+| **Waypoints** | Départ (cercle plein teal) + Arrivée (cercle plein teal avec coche) | Markers MapLibre |
+| **Alternative routes** (optionnel) | 1-2 alternatives en gris semi-transparent, tapable pour switcher | Layer MapLibre, sous la route principale |
+
+**Route summary card (bottom sheet) — anatomie :**
+
+| Couche | Éléments |
+|--------|----------|
+| **L1 — Réponse** | Durée à pied (`text-3xl font-bold`), Distance, Score Sérénité moyen du trajet + TierBadge |
+| **L2 — Contexte** | Zones IRIS traversées (liste compacte avec mini-scores), Comparaison vs. itinéraire le plus court ("12 min de plus, 15 dB de moins en moyenne"), Variante thématique active (si applicable) |
+| **L3 — Profondeur** | Profil sonore du trajet (mini-graphe dB le long de la route), Sources de bruit traversées, DataProvenance |
+
+**Même modèle L1/L2/L3 que l'IrisPopup.** Cohérence du pattern = zéro apprentissage supplémentaire.
+
+#### Variantes thématiques
+
+Routes enrichies par des POI le long du parcours calme :
+
+| Thème | POI sources | Icône |
+|---|---|---|
+| 🌿 Nature | Parcs, squares, jardins (Open Data Paris) | Feuille |
+| 🎨 Street Art | Belleville, Oberkampf, 13e (curation éditoriale) | Palette |
+| ☕ Cafés calmes | Google Places API ou curation (V3+) | Tasse |
+| 🍽️ Gastro | Marchés, restaurants (curation) | Fourchette |
+
+**Interaction :** Filtres horizontaux scrollables sous la SearchBar quand un intent route est détecté. Un seul thème actif à la fois. Default = aucun thème (route calme pure).
+
+#### Routing engine (architecture)
+
+- **OSRM** ou **Valhalla** auto-hébergé ou API tierce
+- **Pondération custom :** coût de traversée par rue = f(Lden de la zone IRIS traversée). Les rues dans les zones "Très calme" ont un coût faible ; les rues dans "Très bruyant" ont un coût élevé.
+- **Fallback :** Si le routing engine est indisponible, proposer l'itinéraire le plus court classique avec le profil sonore des zones traversées (informatif, pas optimisé).
+
+#### Ce que V2 prépare architecturalement
+
+1. **SearchBar `onInputClassified` callback** — accepte un objet `{ intent: string, payload: any }`. V2 : toujours `{ intent: 'address' }`. V3 : enrichi.
+2. **Bottom sheet comme pattern générique** — L'IrisPopup et le Route summary card partagent le même conteneur bottom sheet. Le contenu change, le pattern est identique.
+3. **MapLibre layer architecture** — Le choropleth est un layer. Les ScoreDots sont un layer. La route sera un layer. L'architecture de layers doit être extensible (registre de layers dans un context/store).
+
+---
+
+### V3 Architecture-Ready: NLQ Input (Natural Language Query)
+
+**Statut :** Hors scope V2, possiblement V4 selon le PRD. Cette section documente l'architecture UX pour que le SearchBar ne devienne pas un cul-de-sac architectural.
+
+**But :** Permettre à l'utilisateur de poser une question en français naturel — "Trouve-moi un café calme en dessous de 55 dB près de République" — et recevoir une réponse structurée sur la carte.
+
+**Principe ambient agentic :** Le NLQ est l'aboutissement de la philosophie ambient agentic. L'utilisateur ne manipule pas des filtres, des toggles, des couches — il **dit ce qu'il veut** et le système répond. La SearchBar est le seul point d'entrée. L'intent detection (route, adresse, NLQ) est transparente.
+
+#### Spectre d'intelligence de la SearchBar
+
+| Version | Capacité | Technologie |
+|---------|----------|-------------|
+| **V2** | Geocoding pur — adresses uniquement | Photon Komoot API, regex Paris-bounded |
+| **V3** | Intent detection — adresse vs. route vs. exploration | Regex côté client + fallback LLM API |
+| **V4** | NLQ complet — questions en langage naturel, filtres sémantiques, POI | LLM API (Claude/GPT) + structured output → requête carte |
+
+**L'architecture V2 ne change pas pour NLQ.** Mais le `onInputClassified` callback et la séparation input/réponse permettent d'ajouter NLQ sans refactorer le SearchBar.
+
+#### Anatomie d'une réponse NLQ
+
+La requête NLQ produit un **résultat structuré** affiché sur la carte + dans le bottom sheet :
+
+**Exemple :** "Café calme sous 55 dB près de République"
+
+| Élément | Description |
+|---|---|
+| **Carte** | Zoom sur République, cercle de rayon de recherche (500m default), POI markers pour les cafés dans les zones ≤ 55 dB |
+| **Bottom sheet L1** | "3 résultats · Calme" + liste compacte des POI (nom, distance, score zone) |
+| **Bottom sheet L2** | Détail de chaque POI (adresse, score zone, note caractère zone, horaires si disponible) |
+| **Bottom sheet L3** | Méthodologie du filtre, provenance données, limitations |
+
+**Pattern :** C'est une **liste de résultats** dans le même bottom sheet que l'IrisPopup et le Route summary. Le conteneur est identique. Le contenu s'adapte à l'intent.
+
+#### Intent classification pipeline (V3/V4)
+
+```
+User input → Intent classifier → Structured query → Data layer → Response formatter → Bottom sheet
+```
+
+| Étape | V2 | V3 | V4 |
+|-------|-----|-----|-----|
+| Input | SearchBar texte | SearchBar texte | SearchBar texte + voix (futur) |
+| Classifier | Regex → `address` | Regex → `address` / `route` / `explore` | LLM → `address` / `route` / `nlq` / `explore` |
+| Query | Photon geocoding | Photon + OSRM | Photon + OSRM + POI API + Tacet DB |
+| Response | IrisPopup | IrisPopup / Route card | IrisPopup / Route card / Results list |
+| Bottom sheet | IrisPopup only | IrisPopup / Route summary | IrisPopup / Route summary / NLQ results |
+
+#### Ce que V2 prépare architecturalement
+
+1. **SearchBar comme composant "dumb input"** — Le SearchBar capture du texte et le passe à un classifieur. En V2, le classifieur est trivial (tout → Photon geocoding). Mais la séparation est en place.
+2. **Bottom sheet comme conteneur polymorphe** — Le bottom sheet accepte un `children` prop. IrisPopup est un enfant. Route summary sera un enfant. NLQ results sera un enfant. Le conteneur gère : position, glass, slide-up, dismiss, L1/L2/L3 expand pattern.
+3. **Response type discriminator** — Un type union `BottomSheetContent = IrisPopupContent | RouteContent | NLQResultsContent` (ou équivalent). V2 : un seul variant. V3+ : extensible.
+
+---
+
 ## Component Strategy
 
 ### Design System Components (shadcn/ui)
@@ -756,7 +940,7 @@ Composants disponibles directement depuis shadcn/ui, avec customisation minimale
 
 | Composant shadcn/ui | Usage Tacet | Customisation |
 |---|---|---|
-| `Command` / `Combobox` | **SearchBar** — autocomplétion adresse Photon | Style glass, placeholder, Paris-bounded results |
+| `Command` / `Combobox` | **SearchBar** — input + intent classifier (V2: geocoding only, V3+: route/NLQ) | Style glass, placeholder, `onInputClassified` callback architecture |
 | `Badge` | **TierBadge** — label de tier ("Calme", "Modéré"…) | Couleurs 5-tier custom, `rounded-full` |
 | `Button` | Actions (Share, Pin, Install) | Variantes glass + icon-only pour AppNav |
 | `Toggle` | Layer switches (RUMEUR, Chantiers, Ambient) | Couleur tier-aware |
@@ -769,18 +953,40 @@ Composants disponibles directement depuis shadcn/ui, avec customisation minimale
 
 #### IrisPopup
 
-**But :** Afficher le Score Sérénité d'une zone IRIS avec note de caractère, en < 1 seconde de lecture. Cœur de l'expérience Tacet.
+**But :** Donner la réponse acoustique d'une zone IRIS en < 1 seconde de lecture. Cœur de l'expérience Tacet. Le popup est un **surface de réponse contextuelle** — pas un panneau d'information statique.
 
-**Anatomie :**
-- Zone name + arrondissement (header)
-- Score `text-5xl font-bold` en couleur tier (centre visuel)
-- SerenityBar (barre de progression 4px, couleur tier)
-- TierBadge (label tier)
-- Note de caractère (italic, `text-muted-foreground`)
-- Actions : Share + Pin (boutons glass)
-- DataProvenance footer (`text-xs text-muted-foreground`)
+**Principe directeur — Ambient Agentic :** Le popup affiche *une réponse*, pas *toutes les données*. Ce qui est visible par défaut change selon le contexte utilisateur. L'anatomie complète existe toujours dans le DOM ; seule la *visibilité par défaut* varie.
 
-**États :** default (score visible), loading (skeleton), no-data ("—" + explication), expert-mode (+ dB jour/nuit), pinned (icône pleine)
+**Anatomie complète (3 couches de visibilité) :**
+
+| Couche | Éléments | Visibilité V2 | Visibilité V3 (ambient) |
+|--------|----------|---------------|------------------------|
+| **L1 — Réponse** | Zone name + arrondissement (header), Score `text-5xl font-bold` en couleur tier, TierBadge (label tier), SerenityBar (barre 4px, couleur tier) | Toujours visible | Toujours visible |
+| **L2 — Contexte** | Note de caractère (italic, `text-muted-foreground`), dB jour OU nuit (selon l'heure), Delta comparatif ("plus calme que [zone pinnée]") | Visible sur expand (tap chevron ou scroll) | Surfacé automatiquement par le contexte (voir règles ci-dessous) |
+| **L3 — Profondeur** | dB jour ET nuit (les deux), Sources de bruit (facteurs), DataProvenance footer (`text-xs`), Lien méthodologie Score | Visible sur expand, sous L2 | Visible sur expand, sous L2 |
+
+**Actions (toujours visibles, L1) :** Share + Pin — boutons glass, inline à droite du TierBadge
+
+**Règles de visibilité contextuelle (V3 — architecture-ready, implémentation différée) :**
+
+| Contexte détecté | L2 surfacé automatiquement | Signal utilisé |
+|------------------|---------------------------|----------------|
+| Heure actuelle 22h–7h | dB nuit (au lieu de jour) | `new Date().getHours()` |
+| Heure actuelle 7h–22h | dB jour | `new Date().getHours()` |
+| ≥ 1 zone pinnée | Delta comparatif vs. zone(s) pinnée(s) | `pinnedZones.length > 0` |
+| ≥ 3ème visite même session | Note de caractère | `sessionStorage` visit count |
+| Mode expert activé (AppNav toggle) | L2 + L3 complets | User-initiated toggle |
+
+**V2 implementation :** L1 toujours visible. L2 + L3 dans une section collapsible (chevron `▾` sous SerenityBar). Un tap ou scroll expand révèle L2 puis L3 séquentiellement. Pas de contexte automatique — l'utilisateur contrôle manuellement. L'architecture props/state est prête pour les règles V3 (le composant accepte un `contextHints` prop, ignoré en V2).
+
+**États :**
+- `default` — L1 visible, L2/L3 collapsed
+- `expanded` — L1 + L2 + L3 visible (scroll interne si nécessaire)
+- `loading` — skeleton rectangles pour L1 (score + bar + badge), L2/L3 masqués
+- `no-data` — Score remplacé par "—", explication courte ("Données non disponibles pour cette zone"), L2/L3 masqués
+- `pinned` — icône Pin pleine, zone ajoutée au ComparisonTray
+
+**Relation avec ShareCard :** Le contenu du ShareCard est **exactement L1 + note de caractère** (si disponible) + branding Tacet. Le ShareCard n'est pas un composant séparé conceptuellement — c'est une capture de l'IrisPopup en état L1+note, rendue en PNG via `dom-to-image`. Le layout L1 EST le shareable card. Si la note de caractère n'est pas visible (L2 collapsed), le ShareCard l'inclut quand même — le partage est toujours enrichi.
 
 **Glass :**
 - Light : `bg-white/80 backdrop-blur-xl border border-white/50 shadow-lg rounded-2xl`
@@ -788,7 +994,7 @@ Composants disponibles directement depuis shadcn/ui, avec customisation minimale
 
 **Animation :** slide-up 300ms ease depuis `bottom-0`
 **Position :** `bottom-0 left-0 right-0`, `rounded-t-2xl`, `z-30`
-**Accessibilité :** focus trap quand ouvert, `aria-live="polite"` pour le score, `role="dialog"`, `aria-label="Score Sérénité de [zone]"`
+**Accessibilité :** focus trap quand ouvert, `aria-live="polite"` pour le score, `role="dialog"`, `aria-label="Score Sérénité de [zone]"`. L2/L3 section : `aria-expanded` sur le chevron, contenu dans `<details>` sémantique ou `aria-hidden` quand collapsed.
 
 #### AppNav
 
@@ -876,6 +1082,14 @@ Composants disponibles directement depuis shadcn/ui, avec customisation minimale
 - `TextAlternativeView` (RGAA table, première-classe)
 - Ambient Glow toggle (MapLibre circle layer, OFF par défaut)
 
+**Phase 4 — V3 Components (architecture-ready, implementation deferred) :**
+- `IntentClassifier` — module de classification d'input SearchBar (regex V3, LLM V4). Interface : `(input: string) → { intent: 'address' | 'route' | 'explore' | 'nlq', payload: any }`
+- `BottomSheetContainer` — conteneur polymorphe qui encapsule le bottom sheet (mobile) / side panel (desktop). Accepte `BottomSheetContent` union type comme children. Gère : slide-up/dismiss, L1/L2/L3 expand, glass treatment. V2 : un seul variant (IrisPopup). V3 : Route summary, NLQ results.
+- `RouteSummaryCard` — contenu bottom sheet pour l'intent `route`. L1 : durée + distance + score moyen. L2 : zones traversées + delta vs. rapide. L3 : profil sonore + provenance.
+- `NLQResultsList` — contenu bottom sheet pour l'intent `nlq`. L1 : nombre de résultats + tier moyen. L2 : liste POI compacte. L3 : méthodologie + limitations.
+- `ThematicFilterChips` — filtres horizontaux scrollables (Nature, Street Art, Cafés, Gastro). Apparaissent sous la SearchBar uniquement quand intent = `route`.
+- `RouteLayer` — layer MapLibre pour polyline calme (teal) + alternatives (gris). Même registre de layers extensible que ScoreDot et choropleth.
+
 ## UX Consistency Patterns
 
 ### Action Hierarchy (Boutons)
@@ -934,6 +1148,13 @@ Tacet V2 n'a qu'un seul formulaire : la SearchBar (autocomplétion adresse).
 - Vide : "Aucune adresse trouvée à Paris" inline
 - Erreur réseau : "Recherche indisponible — vérifiez votre connexion"
 
+**Architecture V2 pour évolution V3+ :**
+- Le SearchBar est un **composant d'input pur** — il capture du texte et appelle un `onInputClassified(intent, payload)` callback
+- En V2, le classifieur est trivial : tout input → `{ intent: 'address', query: string }` → Photon geocoding
+- En V3, le classifieur détecte : `'address'` / `'route'` / `'explore'` via regex côté client
+- En V4, le classifieur ajoute : `'nlq'` via LLM API (voir sections "Calm Route Flow" et "NLQ Input")
+- Le placeholder évolue : V2 = *"Rechercher une adresse à Paris…"* → V3 = *"Adresse, itinéraire, ou question…"*
+
 **Convention future V3 :** Si formulaires additionnels (feedback, contact) — validation inline, labels au-dessus des champs, erreurs en `text-sm text-red-500` sous le champ.
 
 ### Navigation Patterns
@@ -941,7 +1162,8 @@ Tacet V2 n'a qu'un seul formulaire : la SearchBar (autocomplétion adresse).
 #### Navigation spatiale (Map-first)
 - Carte = écran principal. Tout part de la carte et y revient
 - Aucune page secondaire en V2. Pas de routing multi-pages — tout en overlay sur la carte
-- Z-index strict : SearchBar (`z-40`) > IrisPopup (`z-30`) > AppNav (`z-20`) > Map (`z-10`)
+- **Bottom sheet polymorphe** — La position `z-30` est occupée par UN bottom sheet à la fois. En V2, c'est toujours l'IrisPopup. En V3+, le même conteneur accueille : IrisPopup / Route summary / NLQ results. Le pattern (slide-up, L1/L2/L3, dismiss) est identique quel que soit le contenu.
+- Z-index strict : SearchBar (`z-40`) > Bottom sheet (`z-30`) > AppNav (`z-20`) > Map (`z-10`)
 
 #### Transitions
 | Élément | Animation | Durée |
@@ -979,10 +1201,32 @@ Tacet V2 n'a qu'un seul formulaire : la SearchBar (autocomplétion adresse).
 
 ### Modal & Overlay Patterns
 
-#### IrisPopup (bottom sheet)
+#### Bottom Sheet (conteneur polymorphe)
+
+Le bottom sheet (mobile) / side panel (desktop) est un **conteneur unique** qui accueille différents types de contenu selon l'intent. Un seul contenu actif à la fois.
+
+**Transitions entre types de contenu :**
+
+| Transition | Déclencheur | Animation |
+|---|---|---|
+| Vide → IrisPopup | Tap zone / sélection adresse | Slide-up 300ms ease |
+| IrisPopup → IrisPopup (autre zone) | Tap autre zone / nouvelle adresse | Slide-down 150ms → slide-up 300ms (cross-swap, pas cross-fade — le contenu sort puis entre, confirmant le changement de zone) |
+| IrisPopup → Route summary (V3) | Input route dans SearchBar | Slide-down 150ms → slide-up 300ms avec nouveau contenu. La carte commence l'animation route simultanément. |
+| Route summary → IrisPopup (V3) | Tap POI sur la route | Cross-swap 150ms → 300ms. La route reste visible sur la carte. |
+| IrisPopup → NLQ results (V4) | Input NLQ dans SearchBar | Cross-swap 150ms → 300ms. La carte zoom sur la zone de recherche simultanément. |
+| Contenu → Vide | Swipe-down / tap extérieur / Escape | Slide-down 200ms |
+
+**Règle : jamais deux types de contenu simultanés.** La transition est toujours : ancien sort → nouveau entre. Pas de superposition, pas de split screen, pas d'onglets.
+
+**V2 : seule la transition IrisPopup ↔ IrisPopup est implémentée.** Les autres transitions sont documentées pour que l'animation system et le conteneur soient extensibles.
+
+#### IrisPopup (contenu bottom sheet)
 - Slide-up, focus trap, dismiss par swipe-down ou tap extérieur
-- Ne bloque pas l'interaction carte (on peut scroller la partie visible)
-- Hauteur automatique selon contenu, max 60% viewport
+- Ne bloque pas l'interaction carte (on peut scroller la partie visible au-dessus)
+- **Hauteur L1 (collapsed) :** compacte — score + bar + actions. Vise ~25-30% viewport max. La carte reste largement visible.
+- **Hauteur L1+L2+L3 (expanded) :** max 60% viewport, scroll interne activé au-delà
+- **Transition expand :** chevron tap → L2 révélé en 200ms ease, hauteur du panel s'ajuste avec `auto-animate` ou `max-height` transition
+- **État par défaut à l'ouverture : toujours L1 collapsed** (V2). V3 : peut ouvrir en L1+L2 partiel si les règles de contexte surfacent des éléments L2.
 
 #### PWAInstallPrompt (dialog)
 - Trigger : après 1er tap zone (l'utilisateur a vu de la valeur)
@@ -1033,11 +1277,12 @@ Usage secondaire mais important : journalistes, urbanistes, Sophie sur laptop.
 
 **Adaptations desktop :**
 - SearchBar : `max-w-md`, `top-4 left-4` (coin haut gauche, comme Google Maps)
-- IrisPopup : **panneau latéral gauche** (`left-4 top-16 bottom-4`, `w-80`, `rounded-2xl`) — persistent, pas bottom sheet
-- AppNav : repositionné en sidebar gauche sous le popup, vertical
-- ComparisonTray : intégré dans le panneau latéral sous l'IrisPopup
+- **Panneau latéral polymorphe** : le bottom sheet mobile devient un **panneau latéral gauche** (`left-4 top-16 bottom-4`, `w-80`, `rounded-2xl`) — persistent, pas bottom sheet. En V2, il contient toujours l'IrisPopup. En V3+, le même conteneur accueille : IrisPopup / Route summary / NLQ results list. Le pattern L1/L2/L3 est identique — seul le conteneur change de forme (bottom sheet mobile → side panel desktop).
+- AppNav : repositionné en sidebar gauche sous le panneau, vertical
+- ComparisonTray : intégré dans le panneau latéral sous le contenu actif
 - Carte : occupe tout l'espace restant
 - Hover states activés : tooltip au survol des ScoreDots, preview score
+- **Route on desktop** (V3) : la route line occupe la carte ; le Route summary card est dans le panneau latéral. Les thematic filter chips apparaissent sous la SearchBar (horizontal, même position que mobile).
 
 #### Tablette (768px) — P2 (si le temps le permet)
 
@@ -1154,7 +1399,8 @@ Le canvas WebGL MapLibre est inaccessible aux lecteurs d'écran. Le RGAA exige u
 
 #### Focus Management
 
-- IrisPopup ouvert : focus trap — `Tab` circule à l'intérieur (score → actions → provenance → close)
+- IrisPopup ouvert (L1) : focus trap — `Tab` circule : score → Share → Pin → chevron expand → close
+- IrisPopup expanded (L2/L3) : focus trap étendu — score → Share → Pin → chevron collapse → L2 content → L3 content → close
 - IrisPopup fermé : focus retourne au ScoreDot déclencheur ou à SearchBar
 - SearchBar : autofocus sur desktop. Sur mobile, pas d'autofocus (évite clavier intempestif)
 - Skip link : `<a href="#main-content" class="sr-only focus:not-sr-only">Aller au contenu principal</a>`
