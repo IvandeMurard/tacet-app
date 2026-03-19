@@ -122,9 +122,9 @@ development_status:
   # shipped 2026-03-16 — untracked; captured in epic intro notes.
   # Implementation order (per vision doc): 6.1 → 6.0 → design sprint → 6.2 → 6.3 → 6.4 → 6.5
   # ─────────────────────────────────────────────────────────────────
-  epic-6: backlog
+  epic-6: in-progress
   6-0-zone-enrichment-agent: backlog
-  6-1-time-aware-signal-weighting: backlog
+  6-1-time-aware-signal-weighting: ready-for-dev
   6-2-intent-layer: backlog
   6-3-proactive-quiet-zone-alternatives: backlog
   6-4-service-worker-push-for-watched-zones: backlog
