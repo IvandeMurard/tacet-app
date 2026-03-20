@@ -124,7 +124,7 @@ development_status:
   # ─────────────────────────────────────────────────────────────────
   epic-6: in-progress
   6-0-zone-enrichment-agent: ready-for-dev
-  6-1-time-aware-signal-weighting: ready-for-dev
+  6-1-time-aware-signal-weighting: done
   6-2-intent-layer: backlog
   6-3-proactive-quiet-zone-alternatives: backlog
   6-4-service-worker-push-for-watched-zones: backlog
