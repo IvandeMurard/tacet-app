@@ -39,7 +39,7 @@ so that I understand what this zone actually sounds like right now without confi
   - [x] In component body: `const isNight = isNightTime();`
   - [x] Compute `const activeChantiers = nearbyChantiers.filter(c => !isChantierExpired(c.date_fin));` — use `activeChantiers` everywhere in JSX instead of `nearbyChantiers`
   - [x] Replace the day/night `<div className="mb-4 flex gap-4">` block: render primary level large (existing bold style), secondary level small (text-white/30, smaller font). Night: primary=night_level, secondary=day_level. Day: primary=day_level, secondary=night_level.
-  - [x] In sensor row: replace `en ce moment` with `{sensorLabel}` (computed with evening-hour guard)
+  - [x] In sensor row: replace `en ce moment` with `{sensorLabel}` (computed with SENSOR_EVENING_START_HOUR guard)
   - [x] Verify contextual signals section condition uses `activeChantiers.length` (not `nearbyChantiers.length`)
 
 - [x] **Task 4 — Update `IrisPopup.test.tsx`** (AC: 9)
@@ -51,8 +51,8 @@ so that I understand what this zone actually sounds like right now without confi
   - [x] Confirm all 10 existing tests still pass
 
 - [x] **Task 5 — Regression check** (AC: 3, 9)
-  - [x] Run `cd tacet && npm test -- --run` — all 200 tests green (27 test files)
-  - [ ] Visually verify: open popup in day mode (both levels visible, day prominent); open in night mode (night prominent)
+  - [x] Run `cd tacet && npm test -- --run` — 201 tests green (27 test files)
+  - [x] Visually verify: open popup in day mode (both levels visible, day prominent); open in night mode (night prominent)
 
 ## Dev Notes
 
@@ -171,15 +171,15 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
-No blockers encountered. Worktree required `npm install` before tests could run (no shared `node_modules`).
+No blockers. Worktree required `npm install` before tests could run.
 
 ### Completion Notes List
 
-- Created `@/lib/time-context.ts` with `isNightTime`, `getSensorTimeLabel`, `isChantierExpired` + named constants. All functions accept optional `now?: Date` for testability.
-- `getSensorTimeLabel` delegates to `formatRelativeTime` for stale readings; the evening-hour guard (≥18:00 or night) lives in IrisPopup to keep the utility pure.
-- `IrisPopup.tsx`: added primary/secondary day/night level split via IIFE render pattern; `activeChantiers` filter silently removes expired entries; `sensorLabel` replaces hardcoded "en ce moment".
-- 11 unit tests for `time-context.ts` (all pass); 4 new IrisPopup time-aware tests in nested `describe` with `vi.useFakeTimers()` / `vi.useRealTimers()` isolated pattern. All 10 original IrisPopup tests still pass.
-- Full suite: **200 tests / 27 files — green, zero regressions**.
+- Created `tacet/src/lib/time-context.ts` — pure utility with `isNightTime()`, `getSensorTimeLabel()`, `isChantierExpired()`, `NIGHT_START_HOUR`, `NIGHT_END_HOUR`, `SENSOR_EVENING_START_HOUR` constants. All functions accept optional `now?: Date` for testability.
+- Created `tacet/src/lib/time-context.test.ts` — 12 tests covering all boundary cases plus the exact 10-min boundary (exclusive).
+- Modified `tacet/src/components/IrisPopup.tsx` — single `now = new Date()` instantiation; day/night block replaced with primary/secondary visual split; `activeChantiers` filter silently removes expired entries; `sensorLabel` uses `SENSOR_EVENING_START_HOUR` constant.
+- Updated `tacet/src/components/IrisPopup.test.tsx` — 4 new time-aware tests using `vi.useFakeTimers()`/`vi.useRealTimers()`. All original tests still pass.
+- Full test suite: **201/201 tests passing across 27 test files**. Zero regressions.
 
 ### File List
 
@@ -187,9 +187,10 @@ No blockers encountered. Worktree required `npm install` before tests could run 
 - `tacet/src/lib/time-context.test.ts` (created)
 - `tacet/src/components/IrisPopup.tsx` (modified)
 - `tacet/src/components/IrisPopup.test.tsx` (modified)
-- `_bmad-output/implementation-artifacts/6-1-time-aware-signal-weighting.md` (status → review)
-- `_bmad-output/implementation-artifacts/sprint-status.yaml` (6-1 → review)
+- `_bmad-output/implementation-artifacts/6-1-time-aware-signal-weighting.md` (status → done)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (6-1 → done)
 
-### Change Log
+## Change Log
 
-- 2026-03-19: Implemented Story 6.1 — time-aware signal weighting. Created time-context utility, updated IrisPopup for primary/secondary day-night levels, active chantier filtering, and contextual sensor time label.
+- 2026-03-20: Code review fixes — SENSOR_EVENING_START_HOUR constant, single Date() instantiation, boundary test, UTC timezone docs. Story marked done.
+- 2026-03-19: Implemented Story 6.1 — time-aware signal weighting. Created time-context utility, updated IrisPopup with primary/secondary day/night display, active chantier filtering, and contextual sensor time labels.
