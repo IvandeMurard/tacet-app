@@ -1,6 +1,6 @@
 # Story 6.1: Time-Aware Signal Weighting
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -22,36 +22,36 @@ so that I understand what this zone actually sounds like right now without confi
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Create `@/lib/time-context.ts`** (AC: 6, 7)
-  - [ ] Export `NIGHT_START_HOUR = 20` and `NIGHT_END_HOUR = 6` as named constants
-  - [ ] `isNightTime(now?: Date): boolean` — `h >= NIGHT_START_HOUR || h < NIGHT_END_HOUR`
-  - [ ] `getSensorTimeLabel(timestamp: string, now?: Date): string` — < 10 min → "maintenant", else `formatRelativeTime(timestamp)` from `@/lib/format-date`
-  - [ ] `isChantierExpired(date_fin: string | undefined, now?: Date): boolean` — returns `false` if undefined, `new Date(date_fin) < now` otherwise
+- [x] **Task 1 — Create `@/lib/time-context.ts`** (AC: 6, 7)
+  - [x] Export `NIGHT_START_HOUR = 20` and `NIGHT_END_HOUR = 6` as named constants
+  - [x] `isNightTime(now?: Date): boolean` — `h >= NIGHT_START_HOUR || h < NIGHT_END_HOUR`
+  - [x] `getSensorTimeLabel(timestamp: string, now?: Date): string` — < 10 min → "maintenant", else `formatRelativeTime(timestamp)` from `@/lib/format-date`
+  - [x] `isChantierExpired(date_fin: string | undefined, now?: Date): boolean` — returns `false` if undefined, `new Date(date_fin) < now` otherwise
 
-- [ ] **Task 2 — Unit tests `@/lib/time-context.test.ts`** (AC: 8)
-  - [ ] `isNightTime` — 19:59 → false, 20:00 → true, 05:59 → true, 06:00 → false, 12:00 → false
-  - [ ] `getSensorTimeLabel` — fresh timestamp (< 10 min) → "maintenant"; stale timestamp (> 10 min) → "il y a N min." / "il y a N h."
-  - [ ] `isChantierExpired` — past date → true; future date → false; undefined → false
+- [x] **Task 2 — Unit tests `@/lib/time-context.test.ts`** (AC: 8)
+  - [x] `isNightTime` — 19:59 → false, 20:00 → true, 05:59 → true, 06:00 → false, 12:00 → false
+  - [x] `getSensorTimeLabel` — fresh timestamp (< 10 min) → "maintenant"; stale timestamp (> 10 min) → "il y a N min." / "il y a N h."
+  - [x] `isChantierExpired` — past date → true; future date → false; undefined → false
 
-- [ ] **Task 3 — Modify `IrisPopup.tsx`** (AC: 1, 2, 3, 4, 5, 6)
-  - [ ] Add import: `import { isNightTime, getSensorTimeLabel, isChantierExpired } from "@/lib/time-context";`
-  - [ ] Add import: `formatRelativeTime` NOT needed directly — getSensorTimeLabel handles it
-  - [ ] In component body: `const isNight = isNightTime();`
-  - [ ] Compute `const activeChantiers = nearbyChantiers.filter(c => !isChantierExpired(c.date_fin));` — use `activeChantiers` everywhere in JSX instead of `nearbyChantiers`
-  - [ ] Replace the day/night `<div className="mb-4 flex gap-4">` block: render primary level large (existing bold style), secondary level small (text-white/30, smaller font). Night: primary=night_level, secondary=day_level. Day: primary=day_level, secondary=night_level.
-  - [ ] In sensor row: replace `en ce moment` with `{getSensorTimeLabel(nearestSensor.measurement.timestamp)}`
-  - [ ] Verify contextual signals section condition uses `activeChantiers.length` (not `nearbyChantiers.length`)
+- [x] **Task 3 — Modify `IrisPopup.tsx`** (AC: 1, 2, 3, 4, 5, 6)
+  - [x] Add import: `import { isNightTime, getSensorTimeLabel, isChantierExpired } from "@/lib/time-context";`
+  - [x] Add import: `formatRelativeTime` NOT needed directly — getSensorTimeLabel handles it
+  - [x] In component body: `const isNight = isNightTime();`
+  - [x] Compute `const activeChantiers = nearbyChantiers.filter(c => !isChantierExpired(c.date_fin));` — use `activeChantiers` everywhere in JSX instead of `nearbyChantiers`
+  - [x] Replace the day/night `<div className="mb-4 flex gap-4">` block: render primary level large (existing bold style), secondary level small (text-white/30, smaller font). Night: primary=night_level, secondary=day_level. Day: primary=day_level, secondary=night_level.
+  - [x] In sensor row: replace `en ce moment` with `{sensorLabel}` (computed with evening-hour guard)
+  - [x] Verify contextual signals section condition uses `activeChantiers.length` (not `nearbyChantiers.length`)
 
-- [ ] **Task 4 — Update `IrisPopup.test.tsx`** (AC: 9)
-  - [ ] Add `vi.useFakeTimers()` / `vi.setSystemTime()` setup/teardown pattern (see Dev Notes)
-  - [ ] Test: at 21:00 → night_level (45) is primary, day_level (52) still in DOM
-  - [ ] Test: at 10:00 → day_level (52) is primary, night_level (45) still in DOM
-  - [ ] Test: chantier with past `date_fin` → not rendered in active count
-  - [ ] Test: sensor with old timestamp at 19:00 → shows relative time label (not "maintenant")
-  - [ ] Confirm all 10 existing tests still pass
+- [x] **Task 4 — Update `IrisPopup.test.tsx`** (AC: 9)
+  - [x] Add `vi.useFakeTimers()` / `vi.setSystemTime()` setup/teardown pattern (see Dev Notes)
+  - [x] Test: at 21:00 → night_level (45) is primary, day_level (52) still in DOM
+  - [x] Test: at 10:00 → day_level (52) is primary, night_level (45) still in DOM
+  - [x] Test: chantier with past `date_fin` → not rendered in active count
+  - [x] Test: sensor with old timestamp at 19:00 → shows relative time label (not "maintenant")
+  - [x] Confirm all 10 existing tests still pass
 
-- [ ] **Task 5 — Regression check** (AC: 3, 9)
-  - [ ] Run `cd tacet && npm test -- --run` — all tests green
+- [x] **Task 5 — Regression check** (AC: 3, 9)
+  - [x] Run `cd tacet && npm test -- --run` — all 200 tests green (27 test files)
   - [ ] Visually verify: open popup in day mode (both levels visible, day prominent); open in night mode (night prominent)
 
 ## Dev Notes
@@ -167,10 +167,29 @@ const sensorLabel = (isNight || new Date().getHours() >= 18)
 
 ### Agent Model Used
 
-_to be filled by dev agent_
+claude-sonnet-4-6
 
 ### Debug Log References
 
+No blockers encountered. Worktree required `npm install` before tests could run (no shared `node_modules`).
+
 ### Completion Notes List
 
+- Created `@/lib/time-context.ts` with `isNightTime`, `getSensorTimeLabel`, `isChantierExpired` + named constants. All functions accept optional `now?: Date` for testability.
+- `getSensorTimeLabel` delegates to `formatRelativeTime` for stale readings; the evening-hour guard (≥18:00 or night) lives in IrisPopup to keep the utility pure.
+- `IrisPopup.tsx`: added primary/secondary day/night level split via IIFE render pattern; `activeChantiers` filter silently removes expired entries; `sensorLabel` replaces hardcoded "en ce moment".
+- 11 unit tests for `time-context.ts` (all pass); 4 new IrisPopup time-aware tests in nested `describe` with `vi.useFakeTimers()` / `vi.useRealTimers()` isolated pattern. All 10 original IrisPopup tests still pass.
+- Full suite: **200 tests / 27 files — green, zero regressions**.
+
 ### File List
+
+- `tacet/src/lib/time-context.ts` (created)
+- `tacet/src/lib/time-context.test.ts` (created)
+- `tacet/src/components/IrisPopup.tsx` (modified)
+- `tacet/src/components/IrisPopup.test.tsx` (modified)
+- `_bmad-output/implementation-artifacts/6-1-time-aware-signal-weighting.md` (status → review)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` (6-1 → review)
+
+### Change Log
+
+- 2026-03-19: Implemented Story 6.1 — time-aware signal weighting. Created time-context utility, updated IrisPopup for primary/secondary day-night levels, active chantier filtering, and contextual sensor time label.

@@ -5,6 +5,7 @@ import { X, Share2, Sun, Moon, Pin, Check, Volume2, Construction } from "lucide-
 import Link from "next/link";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
 import { DATA_YEAR } from "@/lib/constants";
+import { isNightTime, getSensorTimeLabel, isChantierExpired, SENSOR_EVENING_START_HOUR } from "@/lib/time-context";
 import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
@@ -46,6 +47,13 @@ export function IrisPopup({
   const category = getNoiseCategory(noise_level);
   const score = getSereniteScore(noise_level);
   const label = arLabel(c_ar);
+  const now = new Date();
+  const isNight = isNightTime(now);
+  const activeChantiers = nearbyChantiers.filter(c => !isChantierExpired(c.date_fin, now));
+  const sensorLabel =
+    nearestSensor && (isNight || now.getHours() >= SENSOR_EVENING_START_HOUR)
+      ? getSensorTimeLabel(nearestSensor.measurement.timestamp, now)
+      : "maintenant";
 
   const scoreColor =
     score >= 70
@@ -204,24 +212,36 @@ export function IrisPopup({
         <p className="mb-4 text-sm italic text-white/50">{description}</p>
       )}
 
-      {(day_level != null || night_level != null) && (
-        <div className="mb-4 flex gap-4">
-          {day_level != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/40">
-              <Sun size={11} className="shrink-0 text-amber-400" />
-              <span>Jour : <strong className="text-white/70">{day_level} dB</strong></span>
-            </div>
-          )}
-          {night_level != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/40">
-              <Moon size={11} className="shrink-0 text-indigo-400" />
-              <span>Nuit : <strong className="text-white/70">{night_level} dB</strong></span>
-            </div>
-          )}
-        </div>
-      )}
+      {(day_level != null || night_level != null) && (() => {
+        const primaryLevel = isNight ? night_level : day_level;
+        const primaryIcon = isNight
+          ? <Moon size={11} className="shrink-0 text-indigo-400" />
+          : <Sun size={11} className="shrink-0 text-amber-400" />;
+        const primaryLabel = isNight ? "Nuit · Ln" : "Jour · Lden";
+        const secondaryLevel = isNight ? day_level : night_level;
+        const secondaryIcon = isNight
+          ? <Sun size={11} className="shrink-0 text-amber-400" />
+          : <Moon size={11} className="shrink-0 text-indigo-400" />;
+        const secondaryLabel = isNight ? "Jour · Lden" : "Nuit · Ln";
+        return (
+          <div className="mb-4 flex gap-4">
+            {primaryLevel != null && (
+              <div className="flex items-center gap-1.5 text-xs text-white/60">
+                {primaryIcon}
+                <span>{primaryLabel} : <strong className="text-white/80">{primaryLevel} dB</strong></span>
+              </div>
+            )}
+            {secondaryLevel != null && (
+              <div className="flex items-center gap-1.5 text-xs text-white/30">
+                {secondaryIcon}
+                <span>{secondaryLabel} : <span className="text-white/40">{secondaryLevel} dB</span></span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
-      {(nearestSensor || nearbyChantiers.length > 0 || recentCount > 0) && (
+      {(nearestSensor || activeChantiers.length > 0 || recentCount > 0) && (
         <div className="mb-4 space-y-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
           {nearestSensor && nearestSensor.measurement.leq != null && (
             <div className="flex items-center gap-2 text-xs text-white/60">
@@ -230,17 +250,17 @@ export function IrisPopup({
                 Capteur à {nearestSensor.distanceM < 1000
                   ? `${Math.round(nearestSensor.distanceM)} m`
                   : `${(nearestSensor.distanceM / 1000).toFixed(1)} km`}{" "}
-                · <strong className="text-white/80">{nearestSensor.measurement.leq} dB</strong> en ce moment
+                · <strong className="text-white/80">{nearestSensor.measurement.leq} dB</strong> {sensorLabel}
               </span>
             </div>
           )}
-          {nearbyChantiers.length > 0 && (
+          {activeChantiers.length > 0 && (
             <div className="flex items-center gap-2 text-xs text-white/60">
               <Construction size={12} className="shrink-0 text-amber-400" />
               <span>
-                {nearbyChantiers.length === 1
+                {activeChantiers.length === 1
                   ? "1 chantier actif"
-                  : `${nearbyChantiers.length} chantiers actifs`}{" "}
+                  : `${activeChantiers.length} chantiers actifs`}{" "}
                 à proximité
               </span>
             </div>
