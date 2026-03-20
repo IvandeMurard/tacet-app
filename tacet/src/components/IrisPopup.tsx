@@ -10,8 +10,10 @@ import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
 import { useNoiseReports } from "@/hooks/useNoiseReports";
+import { useEnrichment } from "@/hooks/useEnrichment";
 import type { IrisProperties } from "@/types/iris";
 import type { RumeurMeasurement } from "@/types/rumeur";
+import type { EnrichmentRequest } from "@/types/enrichment";
 
 export type { IrisProperties };
 
@@ -68,6 +70,26 @@ export function IrisPopup({
   const [copied, setCopied] = useState(false);
   const { recentCount, canReport, addReport } = useNoiseReports(code_iris);
   const [reported, setReported] = useState(false);
+
+  const enrichmentRequest: EnrichmentRequest = {
+    zone_code: code_iris,
+    zone_name: name,
+    arrondissement: c_ar,
+    noise_level,
+    day_level: day_level ?? null,
+    night_level: night_level ?? null,
+    score_serenite: score,
+    current_iso_timestamp: now.toISOString(),
+    rumeur_sensor: nearestSensor?.measurement.leq != null
+      ? { leq: nearestSensor.measurement.leq, distanceM: nearestSensor.distanceM }
+      : null,
+    nearby_chantiers: activeChantiers.length > 0
+      ? { count: activeChantiers.length, nearestDistanceM: activeChantiers[0]?.distanceM ?? 0 }
+      : null,
+    recent_reports: recentCount > 0 ? recentCount : null,
+    intent: null,
+  };
+  const { enrichment } = useEnrichment(enrichmentRequest);
 
   const handleReport = () => {
     addReport();
@@ -207,6 +229,12 @@ export function IrisPopup({
         </div>
         <SerenityBar score={score} color={scoreColor} className="h-1" />
       </div>
+
+      {enrichment && enrichment.confidence !== "low" && enrichment.summary && (
+        <p className="mb-4 text-sm leading-relaxed text-white/70">
+          {enrichment.summary}
+        </p>
+      )}
 
       {description && (
         <p className="mb-4 text-sm italic text-white/50">{description}</p>

@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { IrisPopup } from "./IrisPopup";
 import type { IrisProperties } from "@/types/iris";
 import type { RumeurMeasurement } from "@/types/rumeur";
+import { useEnrichment } from "@/hooks/useEnrichment";
+
+vi.mock("@/hooks/useEnrichment", () => ({
+  useEnrichment: vi.fn(),
+}));
 
 const baseProps: IrisProperties = {
   code_iris: "751160501",
@@ -16,6 +21,10 @@ const baseProps: IrisProperties = {
 };
 
 describe("IrisPopup", () => {
+  beforeEach(() => {
+    (useEnrichment as ReturnType<typeof vi.fn>).mockReturnValue({ enrichment: null, isLoading: false });
+  });
+
   it("renders zone name and arrondissement", () => {
     render(<IrisPopup properties={baseProps} onClose={vi.fn()} />);
     expect(screen.getByText("Quartier d'Auteuil")).toBeDefined();
@@ -72,6 +81,37 @@ describe("IrisPopup", () => {
     const props = { ...baseProps, day_level: undefined, night_level: undefined };
     const { container } = render(<IrisPopup properties={props} onClose={vi.fn()} />);
     expect(container.textContent).not.toContain("dB");
+  });
+
+  describe("enrichment summary", () => {
+    it("renders summary text when enrichment has confidence: high", () => {
+      (useEnrichment as ReturnType<typeof vi.fn>).mockReturnValue({
+        enrichment: {
+          summary: "Zone très calme, idéale pour se concentrer.",
+          primary_signal: "score",
+          confidence: "high",
+          cachedAt: "2026-03-20T10:00:00.000Z",
+        },
+        isLoading: false,
+      });
+      render(<IrisPopup properties={baseProps} onClose={vi.fn()} />);
+      expect(screen.getByText("Zone très calme, idéale pour se concentrer.")).toBeDefined();
+    });
+
+    it("does NOT render summary when enrichment has confidence: low", () => {
+      (useEnrichment as ReturnType<typeof vi.fn>).mockReturnValue({
+        enrichment: {
+          summary: "",
+          primary_signal: "score",
+          confidence: "low",
+          cachedAt: null,
+        },
+        isLoading: false,
+      });
+      const { container } = render(<IrisPopup properties={baseProps} onClose={vi.fn()} />);
+      expect(screen.getByText("Quartier d'Auteuil")).toBeDefined(); // existing content unaffected
+      expect(container.textContent).not.toContain("Zone très calme");
+    });
   });
 
   describe("time-aware rendering", () => {
