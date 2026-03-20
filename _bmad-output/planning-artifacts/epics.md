@@ -952,3 +952,192 @@ So that I can choose a path that minimises noise exposure — the kind of routin
 - turf.js must be added to dependencies (`npm install @turf/turf`)
 
 **Dependencies:** `paris-noise-iris.geojson` (adjacency computation); `@turf/turf` (to be installed); Photon geocoding hook (already working); MapLibre line layer pattern (established in Epic 1)
+
+---
+
+## Epic 7: iOS Native App — React Native/Expo Migration
+
+**Goal:** Migrate Tacet from the Next.js web app to a native iOS app using Expo SDK 53 + React Native. The Next.js API backend on Vercel is kept unchanged — the Expo app is a new frontend consumer. Each story is a deployable TestFlight build.
+
+**Research foundation:** `_bmad-output/planning-artifacts/research/technical-maplibre-rn-pmtiles-expo-research-2026-03-20.md` — all stack choices are pre-validated.
+
+**Architecture decision:** `tacet-mobile/` is a new standalone Expo project (not a monorepo) in the same repository root. It calls the existing Next.js API routes (`/api/rumeur`, `/api/chantiers`, `/api/enrich`) over HTTPS.
+
+**Functional requirements:** FR1–FR45 (all existing) apply to the native app. Epic 6.2–6.5 stories are deferred — they will be re-designed as native-first features after Epic 7 ships.
+
+**Epic completion criteria:** The iOS app reaches feature parity with the V2 web app (Epics 1–5) and is submitted to TestFlight.
+
+---
+
+### Story 7.1: Expo foundation — map rendering on device
+
+As a developer,
+I want a new `tacet-mobile/` Expo SDK 53 project with MapLibre RN v11 + NativeWind + PMTiles base map rendering on a physical iOS device,
+So that the native app scaffold is established and the map tile stack is confirmed working end-to-end before any feature work begins.
+
+**Acceptance Criteria:**
+
+**Given** a fresh `tacet-mobile/` Expo SDK 53 project
+**When** `eas build --profile development` completes and the dev client is installed on device
+**Then** the app launches and a full-screen MapLibre map renders with the Protomaps PMTiles base map (Paris region) visible
+
+**Given** the app is running
+**When** the user pans and pinches
+**Then** the map responds smoothly with native iOS gestures (no white tiles, no crashes)
+
+**Given** the map renders
+**When** the style JSON is inspected
+**Then** the PMTiles source is defined via a style JSON object (not a raw `pmtiles://` URL string passed to MapView)
+
+**Given** NativeWind v4 is installed
+**When** a test component uses `className="bg-black text-white"`
+**Then** the styles are correctly applied (confirms NativeWind babel/metro integration)
+
+**Given** jest-expo is configured
+**When** `npm test` is run in `tacet-mobile/`
+**Then** at least one smoke test passes (confirms test harness works)
+
+**Technical constraints:**
+- Expo SDK: 53 (latest)
+- MapLibre RN: v11 beta (full new-arch support) — if unstable, fallback to v10 stable with interop layer
+- NativeWind: v4 (production-stable)
+- Expo Router: v4 (default in SDK 53)
+- PMTiles: use style JSON approach — embed `pmtiles://https://...` URL inside a style JSON object passed to `<MapView style={mapStyle}>`
+- No feature code in this story — map scaffold only
+- `app.json` must include MapLibre config plugin: `"@maplibre/maplibre-react-native"`
+- Commit `tacet-mobile/` folder to the Tacet repo root (alongside `tacet/`)
+
+**Dependencies:** None — this is the foundation story
+
+---
+
+### Story 7.2: IRIS GeoJSON layer and zone selection
+
+As a user,
+I want to see the IRIS acoustic noise zones overlaid on the map and tap a zone to see its serenity score,
+So that the core acoustic data interaction works natively (FR1, FR3).
+
+**Acceptance Criteria:**
+
+**Given** the app launches
+**When** `ensureGeoJSON()` runs on first launch
+**Then** `paris-noise-iris.geojson` is downloaded from Vercel CDN and cached in `FileSystem.documentDirectory`; a loading skeleton is shown during download
+
+**Given** the GeoJSON is cached locally
+**When** subsequent app launches occur
+**Then** the GeoJSON loads from the document directory without a network call
+
+**Given** the GeoJSON is loaded
+**When** the map renders
+**Then** IRIS zone polygons are displayed as a fill layer using serenity score colour ramp (matching V2 web design)
+
+**Given** a zone is visible on the map
+**When** the user taps it
+**Then** the zone is highlighted (boundary layer) and `selectedZoneCode` is set in the Zustand store
+
+**Technical constraints:**
+- Use `expo-file-system` (document directory, not cache dir — OS does not evict document dir)
+- Serve GeoJSON with `Content-Encoding: gzip` from Vercel; `FileSystem.downloadAsync` handles decompression
+- Zustand store with `react-native-mmkv` via `zustand-mmkv-storage` adapter (replaces localStorage)
+- Zone colour ramp: same Score Sérénité thresholds as web (0–100 scale)
+
+**Dependencies:** Story 7.1 (map foundation)
+
+---
+
+### Story 7.3: API integration — RUMEUR, Chantiers, enrichment (+ CORS config)
+
+As a user,
+I want to see live RUMEUR sensor readings, active construction sites, and the Claude Haiku zone summary in the native app,
+So that all real-time data layers from the web app are available on iOS (FR12, FR19, FR26, FR37).
+
+**Acceptance Criteria:**
+
+**Given** the native app calls `/api/rumeur`, `/api/chantiers`, `/api/enrich`
+**When** requests are made from a physical iOS device
+**Then** all three routes return 200 responses (no CORS errors)
+
+**Given** the `useRumeur`, `useChantiers`, and `useEnrichment` hooks are ported to `tacet-mobile/`
+**When** a zone is selected
+**Then** rumeur sensor data, nearby chantiers, and enrichment summary are fetched and available in component state
+
+**Given** the device is offline
+**When** API calls fail
+**Then** stale state is shown with the existing stale indicator (no crash)
+
+**Technical constraints:**
+- Add CORS headers to `tacet/next.config.js` for `/api/*` paths (allows all origins in dev; tighten for prod)
+- Handle OPTIONS preflight for POST `/api/enrich`
+- Hook file names: `useRumeur.ts`, `useChantiers.ts`, `useEnrichment.ts` (same as web — direct port)
+- `EXPO_PUBLIC_API_BASE_URL` env var: `https://tacet.vercel.app` (prod) / `http://[local-ip]:3000` (dev)
+- `ANTHROPIC_API_KEY` stays server-side on Vercel — never in Expo bundle
+
+**Dependencies:** Stories 7.1, 7.2; requires CORS changes to `tacet/` Next.js app
+
+---
+
+### Story 7.4: IrisPopup as native modal and zone detail UX
+
+As a user,
+I want the zone detail popup (IrisPopup) to open as a native iOS bottom sheet when I tap a zone,
+So that the acoustic score, RUMEUR data, chantiers, and enrichment summary are all visible with native iOS interaction patterns.
+
+**Acceptance Criteria:**
+
+**Given** a zone is tapped on the map
+**When** `selectedZoneCode` is set in Zustand
+**Then** a native bottom sheet slides up from the bottom (Expo Router `presentation: "modal"` or `@gorhom/bottom-sheet`)
+
+**Given** the bottom sheet is open
+**When** the user views it
+**Then** it displays: zone name, arrondissement, Score Sérénité (SerenityBar), day/night dB levels (time-aware, using `time-context.ts`), RUMEUR sensor data, active chantiers count, enrichment summary (if confidence === "high")
+
+**Given** the user swipes down
+**When** the gesture completes
+**Then** the bottom sheet closes and the map returns to normal state
+
+**Given** the SearchBar is tapped
+**When** the user types an address
+**Then** Photon geocoding suggestions appear and selecting one flies the map to that location
+
+**Technical constraints:**
+- Port `IrisPopup.tsx`, `SerenityBar.tsx`, `TierBadge.tsx`, `DataProvenance.tsx` to React Native components
+- Port `time-context.ts` unchanged (pure utility, no web APIs)
+- Geocoding: reuse existing `/api/geocode` proxy or call Photon directly
+- NativeWind v4 for all styling (replace Tailwind CSS classes with equivalent `className` props)
+
+**Dependencies:** Stories 7.1, 7.2, 7.3
+
+---
+
+### Story 7.5: Dark theme, offline indicator, TestFlight submission
+
+As a user,
+I want the iOS app to have the Tacet dark theme, show an offline banner when connectivity is lost, and be available on TestFlight for real-device testing,
+So that the app is polished and distributable (FR — visual parity with V2 web).
+
+**Acceptance Criteria:**
+
+**Given** the app launches on any device
+**When** the map and all UI elements render
+**Then** the dark theme matches the V2 web design (dark background, amber accents, white text)
+
+**Given** the device loses connectivity
+**When** the app is in use
+**Then** an `OfflineBanner` appears at the top of the screen (same copy as web: "Hors connexion — données mises en cache")
+
+**Given** the app regains connectivity
+**When** the banner is visible
+**Then** the banner dismisses automatically
+
+**Given** the app passes all jest-expo tests
+**When** `eas build --platform ios --profile preview` completes
+**Then** the build is distributed to TestFlight and installable on the developer's device
+
+**Technical constraints:**
+- NativeWind CSS variable theme tokens matching V2 web design system
+- `@react-native-community/netinfo` for connectivity detection
+- Lighthouse/performance budgets: not applicable to native; replace with Xcode Instruments check (startup time < 2s)
+- App icon: reuse existing Tacet maskable icon assets
+
+**Dependencies:** Stories 7.1–7.4; Apple Developer Program ($99/yr) required

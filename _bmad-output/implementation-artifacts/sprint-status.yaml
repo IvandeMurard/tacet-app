@@ -130,3 +130,18 @@ development_status:
   6-4-service-worker-push-for-watched-zones: backlog
   6-5-route-serenity-quiet-path: backlog
   epic-6-retrospective: optional
+  # NOTE: Epic 6 stories 6.2–6.5 are DEFERRED — will be redesigned as native-first
+  # features after Epic 7 (iOS migration) ships. Do not start 6.2+ until 7.5 is done.
+
+  # ─────────────────────────────────────────────────────────────────
+  # Epic 7: iOS Native App — React Native/Expo Migration 🚀 ACTIVE
+  # Research: _bmad-output/planning-artifacts/research/technical-maplibre-rn-pmtiles-expo-research-2026-03-20.md
+  # Architecture: hybrid split — Expo frontend + Next.js API on Vercel (unchanged)
+  # ─────────────────────────────────────────────────────────────────
+  epic-7: in-progress
+  7-1-expo-foundation-map-rendering: ready-for-dev
+  7-2-iris-geojson-layer-zone-selection: backlog
+  7-3-api-integration-rumeur-chantiers-enrichment-cors: backlog
+  7-4-irispopup-native-modal-zone-detail-ux: backlog
+  7-5-dark-theme-offline-indicator-testflight: backlog
+  epic-7-retrospective: optional
