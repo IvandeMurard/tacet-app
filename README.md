@@ -1,8 +1,6 @@
 # Tacet
 
-**Find your quiet Paris. The web app — iOS coming next.**
-
-[🌐 Live app](https://tacet.vercel.app) · [Landing page](https://listen-to-paris.lovable.app)
+**Rediscover the quiet Paris.**
 
 Access reliable insights, find the noise pollution level at any Paris address, compare districts, track real-time sensor data, and explore the city by bike or foot through its quietest streets and shops.
 An agentic copilot in your pocket that learns from your usage, sharing the right information at the right time.
