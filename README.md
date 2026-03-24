@@ -65,19 +65,6 @@ An agentic copilot in your pocket that learns from your usage, sharing the right
 └── _bmad-output/              # Product specs, UX design, BMAD stories (1.1–5.6), sprint status
 ```
 
----
-
-## Getting started
-
-```bash
-cd tacet
-cp ../.env.example .env.local   # fill in values (see below)
-npm install
-npm run dev                     # http://localhost:3000
-npm test                        # Vitest unit + component tests
-npm run e2e                     # Playwright E2E (requires: npm run build && npm start)
-```
-
 ### Environment variables
 
 | Variable | Required | Description |
@@ -117,17 +104,18 @@ npm run e2e                     # Playwright E2E (requires: npm run build && npm
 - **Quiet route directions** — get from A to B by foot or bike, routed through the calmest zones (score 0 → 1)
 - Natural language address queries
 - B2B API: real estate, urban planning
+- Real-time social media sentiment alerts
 
 ---
 
 ## Data sources
 
-> "Data source: Air-noise mapping established by Airparif and Bruitparif — http://carto.airparif.bruitparif.fr"
+> "Data source: Air-noise mapping established by Airparif and Bruitparif http://carto.airparif.bruitparif.fr"
 
-- [Bruitparif](https://www.bruitparif.fr/) — Noise data (PPBE 2024 static + RUMEUR real-time sensors)
-- [IGN / INSEE](https://geoservices.ign.fr/contoursiris) — IRIS boundaries
-- [OpenData Paris](https://opendata.paris.fr/) — District boundaries, construction sites
-- [Photon / Komoot](https://photon.komoot.io/) — Geocoding
+- [Bruitparif](https://www.bruitparif.fr/) - Noise data (PPBE 2024 static + RUMEUR real-time sensors)
+- [IGN / INSEE](https://geoservices.ign.fr/contoursiris) - IRIS boundaries
+- [OpenData Paris](https://opendata.paris.fr/) - District boundaries, construction sites
+- [Photon / Komoot](https://photon.komoot.io/) - Geocoding
 
 ## License
 
