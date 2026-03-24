@@ -94,3 +94,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(LOW_CONFIDENCE_RESULT, { headers: NO_STORE });
   }
 }
+
+// OPTIONS preflight for CORS (POST from browser-based clients / dev tooling)
+export function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
+}

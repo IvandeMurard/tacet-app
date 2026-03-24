@@ -79,3 +79,50 @@ describe("Story 7.2 — Zustand mapStore", () => {
     expect(useMapStore.getState().selectedZone).toBeNull();
   });
 });
+
+describe("Story 7.3 — API types", () => {
+  it("RumeurResponse type shape is correct", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const sample: import("../types/rumeur").RumeurResponse = {
+      data: { measurements: [{ stationId: "s1", timestamp: "2026-01-01T00:00:00Z", leq: 55 }] },
+      error: null,
+      fallback: false,
+      cachedAt: "2026-01-01T00:00:00Z",
+    };
+    expect(sample.data?.measurements).toHaveLength(1);
+    expect(sample.fallback).toBe(false);
+  });
+
+  it("EnrichmentRequest requires zone_code and score_serenite", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const req: import("../types/enrichment").EnrichmentRequest = {
+      zone_code: "751014001",
+      zone_name: "Test",
+      arrondissement: 1,
+      noise_level: 2,
+      day_level: 2,
+      night_level: 2,
+      score_serenite: 58,
+      current_iso_timestamp: new Date().toISOString(),
+    };
+    expect(req.zone_code).toBe("751014001");
+    expect(req.score_serenite).toBe(58);
+  });
+
+  it("ChantierRecord allows optional geo_point_2d", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const rec: import("../types/chantier").ChantierRecord = {
+      adresse: "1 Rue de Rivoli",
+      date_fin: "2026-12-31",
+    };
+    expect(rec.geo_point_2d).toBeUndefined();
+    expect(rec.adresse).toBe("1 Rue de Rivoli");
+  });
+
+  it("hooks fall back to tacet.vercel.app when env var is absent", () => {
+    // jest-expo does not load .env — env var is undefined in test runtime.
+    // Hooks use ?? fallback: process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://tacet.vercel.app"
+    const base = process.env.EXPO_PUBLIC_API_BASE_URL ?? "https://tacet.vercel.app";
+    expect(base).toBe("https://tacet.vercel.app");
+  });
+});

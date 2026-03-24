@@ -11,6 +11,17 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   async headers() {
     return [
+      // CORS for /api/* — allows native mobile clients and browser-based tooling.
+      // React Native fetch() does not send Origin headers, so CORS errors cannot
+      // occur natively; these headers future-proof for web panel consumers.
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization" },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [
