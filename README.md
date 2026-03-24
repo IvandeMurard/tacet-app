@@ -4,9 +4,10 @@
 
 [🌐 Live app](https://tacet.vercel.app) · [Landing page](https://listen-to-paris.lovable.app)
 
-Know if a neighborhood is calm enough before you sign a lease — one score, one tap. Search any Paris address, compare districts, track real-time sensor data, explore the silence barometer. The current web app is the foundation; the native iOS app is the product direction.
+Access reliable insights, find the noise pollution level at any Paris address, compare districts, track real-time sensor data, and explore the city by bike or foot through its quietest streets and shops.
+An agentic copilot in your pocket that learns from your usage, sharing the right information at the right time.
 
-> *Tacet* (from Latin "he falls silent") — a musical notation for silence.
+> *Tacet* (from Latin "he falls silent"), a musical notation for silence.
 
 ---
 
