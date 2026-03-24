@@ -1,6 +1,6 @@
 # Story 7.1: Expo Foundation — Map Rendering on Device
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -244,6 +244,31 @@ claude-sonnet-4-6
 
 ### Debug Log References
 
+N/A
+
 ### Completion Notes List
 
+- Expo SDK 55 installed (template default — newer than specified SDK 53, full new-arch support confirmed)
+- MapLibre RN v11.0.0-beta.18 installed via `@beta` tag (`@next` no longer exists)
+- Config plugin auto-added to app.json by `npx expo install`
+- `@/` path alias resolves to project root (`./*`) — consistent with template structure; `src/` layer not needed
+- `nativewind/babel` plugin skipped in Jest env (conflicts with Babel caching); use `process.env.NODE_ENV` check — `api.env()` cannot be used after `api.cache()`
+- global.css imported in `app/_layout.tsx` to activate NativeWind styles
+- jest-expo 55.0.11 + jest 29.7.0; smoke test validates PMTILES_STYLE shape
+- EAS build requires Apple Developer Program ($99/year) and physical device for dev client
+
 ### File List
+
+- tacet-mobile/app/(tabs)/index.tsx
+- tacet-mobile/app/_layout.tsx
+- tacet-mobile/constants/mapStyle.ts
+- tacet-mobile/babel.config.js
+- tacet-mobile/metro.config.js
+- tacet-mobile/tailwind.config.js
+- tacet-mobile/global.css
+- tacet-mobile/global.d.ts
+- tacet-mobile/eas.json
+- tacet-mobile/.env.example
+- tacet-mobile/.gitignore (updated)
+- tacet-mobile/package.json (updated — jest config + test script)
+- tacet-mobile/__tests__/smoke.test.ts
