@@ -76,6 +76,7 @@ An agentic copilot in your pocket that learns from your usage, sharing the right
 ---
 
 ## Roadmap
+Hosted on [Linear](https://linear.app/ivanportfolio/team/TAC/all)
 
 ### ✅ V1 — Live at tacet.vercel.app
 
