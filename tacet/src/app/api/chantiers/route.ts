@@ -40,6 +40,14 @@ export async function GET() {
     if (!res.ok) {
       throw new Error(`Open Data Paris: ${res.status}`);
     }
+    const raw = await res.json();
+    if (!isValidChantiersData(raw)) {
+      throw new Error("Open Data Paris: réponse invalide (shape inattendue)");
+    }
+    const cachedAt = new Date().toISOString();
+    cache = { data: raw, cachedAt, fetchedAt: Date.now() };
+    return NextResponse.json(
+      { data: raw, error: null, fallback: false, cachedAt },
     const raw: unknown = await res.json();
     if (!isValidChantiersData(raw)) {
       throw new Error("Open Data Paris: réponse invalide (shape inattendue)");

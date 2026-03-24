@@ -56,6 +56,26 @@ function AppNav({ onOpenCompare }: { onOpenCompare: () => void }) {
         Tacet
       </Link>
       <span className="h-3.5 w-px bg-white/15" aria-hidden />
+      <LayerToggle
+        label="Chantiers"
+        active={activeLayers.has("chantiers")}
+        onToggle={() => toggleLayer("chantiers")}
+        ariaLabel="Afficher les chantiers en cours"
+      />
+      {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && (
+        <LayerToggle
+          label="Capteurs"
+          active={activeLayers.has("rumeur")}
+          onToggle={() => toggleLayer("rumeur")}
+          ariaLabel="Afficher les capteurs de bruit RUMEUR"
+        />
+      )}
+      <LayerToggle
+        label="Élections"
+        active={activeLayers.has("elections")}
+        onToggle={() => toggleLayer("elections")}
+        ariaLabel="Afficher la couche thématique Élections 2026"
+      />
       <button
         type="button"
         onClick={onOpenCompare}
@@ -98,6 +118,7 @@ function RumeurStatus({ rumeurResponse, swrError }: {
 }
 
 export function MapPageClient() {
+  const { selectedZone, setSelectedZone, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier, selectedRumeur, setSelectedRumeur } = useMapContext();
   const { selectedZone, setSelectedZone, selectedZoneLngLat, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier, selectedRumeur, setSelectedRumeur } =
     useMapContext();
   useRestoreLastZone();
@@ -173,7 +194,20 @@ export function MapPageClient() {
           onClose={() => setSelectedRumeur(null)}
         />
       )}
+      {selectedChantier && (
+        <ChantierPopup
+          properties={selectedChantier}
+          onClose={() => setSelectedChantier(null)}
+        />
+      )}
+      {selectedRumeur && (
+        <RumeurPopup
+          properties={selectedRumeur}
+          onClose={() => setSelectedRumeur(null)}
+        />
+      )}
       <ComparisonTray isOpen={trayOpen} onClose={() => setTrayOpen(false)} />
+      {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && <RumeurStatus />}
       {process.env.NEXT_PUBLIC_ENABLE_RUMEUR === "true" && (
         <RumeurStatus rumeurResponse={rumeurResponse} swrError={rumeurSwrError} />
       )}

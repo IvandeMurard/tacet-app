@@ -93,6 +93,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [lastVisitedZone] = useState<IrisProperties | null>(loadLastZoneFromStorage);
   const [selectedChantier, setSelectedChantier] = useState<ChantierProperties | null>(null);
   const [selectedRumeur, setSelectedRumeur] = useState<RumeurFeatureProperties | null>(null);
+  const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set());
   const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set<LayerId>(["chantiers", "rumeur"]));
   const [pinnedZones, setPinnedZones] = useState<IrisProperties[]>(loadPinnedFromStorage);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -164,6 +165,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       mapRef,
       flyToAndSelectZone,
     }),
+    [selectedZone, setSelectedZone, lastVisitedZone, selectedChantier, selectedRumeur, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
     [selectedZone, setSelectedZone, selectedZoneLngLat, lastVisitedZone, selectedChantier, selectedRumeur, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
   );
 
