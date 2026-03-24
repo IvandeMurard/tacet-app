@@ -14,7 +14,7 @@ An agentic copilot in your pocket that learns from your usage, sharing the right
 | Feature | Description |
 |---|---|
 | **Serenity Score** | 0–100 composite score from official Bruitparif data |
-| **Address search** | Photon/Komoot geocoding — no API key, no rate limit |
+| **Address search** | Photon/Komoot geocoding - no API key, no rate limit |
 | **Live Directions**| Real-timùe guidance through Paris's quietest streets|
 | **Zone comparison** | Pin up to 3 zones, compare side-by-side |
 | **RUMEUR sensor layer** | Real-time Bruitparif sensor readings, refreshed every 3 min via proxy API |
