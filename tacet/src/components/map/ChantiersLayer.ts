@@ -18,23 +18,29 @@ function toGeoJSON(records: ChantierRecord[]): GeoJSON.FeatureCollection {
     return cachedGeoJSON;
   }
   cachedRecords = records;
-  cachedGeoJSON = {
-    type: "FeatureCollection",
-    features: records
-      .filter((r) => r.geo_point_2d?.lon && r.geo_point_2d?.lat)
-      .map((r, i) => ({
-        type: "Feature" as const,
-        id: i,
+  const features: GeoJSON.Feature[] = [];
+  let id = 0;
+  for (const r of records) {
+    if (r.geo_point_2d?.lon && r.geo_point_2d?.lat) {
+      features.push({
+        type: "Feature",
+        id: id++,
         geometry: {
-          type: "Point" as const,
-          coordinates: [r.geo_point_2d!.lon, r.geo_point_2d!.lat],
+          type: "Point",
+          coordinates: [r.geo_point_2d.lon, r.geo_point_2d.lat],
         },
         properties: {
           adresse: r.adresse ?? "",
           date_fin: r.date_fin ?? "",
           type_chantier: r.type_chantier ?? "",
         },
-      })),
+      });
+    }
+  }
+
+  cachedGeoJSON = {
+    type: "FeatureCollection",
+    features,
   };
   return cachedGeoJSON;
 }
