@@ -15,9 +15,12 @@ export function TextAlternativeView() {
     fetch(GEOJSON_URL)
       .then((r) => r.json())
       .then((geojson: GeoJSON.FeatureCollection) => {
-        const props = (geojson.features ?? [])
-          .map((f) => f.properties as IrisProperties)
-          .filter(Boolean);
+        const props: IrisProperties[] = [];
+        const features = geojson.features ?? [];
+        for (const f of features) {
+          const p = f.properties as IrisProperties;
+          if (p) props.push(p);
+        }
         setZones(props);
       })
       .catch(() => setError(true))
