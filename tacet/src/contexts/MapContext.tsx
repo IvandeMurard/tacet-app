@@ -25,7 +25,8 @@ function loadPinnedFromStorage(): IrisProperties[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as IrisProperties[];
     return Array.isArray(parsed) ? parsed.slice(0, MAX_PINNED) : [];
-  } catch {
+  } catch (error) {
+    console.error("Error loading pinned zones from storage:", error);
     return [];
   }
 }
@@ -34,8 +35,8 @@ function savePinnedToStorage(zones: IrisProperties[]) {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(zones.slice(0, MAX_PINNED)));
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error("Error saving pinned zones to storage:", error);
   }
 }
 
@@ -45,7 +46,8 @@ function loadLastZoneFromStorage(): IrisProperties | null {
     const raw = localStorage.getItem(LAST_ZONE_STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as IrisProperties;
-  } catch {
+  } catch (error) {
+    console.error("Error loading last zone from storage:", error);
     return null;
   }
 }
@@ -56,8 +58,8 @@ function saveLastZoneToStorage(zone: IrisProperties | null) {
     if (zone) {
       localStorage.setItem(LAST_ZONE_STORAGE_KEY, JSON.stringify(zone));
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error("Error saving last zone to storage:", error);
   }
 }
 
