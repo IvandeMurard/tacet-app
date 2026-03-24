@@ -1,8 +1,11 @@
 import MapLibreGL from "@maplibre/maplibre-react-native";
+import { useCallback, useRef } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { DEFAULT_ZOOM, NOISE_FILL_EXPRESSION, PARIS_CENTER } from "@/constants/colors";
 import { PMTILES_STYLE } from "@/constants/mapStyle";
+import { SearchBar } from "@/components/SearchBar";
+import { ZoneSheet } from "@/components/ZoneSheet";
 import { useGeoJSON } from "@/hooks/useGeoJSON";
 import { type IrisProperties, useMapStore } from "@/store/mapStore";
 
@@ -12,6 +15,15 @@ MapLibreGL.setAccessToken(null);
 export default function MapScreen() {
   const { geojson, loading, error } = useGeoJSON();
   const { selectedZone, setSelectedZone, clearSelectedZone } = useMapStore();
+  const cameraRef = useRef<MapLibreGL.Camera>(null);
+
+  const flyTo = useCallback((coords: [number, number]) => {
+    cameraRef.current?.setCamera({
+      centerCoordinate: coords,
+      zoomLevel: 14,
+      animationDuration: 800,
+    });
+  }, []);
 
   function handleZonePress(e: { features?: { properties?: Record<string, unknown> }[] }) {
     const feature = e.features?.[0];
@@ -20,7 +32,6 @@ export default function MapScreen() {
       return;
     }
     const props = feature.properties as IrisProperties;
-    // Toggle: tap same zone again to deselect
     if (selectedZone?.code_iris === props.code_iris) {
       clearSelectedZone();
     } else {
@@ -56,6 +67,7 @@ export default function MapScreen() {
         onPress={() => clearSelectedZone()}
       >
         <MapLibreGL.Camera
+          ref={cameraRef}
           defaultSettings={{
             centerCoordinate: PARIS_CENTER,
             zoomLevel: DEFAULT_ZOOM,
@@ -68,30 +80,24 @@ export default function MapScreen() {
             shape={geojson}
             onPress={handleZonePress}
           >
-            {/* Fill layer — colour by noise_level */}
             <MapLibreGL.FillLayer
               id="iris-fill"
-              style={{
-                fillColor: NOISE_FILL_EXPRESSION,
-                fillOpacity: 0.45,
-              }}
+              style={{ fillColor: NOISE_FILL_EXPRESSION, fillOpacity: 0.45 }}
             />
-            {/* Highlight border for selected zone */}
             <MapLibreGL.LineLayer
               id="iris-selected"
-              filter={[
-                "==",
-                ["get", "code_iris"],
-                selectedZone?.code_iris ?? "",
-              ]}
-              style={{
-                lineColor: "#ffffff",
-                lineWidth: 2,
-              }}
+              filter={["==", ["get", "code_iris"], selectedZone?.code_iris ?? ""]}
+              style={{ lineColor: "#ffffff", lineWidth: 2 }}
             />
           </MapLibreGL.ShapeSource>
         )}
       </MapLibreGL.MapView>
+
+      {/* Search bar overlay */}
+      <SearchBar onSelectLocation={flyTo} />
+
+      {/* Zone detail bottom sheet */}
+      <ZoneSheet />
     </View>
   );
 }
@@ -99,13 +105,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0a0a0a" },
   map: { flex: 1 },
-  skeleton: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-  },
+  skeleton: { flex: 1, backgroundColor: "#0a0a0a", alignItems: "center", justifyContent: "center", gap: 12 },
   skeletonText: { color: "#aaa", fontSize: 14 },
   errorText: { color: "#f87171", fontSize: 14, textAlign: "center", paddingHorizontal: 24 },
 });

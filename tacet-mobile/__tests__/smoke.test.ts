@@ -80,6 +80,46 @@ describe("Story 7.2 — Zustand mapStore", () => {
   });
 });
 
+describe("Story 7.4 — time-context", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isNightTime, isChantierExpired } = require("../lib/time-context");
+
+  it("isNightTime returns true at 22:00 (night)", () => {
+    const night = new Date("2026-03-24T22:00:00");
+    expect(isNightTime(night)).toBe(true);
+  });
+
+  it("isNightTime returns true at 02:00 (early morning)", () => {
+    const earlyMorning = new Date("2026-03-24T02:00:00");
+    expect(isNightTime(earlyMorning)).toBe(true);
+  });
+
+  it("isNightTime returns false at 12:00 (midday)", () => {
+    const midday = new Date("2026-03-24T12:00:00");
+    expect(isNightTime(midday)).toBe(false);
+  });
+
+  it("isNightTime returns false at boundary hour 6", () => {
+    const boundary = new Date("2026-03-24T06:00:00");
+    expect(isNightTime(boundary)).toBe(false);
+  });
+
+  it("isChantierExpired returns false for future date", () => {
+    const now = new Date("2026-03-24T12:00:00");
+    expect(isChantierExpired("2026-12-31", now)).toBe(false);
+  });
+
+  it("isChantierExpired returns true for past date", () => {
+    const now = new Date("2026-03-24T12:00:00");
+    expect(isChantierExpired("2025-01-01", now)).toBe(true);
+  });
+
+  it("isChantierExpired returns false when date_fin is undefined", () => {
+    const now = new Date("2026-03-24T12:00:00");
+    expect(isChantierExpired(undefined, now)).toBe(false);
+  });
+});
+
 describe("Story 7.3 — API types", () => {
   it("RumeurResponse type shape is correct", () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
