@@ -21,7 +21,6 @@ An agentic copilot in your pocket that learns from your usage, sharing the right
 | **Live social media monitoring** | Real-time alerts on events happening around you |
 | **Chantiers layer** | Active Paris construction sites from OpenData Paris API |
 | **Offline support** | Last-visited zone cached via service worker, works without network |
-| **Accessibility** | Full keyboard navigation, ARIA, TextAlternativeView, WCAG-aligned |
 
 ---
 
