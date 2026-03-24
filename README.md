@@ -14,11 +14,12 @@ Know if a neighborhood is calm enough before you sign a lease — one score, one
 
 | Feature | Description |
 |---|---|
-| **Serenity Score** | 0–100 composite score across 992 IRIS zones, from official Bruitparif PPBE 2024 data |
+| **Serenity Score** | 0–100 composite score from official Bruitparif data |
 | **Address search** | Photon/Komoot geocoding — no API key, no rate limit |
-| **Zone comparison** | Pin up to 3 zones, compare side-by-side in a drawer |
-| **Baromètre du Silence** | District ranking by noise level (20 arrondissements) |
+| **Live Directions**| Real-timùe guidance through Paris's quietest streets|
+| **Zone comparison** | Pin up to 3 zones, compare side-by-side |
 | **RUMEUR sensor layer** | Real-time Bruitparif sensor readings, refreshed every 3 min via proxy API |
+| **Live social media monitoring** | Real-time alerts on events happening around you |
 | **Chantiers layer** | Active Paris construction sites from OpenData Paris API |
 | **Offline support** | Last-visited zone cached via service worker, works without network |
 | **Accessibility** | Full keyboard navigation, ARIA, TextAlternativeView, WCAG-aligned |
@@ -93,7 +94,7 @@ npm run e2e                     # Playwright E2E (requires: npm run build && npm
 
 ### ✅ V1 — Live at tacet.vercel.app
 
-- 992 IRIS zone choropleth map (Bruitparif PPBE 2024)
+- Choropleth map (Bruitparif data)
 - Serenity Score 0–100, human-readable tiers
 - Baromètre du Silence (district ranking)
 - Address search with per-zone score popup
