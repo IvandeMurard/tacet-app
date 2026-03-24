@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BarometreChart, type ArrProperties } from "@/components/BarometreChart";
 import { BRAND_COLOR } from "@/lib/noise-categories";
+import { DATA_YEAR } from "@/lib/constants";
 // Static import — webpack inlines the GeoJSON at build time (resolveJsonModule: true)
 // No runtime fetch needed; data is pre-rendered in the initial HTML.
 import arrondissementsJson from "../../../public/data/paris-noise-arrondissements.geojson";
@@ -12,11 +13,11 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "Baromètre du Silence — Tacet Paris",
   description:
-    "Classement des 20 arrondissements de Paris par niveau sonore. Données Lden Bruitparif 2024. Enjeu des élections municipales mars 2026.",
+    `Classement des 20 arrondissements de Paris par niveau sonore. Données Lden Bruitparif ${DATA_YEAR}. Enjeu des élections municipales mars 2026.`,
   openGraph: {
     title: "Quel arrondissement de Paris est le plus calme ?",
     description:
-      "Le 16e est le plus silencieux (61 dB Lden), le 8e le plus bruyant (71 dB). Données Bruitparif 2024.",
+      `Le 16e est le plus silencieux (61 dB Lden), le 8e le plus bruyant (71 dB). Données Bruitparif ${DATA_YEAR}.`,
     type: "website",
   },
 };
@@ -55,7 +56,7 @@ export default function BarometrePage() {
         {/* Titre principal */}
         <div className="mb-8">
           <p className="mb-2 text-xs uppercase tracking-widest text-white/30">
-            Données Bruitparif 2024
+            Données Bruitparif {DATA_YEAR}
           </p>
           <h1 className="mb-3 text-2xl font-bold leading-tight sm:text-3xl">
             Baromètre du Silence
@@ -95,7 +96,7 @@ export default function BarometrePage() {
           </p>
           <p>
             Source : <strong className="text-white/40">Bruitparif</strong> — Cartographie
-            stratégique du bruit air-bruit Île-de-France 2024.
+            stratégique du bruit air-bruit Île-de-France {DATA_YEAR}.
           </p>
         </div>
       </div>

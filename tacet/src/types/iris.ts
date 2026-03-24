@@ -13,12 +13,6 @@ export interface IrisProperties {
   description?: string;
 }
 
-export interface IrisFeature {
-  type: "Feature";
-  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
-  properties: IrisProperties;
-}
-
 export interface IrisZone extends IrisProperties {
   /** GeoJSON feature id if available */
   id?: string | number;

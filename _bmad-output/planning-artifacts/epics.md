@@ -82,6 +82,16 @@ This document provides the complete epic and story breakdown for Tacet V3, decom
 - FR-043: The system hot-reloads UI changes on connected Expo Go devices without requiring a full rebuild
 - FR-044: The CI/CD pipeline produces a TestFlight-ready build from a main branch push in under 15 minutes
 
+**8. Ambient Intelligence (V3 — Epic 6)**
+- FR38: The app always-on surfaces contextual signals (nearest RUMEUR sensor, active chantier count, crowd reports) in the zone popup without user toggles, shown only when relevant.
+- FR39: Users can tap a one-touch button to report unusual noise in a selected zone (localStorage-backed, 1-hour window, 5-min cooldown).
+- FR40: The app automatically adapts acoustic display to time of day — night levels (Ln) are foregrounded after 20:00, day levels (Lden) during daytime — with no user configuration.
+- FR41: The system generates a 1–2 sentence contextual summary for a selected zone via an AI enrichment agent (Claude Haiku), synthesising score, live sensor, chantiers, and micro-reports into a mobile-readable insight. Non-blocking; IrisPopup renders immediately with default view.
+- FR42: Users can optionally set a one-tap session intent ("Je cherche un logement / un endroit calme maintenant / à m'informer") that shapes which signals are emphasised throughout the session. Dismissable; defaults to informational experience.
+- FR43: When a selected zone scores below 40, the app proactively surfaces the nearest quieter zone within 500m with a tap-to-navigate action, shown inline in the zone popup.
+- FR44: Users who have pinned at least 2 zones can opt in to receive proactive push notifications (via service worker) when a pinned zone accumulates significant noise reports or a Rumeur spike exceeds 75 dB.
+- FR45: Users can find the quietest walking route between two Paris addresses, using acoustic zone scores as the routing weight — no external routing API required.
+
 ### NonFunctional Requirements
 
 **Performance (7)**
@@ -303,6 +313,51 @@ Users can opt in to push notifications for pinned zones, receive French-language
 ### Epic 5: Natural Language Query
 Users can ask acoustic questions in French, get ranked mapped results with scores and data citations, see AI transparency disclosure, with fallback to structured search.
 **FRs covered:** FR-025, FR-026, FR-027, FR-028, FR-029
+FR1: Epic 1 - Choropleth/Score Dots map of Paris IRIS zones
+FR2: Epic 1 - Pan and zoom map navigation
+FR3: Epic 1 - Select IRIS zone by tap/click
+FR4: Epic 1 - Visual comparison via color gradient (Score Dots)
+FR5: Epic 1 - Full-screen map on mobile
+FR6: Epic 2 - View Score Sérénité 0–100 for selected zone
+FR7: Epic 2 - Human-readable zone noise description (character note)
+FR8: Epic 2 - Data vintage year in zone panel
+FR9: Epic 2 - Disclaimer on Score indicativity
+FR10: Epic 2 - Methodology via legal notice
+FR11: Epic 2 - Native share zone Score and map view
+FR12: Epic 2 - Search Paris address and navigate to IRIS zone
+FR13: Epic 2 - Address autocomplete as user types
+FR14: Epic 2 - Search by neighborhood or landmark
+FR15: Epic 2 - Clear search and default map view
+FR16: Epic 3 - Toggle RUMEUR real-time overlay
+FR17: Epic 3 - View RUMEUR sensor dB near zone
+FR18: Epic 3 - RUMEUR last refresh timestamp
+FR19: Epic 3 - Toggle Chantiers layer
+FR20: Epic 3 - Chantier location, radius, end date
+FR21: Epic 3 - Transparent communication Chantiers vs static Score
+FR22: Epic 3 - Toggle 2026 Elections layer
+FR23: Epic 3 - Baromètre du Silence ranking page
+FR24: Epic 3 - Auto-refresh RUMEUR 3-minute cadence
+FR25: Epic 3 - Visual indicator when RUMEUR unavailable/stale
+FR26: Epic 3 - Distinguish live vs cached offline data
+FR27: Epic 2/3 - Annual PPBE disclosure in zone panel
+FR28: Epic 4 - Install PWA to home screen
+FR29: Epic 4 - Offline access to last visited zone data
+FR30: Epic 4 - Offline mode indicator
+FR31: Epic 4 - Cached shell launch < 2s
+FR32: Epic 5 - Keyboard-navigable text alternative to map
+FR33: Epic 5 - Logical tab order all interactive elements
+FR34: Epic 5 - Legal notice, attributions, privacy policy from any page
+FR35: Epic 5 - Feedback contact form
+FR36: Epic 5 - B2B expression of interest channel
+FR37: Epic 5 - No personal data without consent; no third-party tracking
+FR38: Epic 6 - Always-on contextual signals in zone popup (built 2026-03-16)
+FR39: Epic 6 - One-tap noise reporting per zone / micro-report (built 2026-03-16)
+FR40: Epic 6 - Time-aware acoustic display (day vs night levels)
+FR41: Epic 6 - AI-powered zone enrichment summary (Claude Haiku, non-blocking)
+FR42: Epic 6 - Intent-based session personalisation (one-tap, localStorage)
+FR43: Epic 6 - Proactive quiet zone alternative (Score < 40, within 500m)
+FR44: Epic 6 - Service worker push notifications for watched zones
+FR45: Epic 6 - Quiet route between two addresses (acoustic graph traversal)
 
 ### Epic 6: B2B Reports & Billing
 B2B users can create accounts, view acoustic dashboards combining PPBE + RUMEUR for any address, export certified PDF reports with full attribution and disclaimers, subscribe via Stripe, with access gated to paid tiers.
@@ -335,6 +390,11 @@ So that I can run Tacet on a physical iOS device and iterate rapidly with hot re
 **When** the developer scans the QR code
 **Then** the app loads on the device within 60 seconds from cold start (NFR-P6, FR-001)
 **And** the developer sees the navigation shell with placeholder screens
+### Epic 6: Ambient Intelligence
+Tacet moves from a map you consult to an environment that notices things for you — contextual signals surface automatically, an AI agent synthesises zone context, intent-based personalisation shapes what's shown, and the most advanced users can find the quietest walking route between two addresses.
+**FRs covered:** FR38, FR39, FR40, FR41, FR42, FR43, FR44, FR45
+
+---
 
 **Given** the developer modifies a UI file (e.g. a screen component)
 **When** the file is saved
@@ -1174,3 +1234,432 @@ So that my RGPD data subject rights are respected (FR-041).
 ---
 
 **Epic 7 Summary:** 3 stories, covering FR-036, FR-037, FR-038, FR-039, FR-040, FR-041 + NFR-C1, NFR-C2.
+**Given** Playwright is configured for the project (e.g. e2e/playwright.config.ts)
+**When** E2E tests run (e.g. against build or dev server)
+**Then** the following are covered: address search and map flyTo; zone selection (tap/click) and IrisPopup open; at least one layer toggle (RUMEUR or Chantiers); offline mode (e.g. last zone available or offline banner)
+**And** at least 10 distinct scenarios (or scenarios with multiple assertions) exist as per NFR-M2
+**When** CI runs (e.g. GitHub Actions)
+**Then** E2E job runs after build and fails the pipeline if any scenario fails
+**Given** tests are stable (no flaky selectors)
+**When** tests run repeatedly
+**Then** they pass consistently or flakiness is documented and minimized
+
+---
+
+## Epic 6: Ambient Intelligence
+
+Tacet moves from a map you consult to an environment that notices things for you. The goal is to surface the right signal at the right moment without asking the user to configure anything. Three interlocking principles govern this epic: **reading and anticipating needs** (time-of-day, behaviour, zone history), **session personalisation** (intent-inferred, no account required), and **feedback loop** (crowd micro-reports feed back into the experience).
+
+**V3 foundation already shipped (2026-03-16, untracked):**
+- Always-on contextual layers: RUMEUR and Chantiers always fetched and rendered; proximity shown in IrisPopup only when relevant (within 1km / 400m).
+- Micro-report system (`useNoiseReports`): one-tap noise reporting, localStorage-backed, 1-hour window, 5-min cooldown.
+- `selectedZoneLngLat` in MapContext: enables all proximity calculations.
+
+**Implementation priority order (from vision doc):**
+1. Story 6.1 (time-aware weighting) — zero new UI, immediate proof of ambient behaviour
+2. Story 6.0 (zone enrichment agent) — solves information architecture problem; unblocks IrisPopup design sprint
+3. IrisPopup design sprint — must precede any 6.x UI implementation (see `docs/planning/ambient-agentic-vision.md`)
+4. Story 6.2 (intent layer) → 6.3 (proactive alternatives) → 6.4 (SW push) → 6.5 (route serenity)
+
+**Agent instructions:** Before implementing any story in this epic, read `docs/planning/ambient-agentic-vision.md` in full.
+
+---
+
+### Story 6.0: Zone enrichment agent
+
+As a user,
+I want the zone popup to show a concise, contextually relevant 1–2 sentence summary of what this zone sounds like right now,
+So that I understand its acoustic character instantly without having to parse multiple individual data points (FR41).
+
+**Acceptance Criteria:**
+
+**Given** a zone is selected and the enrichment feature flag is enabled (`NEXT_PUBLIC_ENABLE_ENRICHMENT=true`)
+**When** the IrisPopup opens
+**Then** IrisPopup renders immediately with the default Score/tier/signals view (no blocking)
+**And** a `POST /api/enrich` call fires in parallel with body: `{ zone_code, zone_name, arrondissement, noise_level, day_level, night_level, score_serenite, current_iso_timestamp, intent?, rumeur_sensor?, nearby_chantiers?, recent_reports? }`
+**When** the enrichment response arrives
+**Then** IrisPopup updates to show `summary` (1–2 sentences, French, mobile-readable) below the score
+**And** the `primary_signal` and optional `secondary_signal` fields determine which contextual blocks are rendered (not a fixed template)
+
+**Given** the enrichment call returns `confidence: "low"` or fails or exceeds 1.5s timeout
+**When** IrisPopup renders
+**Then** it falls back to the default rendering — no regression, no empty placeholder
+
+**Given** the same zone is requested within the same 15-minute bucket and same intent
+**When** `/api/enrich` is called
+**Then** the cached response is returned (cache key: `enrich-${zone_code}-${Math.floor(Date.now() / 900_000)}-${intent ?? 'none'}`)
+
+**Given** the feature flag is off (`NEXT_PUBLIC_ENABLE_ENRICHMENT` unset or false)
+**When** any zone is selected
+**Then** IrisPopup renders identically to the pre-Epic-6 default — zero visible difference
+
+**Technical constraints:**
+- Claude API key in `ANTHROPIC_API_KEY` server-side env var — never client-side
+- Model: `claude-haiku-4-5-20251001` — do not upgrade without explicit cost review
+- System prompt: French, ≤ 150 tokens, calm and factual tone
+- Response shape: `{ summary, primary_signal, secondary_signal?, confidence, cachedAt }`
+- The enrichment call is always non-blocking — default UI must be pixel-identical to pre-Epic-6
+
+**Dependencies:** `@anthropic-ai/sdk` npm package; `ANTHROPIC_API_KEY` env var; existing `/api/rumeur` and `/api/chantiers` data shapes; `useNoiseReports` for `recent_reports`
+
+---
+
+### Story 6.1: Time-aware signal weighting
+
+As a user,
+I want the zone popup to automatically show the most relevant acoustic information for the current time of day — night levels in the evening, day levels during the day —
+So that I understand what this zone actually sounds like right now without configuring anything (FR40).
+
+**Acceptance Criteria:**
+
+**Given** a zone is selected and current hour is between 20:00 and 06:00 (inclusive)
+**When** IrisPopup renders
+**Then** `night_level` (Ln dB) is the primary dB value shown (replacing `day_level` as the default display)
+**And** the label indicates night context (e.g. "Nuit · Ln")
+
+**Given** current hour is between 06:00 and 20:00
+**When** IrisPopup renders
+**Then** `day_level` (Lden dB) is the primary dB shown (existing behaviour preserved)
+
+**Given** a RUMEUR sensor reading is available and current hour ≥ 18:00
+**When** the reading is displayed in IrisPopup
+**Then** time context is shown alongside the reading (e.g. "maintenant" vs "ce matin")
+
+**Given** a chantier has a `date_fin` in the past
+**When** chantier context is displayed
+**Then** that chantier is filtered out of the contextual display
+
+**Technical constraints:**
+- All time logic uses `new Date()` — never hardcode hour thresholds as magic numbers
+- No user-facing toggle, no setting — time-awareness is silent and automatic
+- Logic lives server-side in `/api/enrich` context payload AND client-side in IrisPopup display layer
+
+**Dependencies:** Existing `day_level`, `night_level` in `IrisProperties`; existing RUMEUR `cachedAt` timestamp; chantier `date_fin` field
+
+---
+
+### Story 6.2: Intent layer
+
+As a user,
+I want to optionally tell the app what I'm looking for in a single tap — apartment hunting, a quiet spot right now, or just browsing —
+So that the zone information I see is weighted toward what actually matters to me, without requiring an account (FR42).
+
+**Acceptance Criteria:**
+
+**Given** the user has selected their first zone in the session and has not previously set an intent
+**When** IrisPopup opens for the first time
+**Then** a one-tap intent prompt is shown below the score: "Je cherche…" with three options: **Un logement** / **Un endroit calme maintenant** / **À m'informer**
+**And** the prompt is dismissable with a single tap on "×" or outside the prompt
+**And** dismissing defaults to "À m'informer" (no behaviour change)
+
+**Given** the user selects an intent
+**When** subsequent zone popups open during the session
+**Then** `intent` is passed to `/api/enrich` in the request body
+**And** the IrisPopup surfaces the intent-appropriate signals (logement → day/night split + comparison tray; calme maintenant → live Rumeur + reports; informer → default experience)
+
+**Given** an intent has been set
+**When** the user views the zone popup footer
+**Then** a small "Changer" link is visible that resets the intent prompt
+
+**Technical constraints:**
+- No backend, no account — intent stored in `localStorage` key `tacet_intent`
+- Intent must degrade gracefully: if localStorage is unavailable, default experience is shown
+- The prompt is shown at most once per session (sessionStorage flag prevents re-show after dismiss)
+- Intent values: `"logement"` | `"calme_maintenant"` | `null` (informer/default)
+
+**Dependencies:** IrisPopup; `localStorage` pattern from `useNoiseReports`; `/api/enrich` (Story 6.0)
+
+---
+
+### Story 6.3: Proactive quiet zone alternatives
+
+As a user,
+I want the app to proactively show me a quieter nearby zone when the one I've selected is noisy,
+So that I can discover better options without having to explore the map manually (FR43).
+
+**Acceptance Criteria:**
+
+**Given** a zone is selected with Score Sérénité < 40
+**And** at least one IRIS zone centroid exists within 500m with a Score ≥ 20 points higher
+**When** IrisPopup renders
+**Then** an inline suggestion is shown below the score: e.g. "Zone bruyante — quartier plus calme à 380m" with a tap-to-navigate CTA
+
+**Given** the user taps the suggestion
+**When** the action fires
+**Then** the map flies to the suggested zone and its IrisPopup opens (same behaviour as zone selection from search)
+
+**Given** no qualifying quieter zone exists within 500m OR the selected zone scores ≥ 40
+**When** IrisPopup renders
+**Then** no suggestion is shown — no empty state, no placeholder
+
+**Technical constraints:**
+- Distance computed from `selectedZoneLngLat` to IRIS centroids already loaded in memory — no new API call
+- Score threshold (< 40) and distance threshold (500m) are constants, not configurable per session
+- Suggestion is shown at most once per zone selection (not re-shown on each re-render)
+- The suggestion must not displace the score or primary signal — it is a tertiary element
+
+**Dependencies:** `iris-centroids.geojson` (already in memory); `selectedZoneLngLat` in MapContext; `MapContext.setSelectedZone` for tap-to-navigate
+
+---
+
+### Story 6.4: Service worker push for watched zones
+
+As a user who has pinned zones I care about,
+I want to receive a calm, opt-in notification when significant noise activity is detected in one of my pinned zones,
+So that the app can proactively inform me without requiring me to re-open it (FR44).
+
+**Acceptance Criteria:**
+
+**Given** the user has pinned at least 2 zones (clear value moment established)
+**When** the service worker is active
+**Then** a notification permission request is shown with a calm, specific rationale (e.g. "Recevoir une alerte si du bruit est signalé dans vos zones épinglées")
+
+**Given** permission is granted and a pinned zone accumulates ≥ 3 micro-reports in 1 hour
+**When** the service worker detects the threshold (polled or event-driven)
+**Then** a push notification is shown: e.g. "Bruit signalé dans votre zone épinglée — Marais"
+
+**Given** a RUMEUR reading in a pinned zone exceeds 75 dB
+**When** the threshold is crossed
+**Then** a push notification is shown: e.g. "Niveau sonore élevé détecté — Oberkampf (76 dB)"
+
+**Given** the user taps a notification
+**When** the app opens (or is already open)
+**Then** the map navigates to the relevant zone and its IrisPopup opens
+
+**Given** the user denies the permission request
+**When** the app is used subsequently
+**Then** the permission request is never shown again; all other functionality is unaffected
+
+**Technical constraints:**
+- Permission request shown at most once (persisted in localStorage)
+- Notification copy: calm and specific — never alarming (follows Tacet calm tone)
+- Do not request permission before the 2-pin threshold — premature requests damage trust
+- Service worker polling cadence must not increase upstream API calls beyond existing budgets
+
+**Dependencies:** Serwist service worker (already configured and installed); `pinnedZones` in MapContext; `useNoiseReports` for report counts; existing `/api/rumeur` for dB readings
+
+---
+
+### Story 6.5: Route serenity (quiet path)
+
+As a user,
+I want to find the quietest walking route between two Paris addresses using acoustic zone scores,
+So that I can choose a path that minimises noise exposure — the kind of routing Citymapper doesn't offer (FR45).
+
+**Acceptance Criteria:**
+
+**Given** the user activates "Itinéraire calme" (entry point: button in SearchBar or AppNav)
+**When** the UI is shown
+**Then** two address inputs are displayed (origin + destination), each using Photon geocoding (reusing existing hook)
+
+**Given** origin and destination are set
+**When** the user confirms
+**Then** a routing algorithm traverses the IRIS zone adjacency graph, weighting each zone by its Score Sérénité
+**And** the route that maximises average serenity score across traversed zones is selected
+**And** the route is displayed on the MapLibre map as a line layer
+
+**Given** the route is displayed
+**When** the user views the map
+**Then** the average serenity score for the route is shown (e.g. "Itinéraire calme — Score moyen 74")
+**And** individual zone scores are visible on hover/tap of the route
+
+**Given** no route can be found (disconnected zones, out-of-bounds addresses)
+**When** the algorithm fails
+**Then** a calm error message is shown and the map returns to normal state
+
+**Technical constraints:**
+- No external routing API — algorithm uses turf.js (not yet installed) + IRIS adjacency graph
+- Adjacency graph is precomputed by a build-time script from `paris-noise-iris.geojson` and stored as a static JSON asset
+- This is the most complex story in Epic 6 — **recommend breaking into sub-stories when creating the story file**: (a) adjacency graph generation script, (b) routing algorithm, (c) route display on map, (d) UI entry point
+- turf.js must be added to dependencies (`npm install @turf/turf`)
+
+**Dependencies:** `paris-noise-iris.geojson` (adjacency computation); `@turf/turf` (to be installed); Photon geocoding hook (already working); MapLibre line layer pattern (established in Epic 1)
+
+---
+
+## Epic 7: iOS Native App — React Native/Expo Migration
+
+**Goal:** Migrate Tacet from the Next.js web app to a native iOS app using Expo SDK 53 + React Native. The Next.js API backend on Vercel is kept unchanged — the Expo app is a new frontend consumer. Each story is a deployable TestFlight build.
+
+**Research foundation:** `_bmad-output/planning-artifacts/research/technical-maplibre-rn-pmtiles-expo-research-2026-03-20.md` — all stack choices are pre-validated.
+
+**Architecture decision:** `tacet-mobile/` is a new standalone Expo project (not a monorepo) in the same repository root. It calls the existing Next.js API routes (`/api/rumeur`, `/api/chantiers`, `/api/enrich`) over HTTPS.
+
+**Functional requirements:** FR1–FR45 (all existing) apply to the native app. Epic 6.2–6.5 stories are deferred — they will be re-designed as native-first features after Epic 7 ships.
+
+**Epic completion criteria:** The iOS app reaches feature parity with the V2 web app (Epics 1–5) and is submitted to TestFlight.
+
+---
+
+### Story 7.1: Expo foundation — map rendering on device
+
+As a developer,
+I want a new `tacet-mobile/` Expo SDK 53 project with MapLibre RN v11 + NativeWind + PMTiles base map rendering on a physical iOS device,
+So that the native app scaffold is established and the map tile stack is confirmed working end-to-end before any feature work begins.
+
+**Acceptance Criteria:**
+
+**Given** a fresh `tacet-mobile/` Expo SDK 53 project
+**When** `eas build --profile development` completes and the dev client is installed on device
+**Then** the app launches and a full-screen MapLibre map renders with the Protomaps PMTiles base map (Paris region) visible
+
+**Given** the app is running
+**When** the user pans and pinches
+**Then** the map responds smoothly with native iOS gestures (no white tiles, no crashes)
+
+**Given** the map renders
+**When** the style JSON is inspected
+**Then** the PMTiles source is defined via a style JSON object (not a raw `pmtiles://` URL string passed to MapView)
+
+**Given** NativeWind v4 is installed
+**When** a test component uses `className="bg-black text-white"`
+**Then** the styles are correctly applied (confirms NativeWind babel/metro integration)
+
+**Given** jest-expo is configured
+**When** `npm test` is run in `tacet-mobile/`
+**Then** at least one smoke test passes (confirms test harness works)
+
+**Technical constraints:**
+- Expo SDK: 53 (latest)
+- MapLibre RN: v11 beta (full new-arch support) — if unstable, fallback to v10 stable with interop layer
+- NativeWind: v4 (production-stable)
+- Expo Router: v4 (default in SDK 53)
+- PMTiles: use style JSON approach — embed `pmtiles://https://...` URL inside a style JSON object passed to `<MapView style={mapStyle}>`
+- No feature code in this story — map scaffold only
+- `app.json` must include MapLibre config plugin: `"@maplibre/maplibre-react-native"`
+- Commit `tacet-mobile/` folder to the Tacet repo root (alongside `tacet/`)
+
+**Dependencies:** None — this is the foundation story
+
+---
+
+### Story 7.2: IRIS GeoJSON layer and zone selection
+
+As a user,
+I want to see the IRIS acoustic noise zones overlaid on the map and tap a zone to see its serenity score,
+So that the core acoustic data interaction works natively (FR1, FR3).
+
+**Acceptance Criteria:**
+
+**Given** the app launches
+**When** `ensureGeoJSON()` runs on first launch
+**Then** `paris-noise-iris.geojson` is downloaded from Vercel CDN and cached in `FileSystem.documentDirectory`; a loading skeleton is shown during download
+
+**Given** the GeoJSON is cached locally
+**When** subsequent app launches occur
+**Then** the GeoJSON loads from the document directory without a network call
+
+**Given** the GeoJSON is loaded
+**When** the map renders
+**Then** IRIS zone polygons are displayed as a fill layer using serenity score colour ramp (matching V2 web design)
+
+**Given** a zone is visible on the map
+**When** the user taps it
+**Then** the zone is highlighted (boundary layer) and `selectedZoneCode` is set in the Zustand store
+
+**Technical constraints:**
+- Use `expo-file-system` (document directory, not cache dir — OS does not evict document dir)
+- Serve GeoJSON with `Content-Encoding: gzip` from Vercel; `FileSystem.downloadAsync` handles decompression
+- Zustand store with `react-native-mmkv` via `zustand-mmkv-storage` adapter (replaces localStorage)
+- Zone colour ramp: same Score Sérénité thresholds as web (0–100 scale)
+
+**Dependencies:** Story 7.1 (map foundation)
+
+---
+
+### Story 7.3: API integration — RUMEUR, Chantiers, enrichment (+ CORS config)
+
+As a user,
+I want to see live RUMEUR sensor readings, active construction sites, and the Claude Haiku zone summary in the native app,
+So that all real-time data layers from the web app are available on iOS (FR12, FR19, FR26, FR37).
+
+**Acceptance Criteria:**
+
+**Given** the native app calls `/api/rumeur`, `/api/chantiers`, `/api/enrich`
+**When** requests are made from a physical iOS device
+**Then** all three routes return 200 responses (no CORS errors)
+
+**Given** the `useRumeur`, `useChantiers`, and `useEnrichment` hooks are ported to `tacet-mobile/`
+**When** a zone is selected
+**Then** rumeur sensor data, nearby chantiers, and enrichment summary are fetched and available in component state
+
+**Given** the device is offline
+**When** API calls fail
+**Then** stale state is shown with the existing stale indicator (no crash)
+
+**Technical constraints:**
+- Add CORS headers to `tacet/next.config.js` for `/api/*` paths (allows all origins in dev; tighten for prod)
+- Handle OPTIONS preflight for POST `/api/enrich`
+- Hook file names: `useRumeur.ts`, `useChantiers.ts`, `useEnrichment.ts` (same as web — direct port)
+- `EXPO_PUBLIC_API_BASE_URL` env var: `https://tacet.vercel.app` (prod) / `http://[local-ip]:3000` (dev)
+- `ANTHROPIC_API_KEY` stays server-side on Vercel — never in Expo bundle
+
+**Dependencies:** Stories 7.1, 7.2; requires CORS changes to `tacet/` Next.js app
+
+---
+
+### Story 7.4: IrisPopup as native modal and zone detail UX
+
+As a user,
+I want the zone detail popup (IrisPopup) to open as a native iOS bottom sheet when I tap a zone,
+So that the acoustic score, RUMEUR data, chantiers, and enrichment summary are all visible with native iOS interaction patterns.
+
+**Acceptance Criteria:**
+
+**Given** a zone is tapped on the map
+**When** `selectedZoneCode` is set in Zustand
+**Then** a native bottom sheet slides up from the bottom (Expo Router `presentation: "modal"` or `@gorhom/bottom-sheet`)
+
+**Given** the bottom sheet is open
+**When** the user views it
+**Then** it displays: zone name, arrondissement, Score Sérénité (SerenityBar), day/night dB levels (time-aware, using `time-context.ts`), RUMEUR sensor data, active chantiers count, enrichment summary (if confidence === "high")
+
+**Given** the user swipes down
+**When** the gesture completes
+**Then** the bottom sheet closes and the map returns to normal state
+
+**Given** the SearchBar is tapped
+**When** the user types an address
+**Then** Photon geocoding suggestions appear and selecting one flies the map to that location
+
+**Technical constraints:**
+- Port `IrisPopup.tsx`, `SerenityBar.tsx`, `TierBadge.tsx`, `DataProvenance.tsx` to React Native components
+- Port `time-context.ts` unchanged (pure utility, no web APIs)
+- Geocoding: reuse existing `/api/geocode` proxy or call Photon directly
+- NativeWind v4 for all styling (replace Tailwind CSS classes with equivalent `className` props)
+
+**Dependencies:** Stories 7.1, 7.2, 7.3
+
+---
+
+### Story 7.5: Dark theme, offline indicator, TestFlight submission
+
+As a user,
+I want the iOS app to have the Tacet dark theme, show an offline banner when connectivity is lost, and be available on TestFlight for real-device testing,
+So that the app is polished and distributable (FR — visual parity with V2 web).
+
+**Acceptance Criteria:**
+
+**Given** the app launches on any device
+**When** the map and all UI elements render
+**Then** the dark theme matches the V2 web design (dark background, amber accents, white text)
+
+**Given** the device loses connectivity
+**When** the app is in use
+**Then** an `OfflineBanner` appears at the top of the screen (same copy as web: "Hors connexion — données mises en cache")
+
+**Given** the app regains connectivity
+**When** the banner is visible
+**Then** the banner dismisses automatically
+
+**Given** the app passes all jest-expo tests
+**When** `eas build --platform ios --profile preview` completes
+**Then** the build is distributed to TestFlight and installable on the developer's device
+
+**Technical constraints:**
+- NativeWind CSS variable theme tokens matching V2 web design system
+- `@react-native-community/netinfo` for connectivity detection
+- Lighthouse/performance budgets: not applicable to native; replace with Xcode Instruments check (startup time < 2s)
+- App icon: reuse existing Tacet maskable icon assets
+
+**Dependencies:** Stories 7.1–7.4; Apple Developer Program ($99/yr) required

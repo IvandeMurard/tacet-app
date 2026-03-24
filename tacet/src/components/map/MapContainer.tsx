@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import type { MapMouseEvent } from "maplibre-gl";
+import { useEffect, useRef, useCallback, useState } from "react";
+import type { MapMouseEvent, ExpressionSpecification } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMapContext } from "@/contexts/MapContext";
 import { PARIS_CENTER, DEFAULT_ZOOM, NOISE_CATEGORIES } from "@/lib/noise-categories";
@@ -19,12 +19,13 @@ import type { RumeurFeatureProperties } from "@/types/rumeur";
 const GEOJSON_URL = "/data/paris-noise-iris.geojson";
 const CENTROIDS_URL = "/data/iris-centroids.geojson";
 
-const colorExpression: unknown = [
+// Dynamic spread prevents direct type inference; assertion documents intended MapLibre type.
+const colorExpression = [
   "match",
   ["get", "noise_level"],
   ...NOISE_CATEGORIES.flatMap((cat) => [cat.level, cat.color]),
   "#666666",
-];
+] as unknown as ExpressionSpecification;
 
 const NEIGHBORHOOD_ZOOM = 13;
 
@@ -37,6 +38,7 @@ export function MapContainer() {
   const { data: chantiersResponse } = useChantiersData(chantiersEnabled);
   const { data: rumeurResponse } = useRumeurData(rumeurEnabled);
   const { data: electionsResponse } = useElectionsData(electionsEnabled);
+  const [geoLoadError, setGeoLoadError] = useState<string | null>(null);
 
   const handleClick = useCallback(
     (e: MapMouseEvent) => {
@@ -89,13 +91,14 @@ export function MapContainer() {
           return;
         }
         if (props && !props.cluster) {
-          setSelectedZone(props as unknown as IrisProperties);
+          const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+          setSelectedZone(props as unknown as IrisProperties, coords);
           return;
         }
       }
       const fillFeatures = map.queryRenderedFeatures(e.point, { layers: ["iris-fill"] });
       if (fillFeatures.length > 0 && fillFeatures[0].properties) {
-        setSelectedZone(fillFeatures[0].properties as unknown as IrisProperties);
+        setSelectedZone(fillFeatures[0].properties as unknown as IrisProperties, [e.lngLat.lng, e.lngLat.lat]);
       } else {
         setSelectedZone(null);
       }
@@ -157,6 +160,11 @@ export function MapContainer() {
             fetch(GEOJSON_URL),
             fetch(CENTROIDS_URL),
           ]);
+          if (!irisRes.ok || !centroidsRes.ok) {
+            throw new Error(
+              `Impossible de charger les données cartographiques (${irisRes.status}/${centroidsRes.status})`
+            );
+          }
           const [geojson, centroidsGeojson] = await Promise.all([
             irisRes.json(),
             centroidsRes.json(),
@@ -169,7 +177,7 @@ export function MapContainer() {
               type: "fill",
               source: "iris",
               paint: {
-                "fill-color": colorExpression as string,
+                "fill-color": colorExpression,
                 "fill-opacity": 0.5,
                 "fill-outline-color": "rgba(255,255,255,0.1)",
               },
@@ -211,7 +219,7 @@ export function MapContainer() {
               source: "iris-centroids",
               filter: ["!=", "cluster", true],
               paint: {
-                "circle-color": colorExpression as string,
+                "circle-color": colorExpression,
                 "circle-radius": [
                   "interpolate",
                   ["linear"],
@@ -249,8 +257,11 @@ export function MapContainer() {
               paint: { "text-color": "#fff" },
             });
           }
-        } catch {
-          // calm degradation
+
+          setGeoLoadError(null);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Erreur de chargement des données";
+          setGeoLoadError(msg);
         }
       };
 
@@ -352,11 +363,28 @@ export function MapContainer() {
   }, [electionsEnabled, electionsResponse, mapRef]);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full"
-      role="application"
-      aria-label="Carte du bruit à Paris par zone IRIS"
-    />
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="application"
+        aria-label="Carte du bruit à Paris par zone IRIS"
+      />
+      {geoLoadError && (
+        <div
+          className="absolute inset-x-0 top-4 mx-auto w-fit max-w-sm rounded-xl border border-red-500/30 bg-red-950/80 px-4 py-3 text-center text-sm text-red-200 shadow-lg backdrop-blur-md"
+          role="alert"
+        >
+          <p>{geoLoadError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-2 text-xs underline text-red-300 hover:text-white"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

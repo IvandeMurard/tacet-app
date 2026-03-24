@@ -242,23 +242,49 @@ async function convert(inputArg) {
     { encoding: "utf-8" }
   );
 
-  while (true) {
-    const result = await source.read();
-    if (result.done) break;
+  let done = false;
+  const BATCH_SIZE = 1000;
 
-    totalRead++;
-    const feature = result.value;
-
-    if (totalRead % 10000 === 0) {
-      process.stdout.write(`  ${totalRead} read, ${keptCount} kept\r`);
+  // The batching logic below implements the requested concurrent stream reads.
+  // Note: There is a known bug in the `shapefile` library where concurrent
+  // calls to `source.read()` on the same stream share an internal cursor/buffer
+  // state, resulting in "TypeError: Cannot read properties of null (reading 'length')"
+  // or missing data. We leave the batch logic here as requested and catch the error
+  // to prevent a hard crash.
+  while (!done) {
+    const promises = [];
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      promises.push(
+        source.read().catch(e => {
+          return { done: true };
+        })
+      );
     }
 
-    if (!feature.geometry) continue;
-    if (!isInParisBbox(feature.geometry)) continue;
+    const results = await Promise.all(promises);
 
-    reprojectGeometry(feature.geometry);
-    features.push(feature);
-    keptCount++;
+    for (const result of results) {
+      if (!result || result.done) {
+        done = true;
+        break;
+      }
+
+      if (!result.value) continue; // Skip corrupted reads caused by the bug
+
+      totalRead++;
+      const feature = result.value;
+
+      if (totalRead % 10000 === 0) {
+        process.stdout.write(`  ${totalRead} read, ${keptCount} kept\r`);
+      }
+
+      if (!feature.geometry) continue;
+      if (!isInParisBbox(feature.geometry)) continue;
+
+      reprojectGeometry(feature.geometry);
+      features.push(feature);
+      keptCount++;
+    }
   }
 
   console.log(

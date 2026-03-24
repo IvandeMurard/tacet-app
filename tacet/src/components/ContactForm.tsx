@@ -11,9 +11,16 @@ export function ContactForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Sanitize message: strip \r (CR) to prevent CRLF injection
+    const sanitizedMessage = message.replace(/\r/g, "");
+
+    // Sanitize email: strip \r (CR) and \n (LF) to prevent header injection
+    const sanitizedEmail = email.replace(/[\r\n]/g, "");
+
     const subject = encodeURIComponent("Contact Tacet");
     const body = encodeURIComponent(
-      `Message:\n${message}\n\n---\nEmail de réponse: ${email || "(non renseigné)"}`
+      `Message:\n${sanitizedMessage}\n\n---\nEmail de réponse: ${sanitizedEmail || "(non renseigné)"}`
     );
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
     setSent(true);

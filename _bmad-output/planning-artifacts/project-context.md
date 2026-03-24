@@ -27,7 +27,7 @@ This document consolidates everything an AI agent needs to orient itself before 
 | Map | MapLibre GL JS ^5.19.0, PMTiles ^4.4.0 (V2); Mapbox/react-map-gl (V1 current) |
 | Geocoding | Photon Komoot (V2, no API key); Mapbox Geocoding (V1) |
 | PWA | Serwist ^9.5.6 (V2) |
-| State | SWR (server data), React Context (UI state: selectedZone, activeLayers, pinnedZones) |
+| State | SWR (server data), React Context (UI state: selectedZone, selectedZoneLngLat, activeLayers, pinnedZones) — `chantiers`+`rumeur` always-on in activeLayers, no user toggles |
 | Styling | Tailwind CSS 3.4, shadcn/ui, CSS variables (Score tiers, brand) |
 | Testing | Vitest (unit), Playwright ^1.58 (E2E), Lighthouse CI (perf ≥ 85, a11y ≥ 95) |
 | Hosting | Vercel (serverless/edge) |
@@ -105,6 +105,7 @@ Path alias: `@/*` resolves to `tacet/src/*`.
 | **Project context** | `_bmad-output/planning-artifacts/project-context.md` (this file) |
 | Story spec files | `_bmad-output/stories/story-X.Y.md` |
 | PRD validation report | `_bmad-output/planning-artifacts/prd-validation-report.md` (5/5 Pass) |
+| **Ambient agentic vision** | `docs/planning/ambient-agentic-vision.md` — Epic 6 roadmap, design sprint brief, source of truth for next phase |
 
 ## AI Agent Enforcement Rules
 

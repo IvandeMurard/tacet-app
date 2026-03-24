@@ -48,6 +48,23 @@ export async function GET() {
     cache = { data: raw, cachedAt, fetchedAt: Date.now() };
     return NextResponse.json(
       { data: raw, error: null, fallback: false, cachedAt },
+    const raw: unknown = await res.json();
+    if (!isValidChantiersData(raw)) {
+      throw new Error("Open Data Paris: réponse invalide (shape inattendue)");
+    }
+    const data = raw.filter(
+      (r): r is ChantierRecord =>
+        r != null &&
+        typeof r === "object" &&
+        (r.geo_point_2d == null ||
+          (typeof r.geo_point_2d === "object" &&
+            typeof (r.geo_point_2d as Record<string, unknown>).lon === "number" &&
+            typeof (r.geo_point_2d as Record<string, unknown>).lat === "number"))
+    );
+    const cachedAt = new Date().toISOString();
+    cache = { data, cachedAt, fetchedAt: Date.now() };
+    return NextResponse.json(
+      { data, error: null, fallback: false, cachedAt },
       { headers: NO_STORE }
     );
   } catch (err) {

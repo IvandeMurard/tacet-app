@@ -18,7 +18,7 @@ import type { RumeurFeatureProperties } from "@/types/rumeur";
 
 const PINNED_STORAGE_KEY = "tacet-pinned-zones";
 const LAST_ZONE_STORAGE_KEY = "tacet-last-zone";
-const MAX_PINNED = 3;
+export const MAX_PINNED = 3;
 
 function loadPinnedFromStorage(): IrisProperties[] {
   if (typeof window === "undefined") return [];
@@ -27,7 +27,8 @@ function loadPinnedFromStorage(): IrisProperties[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as IrisProperties[];
     return Array.isArray(parsed) ? parsed.slice(0, MAX_PINNED) : [];
-  } catch {
+  } catch (error) {
+    console.error("Error loading pinned zones from storage:", error);
     return [];
   }
 }
@@ -36,8 +37,8 @@ function savePinnedToStorage(zones: IrisProperties[]) {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.setItem(PINNED_STORAGE_KEY, JSON.stringify(zones.slice(0, MAX_PINNED)));
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error("Error saving pinned zones to storage:", error);
   }
 }
 
@@ -47,7 +48,8 @@ function loadLastZoneFromStorage(): IrisProperties | null {
     const raw = localStorage.getItem(LAST_ZONE_STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as IrisProperties;
-  } catch {
+  } catch (error) {
+    console.error("Error loading last zone from storage:", error);
     return null;
   }
 }
@@ -58,8 +60,8 @@ function saveLastZoneToStorage(zone: IrisProperties | null) {
     if (zone) {
       localStorage.setItem(LAST_ZONE_STORAGE_KEY, JSON.stringify(zone));
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error("Error saving last zone to storage:", error);
   }
 }
 
@@ -67,7 +69,8 @@ export type LayerId = "chantiers" | "elections" | "rumeur";
 
 export interface MapContextValue {
   selectedZone: IrisProperties | null;
-  setSelectedZone: (zone: IrisProperties | null) => void;
+  setSelectedZone: (zone: IrisProperties | null, lngLat?: [number, number]) => void;
+  selectedZoneLngLat: [number, number] | null;
   lastVisitedZone: IrisProperties | null;
   selectedChantier: ChantierProperties | null;
   setSelectedChantier: (c: ChantierProperties | null) => void;
@@ -86,15 +89,18 @@ const MapContext = createContext<MapContextValue | null>(null);
 
 export function MapProvider({ children }: { children: ReactNode }) {
   const [selectedZone, setSelectedZoneRaw] = useState<IrisProperties | null>(null);
+  const [selectedZoneLngLat, setSelectedZoneLngLat] = useState<[number, number] | null>(null);
   const [lastVisitedZone] = useState<IrisProperties | null>(loadLastZoneFromStorage);
   const [selectedChantier, setSelectedChantier] = useState<ChantierProperties | null>(null);
   const [selectedRumeur, setSelectedRumeur] = useState<RumeurFeatureProperties | null>(null);
   const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set());
+  const [activeLayers, setActiveLayers] = useState<Set<LayerId>>(new Set<LayerId>(["chantiers", "rumeur"]));
   const [pinnedZones, setPinnedZones] = useState<IrisProperties[]>(loadPinnedFromStorage);
   const mapRef = useRef<MapLibreMap | null>(null);
 
-  const setSelectedZone = useCallback((zone: IrisProperties | null) => {
+  const setSelectedZone = useCallback((zone: IrisProperties | null, lngLat?: [number, number]) => {
     setSelectedZoneRaw(zone);
+    setSelectedZoneLngLat(lngLat ?? null);
     if (zone) saveLastZoneToStorage(zone);
   }, []);
 
@@ -145,6 +151,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     () => ({
       selectedZone,
       setSelectedZone,
+      selectedZoneLngLat,
       lastVisitedZone,
       selectedChantier,
       setSelectedChantier,
@@ -159,6 +166,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       flyToAndSelectZone,
     }),
     [selectedZone, setSelectedZone, lastVisitedZone, selectedChantier, selectedRumeur, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
+    [selectedZone, setSelectedZone, selectedZoneLngLat, lastVisitedZone, selectedChantier, selectedRumeur, activeLayers, toggleLayer, pinnedZones, pinZone, unpinZone, flyToAndSelectZone]
   );
 
   return (

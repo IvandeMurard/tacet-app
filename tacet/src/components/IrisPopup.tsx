@@ -1,32 +1,61 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X, Share2, Sun, Moon, Pin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Share2, Sun, Moon, Pin, Check, Volume2, Construction } from "lucide-react";
 import Link from "next/link";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
+import { DATA_YEAR } from "@/lib/constants";
+import { isNightTime, getSensorTimeLabel, isChantierExpired, SENSOR_EVENING_START_HOUR } from "@/lib/time-context";
 import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
+import { useNoiseReports } from "@/hooks/useNoiseReports";
+import { useEnrichment } from "@/hooks/useEnrichment";
 import type { IrisProperties } from "@/types/iris";
+import type { RumeurMeasurement } from "@/types/rumeur";
+import type { EnrichmentRequest } from "@/types/enrichment";
 
 export type { IrisProperties };
+
+interface NearbyChantier {
+  adresse?: string;
+  date_fin?: string;
+  type_chantier?: string;
+  distanceM: number;
+}
 
 interface IrisPopupProps {
   properties: IrisProperties;
   onClose: () => void;
   onPin?: () => void;
   isPinned?: boolean;
+  pinDisabled?: boolean;
+  nearestSensor?: { measurement: RumeurMeasurement; distanceM: number } | null;
+  nearbyChantiers?: NearbyChantier[];
 }
 
-const DATA_YEAR = 2024;
-
-export function IrisPopup({ properties, onClose, onPin, isPinned = false }: IrisPopupProps) {
+export function IrisPopup({
+  properties,
+  onClose,
+  onPin,
+  isPinned = false,
+  pinDisabled = false,
+  nearestSensor = null,
+  nearbyChantiers = [],
+}: IrisPopupProps) {
   const { code_iris, name, c_ar, noise_level, primary_sources, day_level, night_level, description } =
     properties;
 
   const category = getNoiseCategory(noise_level);
   const score = getSereniteScore(noise_level);
   const label = arLabel(c_ar);
+  const now = new Date();
+  const isNight = isNightTime(now);
+  const activeChantiers = nearbyChantiers.filter(c => !isChantierExpired(c.date_fin, now));
+  const sensorLabel =
+    nearestSensor && (isNight || now.getHours() >= SENSOR_EVENING_START_HOUR)
+      ? getSensorTimeLabel(nearestSensor.measurement.timestamp, now)
+      : "maintenant";
 
   const scoreColor =
     score >= 70
@@ -38,6 +67,46 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
       : "#c084fc";
 
   const popupRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
+  const { recentCount, canReport, addReport } = useNoiseReports(code_iris);
+  const [reported, setReported] = useState(false);
+
+  const enrichmentRequest: EnrichmentRequest = {
+    zone_code: code_iris,
+    zone_name: name,
+    arrondissement: c_ar,
+    noise_level,
+    day_level: day_level ?? null,
+    night_level: night_level ?? null,
+    score_serenite: score,
+    current_iso_timestamp: now.toISOString(),
+    rumeur_sensor: nearestSensor?.measurement.leq != null
+      ? { leq: nearestSensor.measurement.leq, distanceM: nearestSensor.distanceM }
+      : null,
+    nearby_chantiers: activeChantiers.length > 0
+      ? { count: activeChantiers.length, nearestDistanceM: activeChantiers[0]?.distanceM ?? 0 }
+      : null,
+    recent_reports: recentCount > 0 ? recentCount : null,
+    intent: null,
+  };
+  const { enrichment } = useEnrichment(enrichmentRequest);
+
+  const handleReport = () => {
+    addReport();
+    setReported(true);
+    setTimeout(() => setReported(false), 3000);
+  };
+
+  const sensorColor =
+    nearestSensor?.measurement.leq == null
+      ? "#9ca3af"
+      : nearestSensor.measurement.leq < 50
+      ? "#4ade80"
+      : nearestSensor.measurement.leq < 60
+      ? "#fbbf24"
+      : nearestSensor.measurement.leq < 70
+      ? "#f97316"
+      : "#ef4444";
 
   useEffect(() => {
     const el = popupRef.current;
@@ -66,8 +135,12 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
         }
       }
     };
+    document.body.style.overflow = "hidden";
     el.addEventListener("keydown", onKeyDown);
-    return () => el.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      el.removeEventListener("keydown", onKeyDown);
+    };
   }, [onClose]);
 
   const handleShare = async () => {
@@ -84,6 +157,8 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
       }
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -107,10 +182,22 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
             <button
               type="button"
               onClick={onPin}
+              disabled={pinDisabled}
               className={`rounded-full p-1.5 transition-colors ${
-                isPinned ? "text-teal-400" : "text-white/30 hover:bg-white/10 hover:text-white/70"
+                isPinned
+                  ? "text-teal-400"
+                  : pinDisabled
+                  ? "cursor-not-allowed text-white/15"
+                  : "text-white/30 hover:bg-white/10 hover:text-white/70"
               }`}
-              aria-label={isPinned ? "Retirer des favoris" : "Épingler pour comparer"}
+              aria-label={
+                isPinned
+                  ? "Retirer des favoris"
+                  : pinDisabled
+                  ? "Maximum 3 zones épinglées"
+                  : "Épingler pour comparer"
+              }
+              title={pinDisabled ? "Maximum 3 zones épinglées" : undefined}
             >
               <Pin size={16} />
             </button>
@@ -143,22 +230,78 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
         <SerenityBar score={score} color={scoreColor} className="h-1" />
       </div>
 
+      {enrichment && enrichment.confidence !== "low" && enrichment.summary && (
+        <p className="mb-4 text-sm leading-relaxed text-white/70">
+          {enrichment.summary}
+        </p>
+      )}
+
       {description && (
         <p className="mb-4 text-sm italic text-white/50">{description}</p>
       )}
 
-      {(day_level != null || night_level != null) && (
-        <div className="mb-4 flex gap-4">
-          {day_level != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/40">
-              <Sun size={11} className="shrink-0 text-amber-400" />
-              <span>Jour : <strong className="text-white/70">{day_level} dB</strong></span>
+      {(day_level != null || night_level != null) && (() => {
+        const primaryLevel = isNight ? night_level : day_level;
+        const primaryIcon = isNight
+          ? <Moon size={11} className="shrink-0 text-indigo-400" />
+          : <Sun size={11} className="shrink-0 text-amber-400" />;
+        const primaryLabel = isNight ? "Nuit · Ln" : "Jour · Lden";
+        const secondaryLevel = isNight ? day_level : night_level;
+        const secondaryIcon = isNight
+          ? <Sun size={11} className="shrink-0 text-amber-400" />
+          : <Moon size={11} className="shrink-0 text-indigo-400" />;
+        const secondaryLabel = isNight ? "Jour · Lden" : "Nuit · Ln";
+        return (
+          <div className="mb-4 flex gap-4">
+            {primaryLevel != null && (
+              <div className="flex items-center gap-1.5 text-xs text-white/60">
+                {primaryIcon}
+                <span>{primaryLabel} : <strong className="text-white/80">{primaryLevel} dB</strong></span>
+              </div>
+            )}
+            {secondaryLevel != null && (
+              <div className="flex items-center gap-1.5 text-xs text-white/30">
+                {secondaryIcon}
+                <span>{secondaryLabel} : <span className="text-white/40">{secondaryLevel} dB</span></span>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {(nearestSensor || activeChantiers.length > 0 || recentCount > 0) && (
+        <div className="mb-4 space-y-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5">
+          {nearestSensor && nearestSensor.measurement.leq != null && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: sensorColor }} />
+              <span>
+                Capteur à {nearestSensor.distanceM < 1000
+                  ? `${Math.round(nearestSensor.distanceM)} m`
+                  : `${(nearestSensor.distanceM / 1000).toFixed(1)} km`}{" "}
+                · <strong className="text-white/80">{nearestSensor.measurement.leq} dB</strong> {sensorLabel}
+              </span>
             </div>
           )}
-          {night_level != null && (
-            <div className="flex items-center gap-1.5 text-xs text-white/40">
-              <Moon size={11} className="shrink-0 text-indigo-400" />
-              <span>Nuit : <strong className="text-white/70">{night_level} dB</strong></span>
+          {activeChantiers.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Construction size={12} className="shrink-0 text-amber-400" />
+              <span>
+                {activeChantiers.length === 1
+                  ? "1 chantier actif"
+                  : `${activeChantiers.length} chantiers actifs`}{" "}
+                à proximité
+              </span>
+            </div>
+          )}
+          {recentCount > 0 && (
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Volume2 size={12} className="shrink-0 text-rose-400" />
+              <span>
+                {recentCount === 1
+                  ? "1 signalement bruit"
+                  : `${recentCount} signalements bruit`}{" "}
+                dans la dernière heure
+              </span>
             </div>
           )}
         </div>
@@ -181,18 +324,35 @@ export function IrisPopup({ properties, onClose, onPin, isPinned = false }: Iris
       </div>
 
       <button
+        type="button"
+        onClick={handleReport}
+        disabled={!canReport}
+        className={`mb-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-medium transition-colors ${
+          reported
+            ? "border border-rose-500/30 bg-rose-500/15 text-rose-400"
+            : canReport
+            ? "border border-white/10 bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60"
+            : "cursor-default border border-white/5 bg-transparent text-white/20"
+        }`}
+        aria-label="Signaler un bruit inhabituel dans cette zone"
+      >
+        <Volume2 size={13} />
+        {reported ? "Signalement enregistré" : canReport ? "Signaler bruit inhabituel" : "Déjà signalé récemment"}
+      </button>
+
+      <button
         onClick={handleShare}
         className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-medium transition-colors"
         style={{
-          backgroundColor: "rgba(13,148,136,0.12)",
-          color: "#2DD4BF",
-          border: "1px solid rgba(13,148,136,0.25)",
+          backgroundColor: copied ? "rgba(34,197,94,0.15)" : "rgba(13,148,136,0.12)",
+          color: copied ? "#4ade80" : "#2DD4BF",
+          border: copied ? "1px solid rgba(34,197,94,0.3)" : "1px solid rgba(13,148,136,0.25)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.22)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.12)"; }}
+        onMouseEnter={(e) => { if (!copied) e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.22)"; }}
+        onMouseLeave={(e) => { if (!copied) e.currentTarget.style.backgroundColor = "rgba(13,148,136,0.12)"; }}
       >
-        <Share2 size={13} />
-        Partager ce score
+        {copied ? <Check size={13} /> : <Share2 size={13} />}
+        {copied ? "Copié !" : "Partager ce score"}
       </button>
     </div>
   );
