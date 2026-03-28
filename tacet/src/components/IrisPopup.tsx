@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Share2, Sun, Moon, Pin, Check, Volume2, Construction } from "lucide-react";
 import Link from "next/link";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
@@ -46,8 +46,9 @@ export function IrisPopup({
   const { code_iris, name, c_ar, noise_level, primary_sources, day_level, night_level, description } =
     properties;
 
-  const category = getNoiseCategory(noise_level);
-  const score = getSereniteScore(noise_level);
+  const hasNoiseData = noise_level != null;
+  const category = hasNoiseData ? getNoiseCategory(noise_level) : undefined;
+  const score = hasNoiseData ? getSereniteScore(noise_level) : null;
   const label = arLabel(c_ar);
   const now = new Date();
   const isNight = isNightTime(now);
@@ -58,7 +59,9 @@ export function IrisPopup({
       : "maintenant";
 
   const scoreColor =
-    score >= 70
+    score == null
+      ? "#9ca3af"
+      : score >= 70
       ? "#4ade80"
       : score >= 45
       ? "#fbbf24"
@@ -67,6 +70,7 @@ export function IrisPopup({
       : "#c084fc";
 
   const popupRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const [copied, setCopied] = useState(false);
   const { recentCount, canReport, addReport } = useNoiseReports(code_iris);
   const [reported, setReported] = useState(false);
@@ -78,7 +82,7 @@ export function IrisPopup({
     noise_level,
     day_level: day_level ?? null,
     night_level: night_level ?? null,
-    score_serenite: score,
+    score_serenite: score ?? 0,
     current_iso_timestamp: now.toISOString(),
     rumeur_sensor: nearestSensor?.measurement.leq != null
       ? { leq: nearestSensor.measurement.leq, distanceM: nearestSensor.distanceM }
@@ -108,7 +112,13 @@ export function IrisPopup({
       ? "#f97316"
       : "#ef4444";
 
+  const handleClose = useCallback(() => {
+    previousFocusRef.current?.focus();
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
     const el = popupRef.current;
     if (!el) return;
     const focusables = el.querySelectorAll<HTMLElement>(
@@ -119,7 +129,7 @@ export function IrisPopup({
     first?.focus();
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
         return;
       }
       if (e.key !== "Tab" || focusables.length === 0) return;
@@ -141,7 +151,7 @@ export function IrisPopup({
       document.body.style.overflow = "";
       el.removeEventListener("keydown", onKeyDown);
     };
-  }, [onClose]);
+  }, [handleClose]);
 
   const handleShare = async () => {
     const text = `${name} · ${label} arr. — Score Sérénité ${score}/100 (${category?.label}) | Tacet Paris`;
@@ -203,7 +213,7 @@ export function IrisPopup({
             </button>
           )}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-full p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white/70"
             aria-label="Fermer"
           >
@@ -219,15 +229,24 @@ export function IrisPopup({
       <div className="mb-4">
         <div className="mb-2 flex items-baseline justify-between">
           <span className="text-xs tracking-wide text-white/40">Score de Sérénité</span>
-          <span
-            className="text-5xl font-bold leading-none tabular-nums"
-            style={{ color: scoreColor }}
-          >
-            {score}
-            <span className="ml-0.5 text-base font-normal text-white/35">/100</span>
-          </span>
+          {score != null ? (
+            <span
+              className="text-5xl font-bold leading-none tabular-nums"
+              style={{ color: scoreColor }}
+            >
+              {score}
+              <span className="ml-0.5 text-base font-normal text-white/35">/100</span>
+            </span>
+          ) : (
+            <span className="text-2xl font-bold leading-none text-white/30" aria-label="Données PPBE non disponibles">
+              —
+            </span>
+          )}
         </div>
-        <SerenityBar score={score} color={scoreColor} className="h-1" />
+        {score != null && <SerenityBar score={score} color={scoreColor} className="h-1" />}
+        {score == null && (
+          <p className="text-xs text-white/40">Données acoustiques non disponibles pour cette zone.</p>
+        )}
       </div>
 
       {enrichment && enrichment.confidence !== "low" && enrichment.summary && (

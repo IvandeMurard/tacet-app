@@ -170,7 +170,14 @@ export function MapPageClient() {
         <MapContainer />
       </div>
       <Legend />
-      <SearchBar onAddressSelect={flyToAndSelectZone} />
+      <SearchBar
+        onAddressSelect={flyToAndSelectZone}
+        onClear={() => {
+          setSelectedZone(null);
+          setSelectedChantier(null);
+          setSelectedRumeur(null);
+        }}
+      />
       {selectedZone && (
         <IrisPopup
           properties={selectedZone}

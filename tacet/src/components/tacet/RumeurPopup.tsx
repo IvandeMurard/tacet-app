@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { X, Radio } from "lucide-react";
 import type { RumeurFeatureProperties } from "@/types/rumeur";
 import { formatRelativeTime } from "@/lib/format-date";
@@ -13,8 +13,15 @@ interface RumeurPopupProps {
 export function RumeurPopup({ properties, onClose }: RumeurPopupProps) {
   const { stationId, leq, lmin, lmax, timestamp } = properties;
   const popupRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  const handleClose = useCallback(() => {
+    previousFocusRef.current?.focus();
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
     const el = popupRef.current;
     if (!el) return;
     const focusables = el.querySelectorAll<HTMLElement>(
@@ -26,7 +33,7 @@ export function RumeurPopup({ properties, onClose }: RumeurPopupProps) {
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
         return;
       }
       if (e.key !== "Tab" || focusables.length === 0) return;
@@ -44,7 +51,7 @@ export function RumeurPopup({ properties, onClose }: RumeurPopupProps) {
     };
     el.addEventListener("keydown", onKeyDown);
     return () => el.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  }, [handleClose]);
 
   const leqDisplay =
     leq !== null && leq !== undefined
@@ -70,7 +77,7 @@ export function RumeurPopup({ properties, onClose }: RumeurPopupProps) {
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="rounded-full p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white/70"
           aria-label="Fermer"
         >

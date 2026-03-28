@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { getNoiseCategory, getSereniteScore, arLabel } from "@/lib/noise-categories";
 import type { IrisProperties } from "@/types/iris";
+
+const LAST_ZONE_STORAGE_KEY = "tacet-last-zone";
 
 const GEOJSON_URL = "/data/paris-noise-iris.geojson";
 
@@ -10,6 +13,16 @@ export function TextAlternativeView() {
   const [zones, setZones] = useState<IrisProperties[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const router = useRouter();
+
+  const handleZoneActivate = useCallback((zone: IrisProperties) => {
+    try {
+      localStorage.setItem(LAST_ZONE_STORAGE_KEY, JSON.stringify(zone));
+    } catch {
+      // ignore storage errors
+    }
+    router.push("/");
+  }, [router]);
 
   useEffect(() => {
     fetch(GEOJSON_URL)
@@ -77,7 +90,14 @@ export function TextAlternativeView() {
                 className="border-b border-white/10 transition-colors hover:bg-white/5"
               >
                 <td className="px-4 py-2 font-medium text-white">
-                  {zone.name} <span className="text-white/50">({zone.code_iris})</span>
+                  <button
+                    type="button"
+                    onClick={() => handleZoneActivate(zone)}
+                    className="text-left hover:text-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60 focus-visible:rounded"
+                    aria-label={`Voir ${zone.name} sur la carte`}
+                  >
+                    {zone.name} <span className="text-white/50">({zone.code_iris})</span>
+                  </button>
                 </td>
                 <td className="px-4 py-2 text-white/80">{label} arr.</td>
                 <td className="px-4 py-2 tabular-nums text-white/90">{score}/100</td>

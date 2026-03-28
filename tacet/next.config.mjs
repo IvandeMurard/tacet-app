@@ -49,6 +49,25 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "origin-when-cross-origin",
           },
+          {
+            // MapLibre requirements:
+            //   wasm-unsafe-eval  — WebAssembly (map renderer)
+            //   worker-src blob:  — MapLibre Web Workers
+            //   style-src unsafe-inline — MapLibre inlines GL styles
+            //   connect-src https: — PMTiles (protomaps.com) + Photon geocoding
+            //   img-src blob: data: — map canvas snapshots
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'wasm-unsafe-eval'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob:",
+              "font-src 'self' data:",
+              "connect-src 'self' https:",
+              "worker-src blob:",
+              "child-src blob:",
+            ].join("; "),
+          },
         ],
       },
     ];

@@ -13,9 +13,10 @@ const DEBOUNCE_MS = 350;
 
 export interface SearchBarProps {
   onAddressSelect: (lngLat: [number, number]) => void;
+  onClear?: () => void;
 }
 
-export function SearchBar({ onAddressSelect }: SearchBarProps) {
+export function SearchBar({ onAddressSelect, onClear }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -60,6 +61,7 @@ export function SearchBar({ onAddressSelect }: SearchBarProps) {
     setIsOpen(false);
     setActiveIndex(-1);
     inputRef.current?.focus();
+    onClear?.();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

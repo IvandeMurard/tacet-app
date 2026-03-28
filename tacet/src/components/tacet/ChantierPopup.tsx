@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { X, HardHat } from "lucide-react";
 import type { ChantierProperties } from "@/types/chantier";
 
@@ -19,8 +19,15 @@ function formatEndDate(dateStr: string): string {
 export function ChantierPopup({ properties, onClose }: ChantierPopupProps) {
   const { adresse, date_fin, type_chantier } = properties;
   const popupRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  const handleClose = useCallback(() => {
+    previousFocusRef.current?.focus();
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement;
     const el = popupRef.current;
     if (!el) return;
     const focusables = el.querySelectorAll<HTMLElement>(
@@ -32,7 +39,7 @@ export function ChantierPopup({ properties, onClose }: ChantierPopupProps) {
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
         return;
       }
       if (e.key !== "Tab" || focusables.length === 0) return;
@@ -50,7 +57,7 @@ export function ChantierPopup({ properties, onClose }: ChantierPopupProps) {
     };
     el.addEventListener("keydown", onKeyDown);
     return () => el.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  }, [handleClose]);
 
   return (
     <div
@@ -68,7 +75,7 @@ export function ChantierPopup({ properties, onClose }: ChantierPopupProps) {
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="rounded-full p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white/70"
           aria-label="Fermer"
         >

@@ -35,7 +35,7 @@ export function MapContainer() {
   const chantiersEnabled = activeLayers.has("chantiers");
   const rumeurEnabled = activeLayers.has("rumeur");
   const electionsEnabled = activeLayers.has("elections");
-  const { data: chantiersResponse } = useChantiersData(chantiersEnabled);
+  const { data: chantiersResponse, error: chantiersError } = useChantiersData(chantiersEnabled);
   const { data: rumeurResponse } = useRumeurData(rumeurEnabled);
   const { data: electionsResponse } = useElectionsData(electionsEnabled);
   const [geoLoadError, setGeoLoadError] = useState<string | null>(null);
@@ -370,6 +370,15 @@ export function MapContainer() {
         role="application"
         aria-label="Carte du bruit à Paris par zone IRIS"
       />
+      {chantiersEnabled && chantiersError && !chantiersResponse?.data && (
+        <div
+          className="absolute top-16 inset-x-0 mx-auto w-fit max-w-sm rounded-xl border border-amber-500/30 bg-amber-950/80 px-4 py-3 text-center text-sm text-amber-200 shadow-lg backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+        >
+          Données chantiers temporairement indisponibles
+        </div>
+      )}
       {geoLoadError && (
         <div
           className="absolute inset-x-0 top-4 mx-auto w-fit max-w-sm rounded-xl border border-red-500/30 bg-red-950/80 px-4 py-3 text-center text-sm text-red-200 shadow-lg backdrop-blur-md"

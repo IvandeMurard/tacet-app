@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { TextAlternativeView } from "@/components/tacet/TextAlternativeView";
-import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Vue accessible — Données par zone",
@@ -28,7 +27,6 @@ export default function AccessiblePage() {
           </p>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }

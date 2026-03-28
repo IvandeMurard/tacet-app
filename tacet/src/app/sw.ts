@@ -36,6 +36,18 @@ const serwist = new Serwist({
         plugins: [new CacheableResponsePlugin({ statuses: [200] })],
       }),
     },
+    // E4-Story4.2: PMTiles base map — NetworkFirst so tiles load when online
+    // and fall back to cache when offline (after first successful fetch).
+    // Note: PMTiles uses HTTP Range requests; individual range responses are
+    // cached separately per byte-range, providing partial offline tile coverage.
+    {
+      matcher: ({ url }: { url: URL }) => url.hostname === "build.protomaps.com",
+      handler: new NetworkFirst({
+        cacheName: "pmtiles-cache",
+        networkTimeoutSeconds: 5,
+        plugins: [new CacheableResponsePlugin({ statuses: [200, 206] })],
+      }),
+    },
     // Default Next.js cache strategies (pages, JS, CSS, fonts, images)
     ...defaultCache,
   ],
