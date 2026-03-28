@@ -9,6 +9,7 @@ import { isNightTime, getSensorTimeLabel, isChantierExpired, SENSOR_EVENING_STAR
 import { SerenityBar } from "@/components/tacet/SerenityBar";
 import { TierBadge } from "@/components/tacet/TierBadge";
 import { DataProvenance } from "@/components/tacet/DataProvenance";
+import { ShareCard } from "@/components/tacet/ShareCard";
 import { useNoiseReports } from "@/hooks/useNoiseReports";
 import { useEnrichment } from "@/hooks/useEnrichment";
 import type { IrisProperties } from "@/types/iris";
@@ -154,19 +155,21 @@ export function IrisPopup({
   }, [handleClose]);
 
   const handleShare = async () => {
-    const text = `${name} · ${label} arr. — Score Sérénité ${score}/100 (${category?.label}) | Tacet Paris`;
+    const zoneUrl = `${window.location.origin}/?zone=${code_iris}`;
+    const scoreLabel = score != null ? `${score}/100 (${category?.label})` : category?.label ?? "—";
+    const text = `${name} · ${label} arr. — Score Sérénité ${scoreLabel} | Tacet Paris`;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         await navigator.share({
           title: "Tacet — Bruit à Paris",
           text,
-          url: window.location.href,
+          url: zoneUrl,
         });
       } catch {
         // Annulé par l'utilisateur
       }
     } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-      await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      await navigator.clipboard.writeText(`${text}\n${zoneUrl}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -358,6 +361,9 @@ export function IrisPopup({
         <Volume2 size={13} />
         {reported ? "Signalement enregistré" : canReport ? "Signaler bruit inhabituel" : "Déjà signalé récemment"}
       </button>
+
+      <p className="mb-1.5 text-[10px] uppercase tracking-wide text-white/30">Aperçu à partager</p>
+      <ShareCard properties={properties} className="mb-2 w-full opacity-80" />
 
       <button
         onClick={handleShare}

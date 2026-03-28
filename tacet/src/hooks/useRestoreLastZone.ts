@@ -14,6 +14,8 @@ export function useRestoreLastZone(): void {
 
   useEffect(() => {
     if (restoredRef.current) return;
+    // Deep-link (?zone=) takes priority — skip last-zone restore so there's no conflict
+    if (new URLSearchParams(window.location.search).has("zone")) return;
     if (lastVisitedZone && !selectedZone) {
       restoredRef.current = true;
       setSelectedZone(lastVisitedZone);

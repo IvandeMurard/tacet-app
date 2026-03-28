@@ -13,6 +13,7 @@ import { useMapContext, MAX_PINNED } from "@/contexts/MapContext";
 import { useRumeurData } from "@/hooks/useRumeurData";
 import { useChantiersData } from "@/hooks/useChantiersData";
 import { useRestoreLastZone } from "@/hooks/useRestoreLastZone";
+import { useZoneDeepLink } from "@/hooks/useZoneDeepLink";
 import { RumeurStatusBar } from "@/components/tacet/RumeurStatusBar";
 import { PWAInstallPrompt } from "@/components/tacet/PWAInstallPrompt";
 import { BRAND_COLOR } from "@/lib/noise-categories";
@@ -122,6 +123,7 @@ export function MapPageClient() {
   const { selectedZone, setSelectedZone, selectedZoneLngLat, flyToAndSelectZone, pinZone, pinnedZones, selectedChantier, setSelectedChantier, selectedRumeur, setSelectedRumeur } =
     useMapContext();
   useRestoreLastZone();
+  useZoneDeepLink();
   const [trayOpen, setTrayOpen] = useState(false);
 
   // Always-on data fetching — no toggles
