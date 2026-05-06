@@ -15,10 +15,11 @@ async def get_acoustic_forecast(request: ForecastRequest):
     hotel_lon = request.coordinates.lon
     
     # Run the brain
-    live_alerts, weather_condition = generate_forecast(hotel_lat, hotel_lon)
+    live_alerts, weather_condition, metadata = generate_forecast(hotel_lat, hotel_lon)
     
     return ForecastResponse(
         hotel_id=request.hotel_id,
         weather_condition=weather_condition,
+        metadata=metadata,
         alerts=live_alerts
     )

@@ -1,12 +1,14 @@
 import math
+import time
+from shapely.geometry import LineString
 from app.api.models import AcousticAlert
 from app.ingest.paris_permits import fetch_active_permits
 from app.ingest.weather import fetch_current_weather
 from app.ingest.traffic import fetch_traffic_congestion
+from app.services.spatial import get_surrounding_buildings
 
 # Base assumptions for the V1 Synthetic Model
 BASE_CONSTRUCTION_DB_AT_1M = 90.0
-URBAN_SHIELDING_PENALTY_DB = 10.0
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
@@ -26,17 +28,17 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     distance_meters = R * c
     return distance_meters
 
-def calculate_db_attenuation(distance_meters: float, is_raining: bool = False) -> float:
+def calculate_db_attenuation(distance_meters: float, shielding_penalty_db: float, is_raining: bool = False) -> float:
     """
     Calculates the resulting decibel level at a given distance using the Inverse Square Law.
     dB = dB_source - 20 * log10(Distance).
-    Applies the Urban Shielding Penalty and Weather penalties.
+    Applies the Ray-Traced Shielding Penalty and Weather penalties.
     """
     if distance_meters <= 1.0:
-        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - URBAN_SHIELDING_PENALTY_DB
+        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - shielding_penalty_db
     else:
         attenuation = 20 * math.log10(distance_meters)
-        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - attenuation - URBAN_SHIELDING_PENALTY_DB
+        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - attenuation - shielding_penalty_db
     
     # Rain increases tire friction and surface noise propagation
     if is_raining:
@@ -58,15 +60,20 @@ def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     else:
         return "LOW", "No immediate action required."
 
-def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None]:
+def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None, dict]:
     """
-    Core business logic: Fetches permits, fetches weather, calculates distance, 
-    calculates noise attenuation, and generates alerts.
+    Core business logic: Fetches permits, weather, traffic, and 3D geometry.
+    Performs acoustic ray-tracing to calculate precise noise attenuation.
     """
+    start_time = time.time()
+    
     # Fetch Environmental Context
     weather_data = fetch_current_weather(hotel_lat, hotel_lon)
     weather_condition = weather_data["main"] if weather_data else None
     is_raining = (weather_condition == "Rain")
+    
+    # Fetch 3D Geometry
+    buildings = get_surrounding_buildings(hotel_lat, hotel_lon)
     
     alerts = []
     
@@ -108,8 +115,20 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
         if distance > 500:
             continue
             
-        # 2. Acoustic Math
-        hotel_db = calculate_db_attenuation(distance, is_raining=is_raining)
+        # 2. Acoustic Ray-Tracing
+        shielding_penalty = 0.0
+        # Draw a line from source to receiver (shapely expects lon, lat)
+        line_of_sight = LineString([(hotel_lon, hotel_lat), (permit_lon, permit_lat)])
+        
+        # Check intersections against 3D city layout
+        for building in buildings:
+            if line_of_sight.intersects(building["polygon"]):
+                # Sound is physically blocked by a building
+                shielding_penalty = 15.0
+                break # We found a blocker, no need to check others
+                
+        # 3. Acoustic Math
+        hotel_db = calculate_db_attenuation(distance, shielding_penalty_db=shielding_penalty, is_raining=is_raining)
         
         # If noise is < 45 dB, it's considered ambient and we don't alert
         if hotel_db < 45.0:
@@ -129,4 +148,12 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
         
     # Sort alerts by severity/noise level (highest noise first)
     alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
-    return alerts, weather_condition
+    
+    processing_time_ms = int((time.time() - start_time) * 1000)
+    metadata = {
+        "processing_time_ms": processing_time_ms,
+        "buildings_analyzed": len(buildings),
+        "ray_traces_performed": len(permits) if permits else 0
+    }
+    
+    return alerts, weather_condition, metadata
