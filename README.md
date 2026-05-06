@@ -21,11 +21,46 @@ Tacet is designed to work in tandem with [Aetherix](https://github.com/IvandeMur
 
 Together, they allow hotel operators to control costs, reduce waste, and guarantee an unparalleled guest experience.
 
-## 🏗️ Architecture (V3)
+## 🏗️ Architecture (V1)
 
-*Currently undergoing architectural pivot.*
+*The V1 Intelligence API is built entirely in Python for optimal spatial data processing.*
 
-*   **Core:** Data pipeline and algorithm engine designed for Python/FastAPI (or dedicated Node backend) to handle complex spatial data calculations and ML integrations.
+```mermaid
+flowchart LR
+    %% Styling
+    classDef external fill:#f8fafc,stroke:#cbd5e1,stroke-width:1px,color:#334155;
+    classDef tacet fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+    classDef hotel fill:#f1f5f9,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+
+    %% External Data
+    subgraph Proxy Data Sources
+        C[OpenData Permits]:::external
+        T[Traffic APIs]:::external
+        W[Weather APIs]:::external
+    end
+
+    %% Core Engine
+    subgraph Tacet Engine
+        E((Synthetic<br/>Acoustic Model)):::tacet
+        M[(OpenStreetMap<br/>3D Geometry)]:::external
+        E --- M
+    end
+
+    %% Hotel Ecosystem
+    subgraph Hotel Operations
+        RMS[Revenue Management<br/>System]:::hotel
+        PMS[Property Management<br/>System]:::hotel
+    end
+
+    %% Data Flow
+    C -->|Webhooks| E
+    T -->|Streams| E
+    W -->|Streams| E
+    E -->|JSON Alerts| RMS
+    E -->|Room Tags| PMS
+```
+
+*   **Core:** Data pipeline and algorithm engine built in Python using FastAPI, handling complex spatial data calculations and ML integrations.
 *   **Data Sources:** OpenData Paris (Construction), TomTom/Google Maps (Traffic), OpenWeatherMap (Weather), OpenStreetMap (3D Geometry).
 *   **Integration:** Headless Webhooks/APIs designed for seamless connection to industry-standard PMS/RMS platforms.
 
