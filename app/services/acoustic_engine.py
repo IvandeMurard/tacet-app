@@ -2,6 +2,7 @@ import math
 from app.api.models import AcousticAlert
 from app.ingest.paris_permits import fetch_active_permits
 from app.ingest.weather import fetch_current_weather
+from app.ingest.traffic import fetch_traffic_congestion
 
 # Base assumptions for the V1 Synthetic Model
 BASE_CONSTRUCTION_DB_AT_1M = 90.0
@@ -67,12 +68,30 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
     weather_condition = weather_data["main"] if weather_data else None
     is_raining = (weather_condition == "Rain")
     
-    # Fetch Disruptions
+    alerts = []
+    
+    # Check Traffic Congestion (TomTom)
+    traffic_data = fetch_traffic_congestion(hotel_lat, hotel_lon)
+    if traffic_data:
+        congestion_ratio = traffic_data.get("congestion_ratio", 1.0)
+        # If speed is less than 40% of free flow, we have severe congestion
+        if congestion_ratio < 0.4:
+            # Idling diesels and honking generate intense local noise
+            alerts.append(
+                AcousticAlert(
+                    source_type="TRAFFIC_CONGESTION",
+                    severity="HIGH",
+                    predicted_db_increase=8.0,
+                    distance_meters=0, # Immediately outside
+                    recommendation="Severe traffic congestion detected. Recommend street-facing room downgrades or offer complimentary earplugs."
+                )
+            )
+            
+    # Fetch Disruptions (Construction)
     permits = fetch_active_permits(limit=limit_sites)
     if not permits:
-        return [], weather_condition
-        
-    alerts = []
+        alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
+        return alerts, weather_condition
     
     for permit in permits:
         coords = permit.get("coordinates")
