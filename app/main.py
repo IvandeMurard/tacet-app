@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import forecast
+from app.api import forecast, webhooks
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,6 +22,7 @@ app.add_middleware(
 
 # Include API Routers
 app.include_router(forecast.router, prefix="/api/v1", tags=["Forecast"])
+app.include_router(webhooks.router, prefix="/api/v1", tags=["Webhooks"])
 
 @app.get("/")
 async def root():

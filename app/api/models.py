@@ -24,3 +24,11 @@ class ForecastResponse(BaseModel):
     weather_condition: Optional[str] = Field(default=None, description="The prevailing weather condition (e.g., Rain, Clear) that influenced the calculation.")
     metadata: dict = Field(default_factory=dict, description="Processing metadata for explainability (e.g., processing time, buildings analyzed).")
     alerts: List[AcousticAlert]
+
+class DestinationConfig(BaseModel):
+    hotel_id: str
+    coordinates: Coordinates
+    webhook_url: str
+
+class DispatchRequest(BaseModel):
+    destinations: List[DestinationConfig]
