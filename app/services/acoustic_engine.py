@@ -60,10 +60,11 @@ def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     else:
         return "LOW", "No immediate action required."
 
-def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None, dict]:
+def generate_forecast(hotel_lat: float, hotel_lon: float, target_start: str = None, target_end: str = None, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None, dict]:
     """
     Core business logic: Fetches permits, weather, traffic, and 3D geometry.
     Performs acoustic ray-tracing to calculate precise noise attenuation.
+    Filters by predictive dates if provided.
     """
     start_time = time.time()
     
@@ -95,7 +96,7 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
             )
             
     # Fetch Disruptions (Construction)
-    permits = fetch_active_permits(limit=limit_sites)
+    permits = fetch_active_permits(limit=limit_sites, target_start=target_start, target_end=target_end)
     if not permits:
         alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
         return alerts, weather_condition
@@ -137,8 +138,11 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
         # 3. Severity Matrix
         severity, recommendation = determine_severity_and_action(hotel_db)
         
+        permit_start = permit.get('start_date', 'Unknown')[:10] if permit.get('start_date') else 'Unknown'
+        permit_end = permit.get('end_date', 'Unknown')[:10] if permit.get('end_date') else 'Unknown'
+        
         alert = AcousticAlert(
-            source_type=permit.get("description", "CONSTRUCTION"),
+            source_type=f"PLANNED_CONSTRUCTION (From {permit_start} to {permit_end})",
             severity=severity,
             predicted_db_increase=round(hotel_db, 1),
             distance_meters=int(distance),
