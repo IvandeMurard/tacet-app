@@ -1,6 +1,7 @@
 import math
 from app.api.models import AcousticAlert
 from app.ingest.paris_permits import fetch_active_permits
+from app.ingest.weather import fetch_current_weather
 
 # Base assumptions for the V1 Synthetic Model
 BASE_CONSTRUCTION_DB_AT_1M = 90.0
@@ -24,17 +25,21 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     distance_meters = R * c
     return distance_meters
 
-def calculate_db_attenuation(distance_meters: float) -> float:
+def calculate_db_attenuation(distance_meters: float, is_raining: bool = False) -> float:
     """
     Calculates the resulting decibel level at a given distance using the Inverse Square Law.
     dB = dB_source - 20 * log10(Distance).
-    Applies the Urban Shielding Penalty.
+    Applies the Urban Shielding Penalty and Weather penalties.
     """
     if distance_meters <= 1.0:
-        return BASE_CONSTRUCTION_DB_AT_1M - URBAN_SHIELDING_PENALTY_DB
-        
-    attenuation = 20 * math.log10(distance_meters)
-    hotel_db = BASE_CONSTRUCTION_DB_AT_1M - attenuation - URBAN_SHIELDING_PENALTY_DB
+        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - URBAN_SHIELDING_PENALTY_DB
+    else:
+        attenuation = 20 * math.log10(distance_meters)
+        hotel_db = BASE_CONSTRUCTION_DB_AT_1M - attenuation - URBAN_SHIELDING_PENALTY_DB
+    
+    # Rain increases tire friction and surface noise propagation
+    if is_raining:
+        hotel_db += 3.0
     
     # Floor it at 35 dB (ambient city noise)
     return max(35.0, hotel_db)
@@ -52,14 +57,20 @@ def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     else:
         return "LOW", "No immediate action required."
 
-def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20) -> list[AcousticAlert]:
+def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None]:
     """
-    Core business logic: Fetches permits, calculates distance to hotel, 
-    calculates noise attenuation, and generates alerts if impact is significant.
+    Core business logic: Fetches permits, fetches weather, calculates distance, 
+    calculates noise attenuation, and generates alerts.
     """
+    # Fetch Environmental Context
+    weather_data = fetch_current_weather(hotel_lat, hotel_lon)
+    weather_condition = weather_data["main"] if weather_data else None
+    is_raining = (weather_condition == "Rain")
+    
+    # Fetch Disruptions
     permits = fetch_active_permits(limit=limit_sites)
     if not permits:
-        return []
+        return [], weather_condition
         
     alerts = []
     
@@ -79,7 +90,7 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
             continue
             
         # 2. Acoustic Math
-        hotel_db = calculate_db_attenuation(distance)
+        hotel_db = calculate_db_attenuation(distance, is_raining=is_raining)
         
         # If noise is < 45 dB, it's considered ambient and we don't alert
         if hotel_db < 45.0:
@@ -99,4 +110,4 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
         
     # Sort alerts by severity/noise level (highest noise first)
     alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
-    return alerts
+    return alerts, weather_condition

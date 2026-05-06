@@ -21,4 +21,5 @@ class AcousticAlert(BaseModel):
 class ForecastResponse(BaseModel):
     hotel_id: str
     status: str = Field(default="success")
+    weather_condition: Optional[str] = Field(default=None, description="The prevailing weather condition (e.g., Rain, Clear) that influenced the calculation.")
     alerts: List[AcousticAlert]
