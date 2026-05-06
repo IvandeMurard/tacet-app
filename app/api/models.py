@@ -1,0 +1,24 @@
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+class Coordinates(BaseModel):
+    lat: float = Field(..., description="Latitude of the hotel")
+    lon: float = Field(..., description="Longitude of the hotel")
+
+class ForecastRequest(BaseModel):
+    hotel_id: str = Field(..., description="Unique identifier for the hotel property")
+    coordinates: Coordinates
+    start_date: str = Field(..., description="Forecast start date in YYYY-MM-DD format")
+    end_date: str = Field(..., description="Forecast end date in YYYY-MM-DD format")
+
+class AcousticAlert(BaseModel):
+    source_type: str = Field(..., description="Type of disruption (e.g., CONSTRUCTION, TRAFFIC)")
+    severity: str = Field(..., description="Severity level: LOW, MEDIUM, HIGH, CRITICAL")
+    predicted_db_increase: float = Field(..., description="Expected increase in decibels")
+    distance_meters: int = Field(..., description="Distance from hotel to the disruption source")
+    recommendation: str = Field(..., description="Actionable recommendation for RMS/PMS")
+
+class ForecastResponse(BaseModel):
+    hotel_id: str
+    status: str = Field(default="success")
+    alerts: List[AcousticAlert]
