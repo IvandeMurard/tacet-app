@@ -52,9 +52,9 @@ def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     if hotel_db > 65.0:
         return "CRITICAL", "Reduce booking price by 15% for affected street-facing rooms. Reassign VIP guests."
     elif hotel_db >= 55.0:
-        return "HIGH", "Warn guests of potential disruption. Ensure soundproof windows are sealed."
+        return "HIGH", "Warn guests of potential disruption. Ensure soundproof windows are sealed and consider proactive room upgrades."
     elif hotel_db >= 45.0:
-        return "MEDIUM", "Monitor reviews. Consider offering earplugs or complimentary breakfast."
+        return "MEDIUM", "Monitor guest sentiment. Consider offering complimentary breakfast or proactive room reassignments upon request."
     else:
         return "LOW", "No immediate action required."
 
@@ -83,7 +83,7 @@ def generate_forecast(hotel_lat: float, hotel_lon: float, limit_sites: int = 20)
                     severity="HIGH",
                     predicted_db_increase=8.0,
                     distance_meters=0, # Immediately outside
-                    recommendation="Severe traffic congestion detected. Recommend street-facing room downgrades or offer complimentary earplugs."
+                    recommendation="Severe traffic congestion detected. Recommend pausing premium pricing on street-facing suites or offering affected guests complimentary spa access."
                 )
             )
             
