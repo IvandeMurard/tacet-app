@@ -41,6 +41,34 @@ Tacet ingests and standardizes chaotic external data into actionable intelligenc
 - **Spatial Math:** OSMnx, Shapely, GeoPandas
 - **Deployment:** Stateless webhook dispatching architecture
 
+## 🧪 How to Test Locally
+
+Tacet is a headless engine. The easiest way to test its capabilities is via the auto-generated Swagger UI.
+
+1. **Install dependencies:**
+   ```bash
+   pip install fastapi uvicorn requests shapely osmnx geopandas sqlalchemy
+   ```
+2. **Start the server:**
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+3. **Run a Predictive Forecast:**
+   Open your browser and navigate to `http://127.0.0.1:8000/docs`. 
+   Use the `POST /api/v1/forecast` endpoint with the following test payload:
+   ```json
+   {
+     "hotel_id": "TEST_PARIS_1",
+     "coordinates": {
+       "lat": 48.8786,
+       "lon": 2.3771
+     },
+     "start_date": "2026-06-01",
+     "end_date": "2026-06-15"
+   }
+   ```
+   *Look at the `explainability_chain` in the response to see the Ray-Tracing math in action!*
+
 ## 💡 Use Case Example
 
 **The Problem:** A massive music festival is planned 800 meters from a luxury hotel next July.

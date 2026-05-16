@@ -1,0 +1,39 @@
+# Case Study: Tacet – Predictive Contextual Intelligence for Luxury Hospitality
+
+## 1. The Core Problem
+Luxury hospitality is inherently reactive to its environment. A sudden transport strike, an unannounced street excavation, or a massive music festival can drastically alter the guest experience and demand curves. 
+Revenue Management Systems (RMS) and Property Management Systems (PMS) rely heavily on historical booking data. They are blind to the *physical* and *contextual* future of the property's immediate surroundings. This blindness leads to mispriced inventory, operational friction, and ultimately, guest dissatisfaction.
+
+## 2. The Solution: Tacet
+Tacet is a headless, predictive Environmental & Contextual Intelligence engine. It acts as a sentient analytical layer between chaotic city data and the hotel's operational software. 
+
+Rather than overwhelming the hotel staff with a dashboard of raw data, Tacet mathematically calculates the real-world impact of external events and pushes actionable yield rules directly to the RMS (like Atomize or Duetto) and preventative tasks to the PMS (like Mews or Apaleo).
+
+### Key Architectural Pillars
+
+**A. The Spatial Physics Engine (Acoustic Ray-Tracing)**
+Tacet doesn't just measure distance; it measures physics. Using Python libraries like `shapely` and `osmnx`, Tacet draws 3D lines of sight between a disruptive event (e.g., a jackhammer or a stadium crowd) and the hotel. It cross-references this path against urban building polygons. If a building blocks the sound, Tacet dynamically applies a shielding penalty. This prevents false positives and alert fatigue.
+
+**B. The Dual Memory System (Idiosyncratic & Hive Mind)**
+A predictive engine must learn from its mistakes. Tacet features a built-in stateful database:
+- **Idiosyncratic Memory:** If a specific hotel manager repeatedly rejects an automated alert for "Traffic Noise", Tacet learns that this specific building likely has triple-glazed windows. It automatically applies a persistent shielding bonus for future calculations at that exact GPS coordinate.
+- **Hive Mind:** A statistical aggregation engine constantly analyzes rejection rates across the global network of hotels to dynamically adjust the baseline sensitivity of the entire ecosystem.
+
+**C. The Human-In-The-Loop (HITL) Guardrail**
+Tacet is governed by a strict business rule: it never executes autonomous, destructive actions (like changing a price blindly). Instead, it formulates a precise "Price Modifier Rule" (e.g., *-15% for Street-Facing Suites between June 12-14*) and pushes it to the RMS for human approval.
+
+**D. Conversational Explainability (The Headless Challenge)**
+To guarantee transparency in a system without a GUI, Tacet generates a mathematical "Chain of Thought" in every JSON response. An orchestration agent (like Aetherix) can parse this payload and explain the exact physics (Base Noise -> Distance Attenuation -> Ray-Tracing Penalty -> Final Impact) to the Revenue Manager in natural language.
+
+## 3. The Impact
+By integrating Tacet, luxury hotels shift from a reactive posture to proactive yield management. 
+- **Yield Protection:** Automatically lowering prices on noisy inventory prevents costly post-stay refunds.
+- **Yield Maximization:** Anticipating hyper-local crowd surges allows for premium pricing adjustments days in advance.
+- **Operational Excellence:** Pre-emptively ordering earplugs or pausing room service during extreme weather events guarantees a 5-star standard regardless of the external chaos.
+
+## 4. Technical Stack
+- **Language:** Python 3.12
+- **Framework:** FastAPI (REST, OpenAPI)
+- **Database:** SQLAlchemy / SQLite
+- **Spatial Processing:** OSMnx, Shapely, GeoPandas
+- **Integrations:** OAuth2, Mews Open API, Apaleo API
