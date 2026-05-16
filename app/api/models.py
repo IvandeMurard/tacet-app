@@ -28,7 +28,9 @@ class ForecastResponse(BaseModel):
 class DestinationConfig(BaseModel):
     hotel_id: str
     coordinates: Coordinates
-    webhook_url: str
+    webhook_url: Optional[str] = None
+    pms_type: Optional[str] = Field(default=None, description="'mews' or 'apaleo'")
+    pms_property_id: Optional[str] = Field(default=None, description="Apaleo property ID or Mews enterprise ID")
 
 class DispatchRequest(BaseModel):
     destinations: List[DestinationConfig]

@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 from app.api.models import DispatchRequest, ForecastResponse
 from app.services.acoustic_engine import generate_forecast
+from app.integrations.mews_client import push_mews_tasks
+from app.integrations.apaleo_client import push_apaleo_maintenance
 
 router = APIRouter()
 
@@ -53,11 +55,20 @@ def dispatch_daily_report(request: DispatchRequest, api_key: str = Depends(get_a
                 alerts=live_alerts
             )
             
-            # 3. Broadcast to Aetherix Webhook
-            resp = requests.post(dest.webhook_url, json=payload.model_dump(), timeout=10)
-            resp.raise_for_status()
-            
-            results["successful"] += 1
+            # 3. Broadcast to Aetherix Webhook OR Native PMS
+            if dest.pms_type == "mews":
+                push_mews_tasks(live_alerts, dest.pms_property_id)
+                results["successful"] += 1
+            elif dest.pms_type == "apaleo":
+                push_apaleo_maintenance(live_alerts, dest.pms_property_id)
+                results["successful"] += 1
+            elif dest.webhook_url:
+                resp = requests.post(dest.webhook_url, json=payload.model_dump(), timeout=10)
+                resp.raise_for_status()
+                results["successful"] += 1
+            else:
+                # No destination provided
+                pass
             
         except requests.exceptions.RequestException as re:
             results["failed"] += 1
