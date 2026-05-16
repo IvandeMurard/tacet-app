@@ -43,6 +43,7 @@ def dispatch_daily_report(request: DispatchRequest, api_key: str = Depends(get_a
         try:
             # 1. Run the physics engine
             live_alerts, weather_condition, metadata = generate_forecast(
+                dest.hotel_id,
                 dest.coordinates.lat, 
                 dest.coordinates.lon
             )

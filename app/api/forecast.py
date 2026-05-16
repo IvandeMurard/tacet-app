@@ -18,6 +18,7 @@ async def get_acoustic_forecast(request: ForecastRequest):
     
     # Run the brain
     live_alerts, weather_condition, metadata = generate_forecast(
+        request.hotel_id,
         hotel_lat, 
         hotel_lon, 
         target_start=target_start, 

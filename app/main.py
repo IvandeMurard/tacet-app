@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import forecast, webhooks
+from app.api import forecast, webhooks, feedback, analytics
+from app.database import engine, Base
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Initialize Database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Tacet Acoustic Intelligence API",
@@ -23,6 +27,8 @@ app.add_middleware(
 # Include API Routers
 app.include_router(forecast.router, prefix="/api/v1", tags=["Forecast"])
 app.include_router(webhooks.router, prefix="/api/v1", tags=["Webhooks"])
+app.include_router(feedback.router, prefix="/api/v1", tags=["Memory"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
 
 @app.get("/")
 async def root():

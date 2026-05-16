@@ -34,3 +34,8 @@ class DestinationConfig(BaseModel):
 
 class DispatchRequest(BaseModel):
     destinations: List[DestinationConfig]
+
+class FeedbackRequest(BaseModel):
+    hotel_id: str = Field(..., description="The hotel that provided the feedback")
+    source_type: str = Field(..., description="The source of the noise (e.g. TRAFFIC_CONGESTION)")
+    action: str = Field(..., description="The human action taken: APPROVED or REJECTED")
