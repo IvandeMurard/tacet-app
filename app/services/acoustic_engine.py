@@ -169,6 +169,20 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
         if hotel_db < 45.0:
             continue
             
+        chain_of_thought = [
+            f"Base Noise: {BASE_CONSTRUCTION_DB_AT_1M} dB (Construction at 1m)",
+            f"Distance Attenuation: {int(distance)}m removed {round(BASE_CONSTRUCTION_DB_AT_1M - (hotel_db + shielding_penalty), 1)} dB"
+        ]
+        if shielding_penalty > 0:
+            chain_of_thought.append(f"Ray-Tracing Penalty: -15.0 dB (Blocked by 3D geometry)")
+        if idiosyncratic_bonus > 0:
+            chain_of_thought.append(f"Idiosyncratic Memory Bonus: +{idiosyncratic_bonus} dB (Hotel historically rejects alerts)")
+        if hive_bonus > 0:
+            chain_of_thought.append(f"Hive Memory Bonus: +{hive_bonus} dB (Global ecosystem suppression)")
+        if is_raining:
+            chain_of_thought.append("Weather Penalty: +3.0 dB (Rain increases wet surface friction)")
+        chain_of_thought.append(f"Final Predicted Impact: {round(hotel_db, 1)} dB")
+        
         # 4. Severity Matrix
         severity, recommendation = determine_severity_and_action(hotel_db)
         
@@ -180,7 +194,8 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
             severity=severity,
             predicted_db_increase=round(hotel_db, 1),
             distance_meters=int(distance),
-            recommendation=recommendation
+            recommendation=recommendation,
+            explainability_chain=chain_of_thought
         )
         alerts.append(alert)
         
@@ -216,6 +231,20 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
         if hotel_db < 45.0:
             continue
             
+        chain_of_thought = [
+            f"Base Noise: {BASE_CROWD_EVENT_DB_AT_1M} dB (Crowd Event at 1m)",
+            f"Distance Attenuation: {int(distance)}m removed {round(BASE_CROWD_EVENT_DB_AT_1M - (hotel_db + shielding_penalty), 1)} dB"
+        ]
+        if shielding_penalty > 0:
+            chain_of_thought.append(f"Ray-Tracing Penalty: -15.0 dB (Blocked by 3D geometry)")
+        if idiosyncratic_bonus > 0:
+            chain_of_thought.append(f"Idiosyncratic Memory Bonus: +{idiosyncratic_bonus} dB")
+        if hive_bonus > 0:
+            chain_of_thought.append(f"Hive Memory Bonus: +{hive_bonus} dB")
+        if is_raining:
+            chain_of_thought.append("Weather Penalty: +3.0 dB")
+        chain_of_thought.append(f"Final Predicted Impact: {round(hotel_db, 1)} dB")
+        
         severity, recommendation = determine_severity_and_action(hotel_db)
         
         ev_start = event.get('start_date', 'Unknown')[:10] if event.get('start_date') else 'Unknown'
@@ -225,7 +254,8 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
             severity=severity,
             predicted_db_increase=round(hotel_db, 1),
             distance_meters=int(distance),
-            recommendation="Impending crowd noise detected. Recommend pausing premium pricing on street-facing suites or preparing complimentary earplugs."
+            recommendation="Impending crowd noise detected. Recommend pausing premium pricing on street-facing suites or preparing complimentary earplugs.",
+            explainability_chain=chain_of_thought
         )
         alerts.append(alert)
         

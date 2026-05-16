@@ -6,6 +6,7 @@ from app.api.models import DispatchRequest, ForecastResponse
 from app.services.acoustic_engine import generate_forecast
 from app.integrations.mews_client import push_mews_tasks
 from app.integrations.apaleo_client import push_apaleo_maintenance
+from app.integrations.rms_client import push_to_rms
 
 router = APIRouter()
 
@@ -62,6 +63,9 @@ def dispatch_daily_report(request: DispatchRequest, api_key: str = Depends(get_a
                 results["successful"] += 1
             elif dest.pms_type == "apaleo":
                 push_apaleo_maintenance(live_alerts, dest.pms_property_id)
+                results["successful"] += 1
+            elif dest.pms_type == "rms":
+                push_to_rms(live_alerts, dest.pms_property_id)
                 results["successful"] += 1
             elif dest.webhook_url:
                 resp = requests.post(dest.webhook_url, json=payload.model_dump(), timeout=10)

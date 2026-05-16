@@ -17,6 +17,7 @@ class AcousticAlert(BaseModel):
     predicted_db_increase: float = Field(..., description="Expected increase in decibels")
     distance_meters: int = Field(..., description="Distance from hotel to the disruption source")
     recommendation: str = Field(..., description="Actionable recommendation for RMS/PMS")
+    explainability_chain: List[str] = Field(default_factory=list, description="Mathematical Chain of Thought explaining the db calculation.")
 
 class ForecastResponse(BaseModel):
     hotel_id: str
@@ -29,11 +30,19 @@ class DestinationConfig(BaseModel):
     hotel_id: str
     coordinates: Coordinates
     webhook_url: Optional[str] = None
-    pms_type: Optional[str] = Field(default=None, description="'mews' or 'apaleo'")
-    pms_property_id: Optional[str] = Field(default=None, description="Apaleo property ID or Mews enterprise ID")
+    pms_type: Optional[str] = Field(default=None, description="'mews', 'apaleo', or 'rms'")
+    pms_property_id: Optional[str] = Field(default=None, description="Property ID in the destination system")
 
 class DispatchRequest(BaseModel):
     destinations: List[DestinationConfig]
+
+class TacetRMSPayload(BaseModel):
+    property_id: str
+    start_date: str
+    end_date: str
+    target_room_categories: List[str]
+    price_modifier_percentage: float
+    justification: str
 
 class FeedbackRequest(BaseModel):
     hotel_id: str = Field(..., description="The hotel that provided the feedback")
