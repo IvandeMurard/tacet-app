@@ -4,6 +4,61 @@ Tacet is an advanced, headless AI engine built for the luxury hospitality sector
 
 While initially designed as an **Acoustic Ray-Tracing Engine** to predict construction noise propagation in dense urban environments (Paris), Tacet has evolved into a comprehensive **Contextual Intelligence Engine** capable of anticipating strikes, extreme weather, and massive crowd movements.
 
+## 🗺️ Architecture Overview
+
+```mermaid
+graph TD
+    %% External Data Sources
+    subgraph Data Sources
+        P[Paris Permits API]
+        E[Events API]
+        W[Weather Alerts]
+        T[Transit Disruptions]
+    end
+
+    %% Tacet Core Engine
+    subgraph Tacet Contextual Engine
+        I[Ingestion Layer]
+        RT[3D Ray-Tracing Physics]
+        DM[(Dual Memory DB)]
+        HM[Hive Mind Analytics]
+        
+        I --> RT
+        RT <--> DM
+        DM --> HM
+        HM --> RT
+    end
+
+    %% Routing
+    subgraph Dispatcher
+        WH[Webhook Router]
+        EXP[Explainability Chain]
+        
+        RT --> EXP
+        EXP --> WH
+    end
+
+    %% Destinations
+    subgraph Hotel Ecosystem
+        PMS[PMS: Apaleo / Mews]
+        RMS[RMS: Atomize / Duetto]
+        LLM[AI Agent: Aetherix]
+    end
+
+    Data Sources --> I
+    WH -->|Tasks & Operations| PMS
+    WH -->|Pricing Rules & Yield| RMS
+    WH -->|Context & NLP| LLM
+
+    classDef core fill:#2d3436,stroke:#74b9ff,stroke-width:2px,color:#fff;
+    classDef data fill:#0984e3,stroke:#74b9ff,color:#fff;
+    classDef dest fill:#00b894,stroke:#55efc4,color:#fff;
+    
+    class RT,DM,HM,EXP core;
+    class P,E,W,T data;
+    class PMS,RMS,LLM dest;
+```
+
 ## 🏗 Core Architecture & Engineering Highlights
 
 This repository was architected to demonstrate modern, highly-scalable backend AI engineering patterns:
