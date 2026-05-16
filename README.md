@@ -9,7 +9,7 @@ While initially designed as an **Acoustic Ray-Tracing Engine** to predict constr
 ```mermaid
 graph TD
     %% External Data Sources
-    subgraph Data Sources
+    subgraph DS [Data Sources]
         P[Paris Permits API]
         E[Events API]
         W[Weather Alerts]
@@ -17,7 +17,7 @@ graph TD
     end
 
     %% Tacet Core Engine
-    subgraph Tacet Contextual Engine
+    subgraph TCE [Tacet Contextual Engine]
         I[Ingestion Layer]
         RT[3D Ray-Tracing Physics]
         DM[(Dual Memory DB)]
@@ -30,7 +30,7 @@ graph TD
     end
 
     %% Routing
-    subgraph Dispatcher
+    subgraph D [Dispatcher]
         WH[Webhook Router]
         EXP[Explainability Chain]
         
@@ -39,13 +39,17 @@ graph TD
     end
 
     %% Destinations
-    subgraph Hotel Ecosystem
+    subgraph HE [Hotel Ecosystem]
         PMS[PMS: Apaleo / Mews]
         RMS[RMS: Atomize / Duetto]
         LLM[AI Agent: Aetherix]
     end
 
-    Data Sources --> I
+    P --> I
+    E --> I
+    W --> I
+    T --> I
+    
     WH -->|Tasks & Operations| PMS
     WH -->|Pricing Rules & Yield| RMS
     WH -->|Context & NLP| LLM
