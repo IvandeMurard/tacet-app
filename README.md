@@ -17,32 +17,34 @@ graph TD
     end
 
     %% Tacet Core Engine
-    subgraph TCE [Tacet Contextual Engine]
+    subgraph TCE [Tacet: Environmental Risk Twin]
         I[Ingestion Layer]
         RT[3D Ray-Tracing Physics]
         DM[(Dual Memory DB)]
         HM[Hive Mind Analytics]
+        MCP{{MCP Server Protocol}}
         
         I --> RT
         RT <--> DM
         DM --> HM
         HM --> RT
+        RT <--> MCP
     end
 
     %% Routing
-    subgraph D [Dispatcher]
-        WH[Webhook Router]
+    subgraph D [Webhook Dispatcher]
+        WH[Task/Yield Router]
         EXP[Explainability Chain]
         
         RT --> EXP
         EXP --> WH
     end
 
-    %% Destinations
-    subgraph HE [Hotel Ecosystem]
+    %% Destinations / The Agentic Mesh
+    subgraph AM [The Agentic Mesh & Hotel Ecosystem]
         PMS[PMS: Apaleo / Mews]
         RMS[RMS: Atomize / Duetto]
-        LLM[AI Agent: Aetherix]
+        LLM((Agentic OS: Aetherix))
     end
 
     P --> I
@@ -50,17 +52,22 @@ graph TD
     W --> I
     T --> I
     
-    WH -->|Tasks & Operations| PMS
-    WH -->|Pricing Rules & Yield| RMS
-    WH -->|Context & NLP| LLM
+    WH -->|Push: Operations| PMS
+    WH -->|Push: Yield Rules| RMS
+    
+    LLM <-->|Pull: Queries Tools via MCP| MCP
+    WH -.->|Push: Contextual Updates| LLM
 
     classDef core fill:#2d3436,stroke:#74b9ff,stroke-width:2px,color:#fff;
     classDef data fill:#0984e3,stroke:#74b9ff,color:#fff;
     classDef dest fill:#00b894,stroke:#55efc4,color:#fff;
+    classDef mcp fill:#6c5ce7,stroke:#a29bfe,stroke-width:3px,color:#fff;
     
-    class RT,DM,HM,EXP core;
+    class RT,DM,HM,EXP,I,WH core;
     class P,E,W,T data;
-    class PMS,RMS,LLM dest;
+    class PMS,RMS dest;
+    class LLM dest;
+    class MCP mcp;
 ```
 
 ## 🏗 Core Architecture & Engineering Highlights
