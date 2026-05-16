@@ -1,75 +1,53 @@
-# Orchestrating Silence: Predictive Acoustic Intelligence
+# Tacet: Predictive Environmental & Contextual Intelligence Engine
 
-Tacet is a proactive, headless intelligence layer designed for the hospitality sector. It predicts the impact of the external acoustic environment on the guest experience, moving from passive awareness to proactive yield management.
+Tacet is an advanced, headless AI engine built for the luxury hospitality sector. It acts as the sentient analytical layer between external environmental data (City Open Data, Weather, Traffic, Events) and Hotel Operations (Property Management Systems and Revenue Management Systems).
 
-## 🚀 Vision: The Synthetic Acoustic Twin
+While initially designed as an **Acoustic Ray-Tracing Engine** to predict construction noise propagation in dense urban environments (Paris), Tacet has evolved into a comprehensive **Contextual Intelligence Engine** capable of anticipating strikes, extreme weather, and massive crowd movements.
 
-Tacet has pivoted from a consumer-facing Next.js PWA into a B2B **Synthetic Acoustic Twin**. 
+## 🏗 Core Architecture & Engineering Highlights
 
-Instead of relying on costly hardware sensors, Tacet builds a physics-based, software-only acoustic model of a hotel property. It acts as an invisible intelligence layer, pushing JSON payloads directly to a hotel's Revenue Management System (RMS) or Property Management System (PMS) to automate operations and pricing based on environmental disruptions.
+This repository was architected to demonstrate modern, highly-scalable backend AI engineering patterns:
 
-### How it Works
-1. **Proxy Data Ingestion:** The engine continuously ingests APIs for the *causes* of noise: construction permits, traffic flow, weather conditions, and local events.
-2. **Spatial Geometry:** Using OpenStreetMap 3D building data, the algorithm calculates acoustic line-of-sight and building shielding.
-3. **Proactive Alerts:** Tacet outputs predictive alerts for specific rooms or wings. Example: *"Alert: OpenData Paris shows jackhammering scheduled for 7:00 AM tomorrow outside the East Wing. Recommendation: Reduce booking price by 10% for affected rooms, and automatically reassign VIP guests to the West Wing."*
+### 1. 3D Spatial Physics Engine (Acoustics)
+- **Ray-Tracing:** Uses `shapely` and `osmnx` to draw mathematical lines of sight between a disruptive event (e.g., a jackhammer or a stadium concert) and the target hotel.
+- **Physical Shielding:** Cross-references the ray-trace against 3D urban building polygons. If a building intersects the line of sight, a dynamic `-15 dB` shielding penalty is applied to the inverse-square law attenuation formula.
 
-## 🔗 Synergy with Aetherix
+### 2. Dual Memory Systems (Idiosyncratic & Hive Mind)
+Tacet is not a stateless script; it possesses a learning feedback loop powered by `SQLAlchemy` and `SQLite`.
+- **Idiosyncratic Memory (Local):** If a specific hotel's manager repeatedly rejects an automated alert for "Traffic Noise," Tacet learns that this specific building likely has triple-glazed windows. It automatically applies a persistent `+2.0 dB` shielding bonus for future calculations at that exact GPS coordinate.
+- **Hive Mind (Global):** A statistical aggregation engine (`app/services/hive_mind.py`) constantly analyzes rejection rates across the entire global network of hotels to dynamically adjust baseline ecosystem sensitivities.
 
-Tacet is designed to work in tandem with [Aetherix](https://github.com/IvandeMurard/aetherix-hospitality-ai), forming a complete **Predictive Digital Twin** for hotels:
-*   **Aetherix (Internal Context):** Predicts operational needs, F&B demand, and staffing.
-*   **Tacet (External Context):** Predicts environmental impact, street disruptions, and acoustic risks.
+### 3. Agentic & "Headless" Protocol (MCP Ready)
+Tacet has no graphical user interface. It is built to be consumed by LLM Orchestrators (like Aetherix) or direct machine-to-machine integrations.
+- **Explainability Chains:** To guarantee transparency in a headless system, every JSON payload includes a mathematical "Chain of Thought" (`explainability_chain`), allowing an LLM to read the raw data and explain the physics to a human in natural language.
 
-Together, they allow hotel operators to control costs, reduce waste, and guarantee an unparalleled guest experience.
+### 4. Enterprise Integrations & The HITL Guardrail
+Tacet adheres strictly to a **Human-In-The-Loop (HITL)** philosophy. It never executes autonomous destructive actions.
+- **Native PMS Tasks:** Implements OAuth2 and secure connectors (`mews_client.py`, `apaleo_client.py`) to push `CRITICAL` warnings directly into the hotel staff's operational dashboard as native tasks.
+- **The RMS Contract:** Generates universal Yield Management rules (`TacetRMSPayload`) designed for immediate ingestion by systems like Duetto or Atomize (e.g., *"-15% price modifier for Street Facing Suites between June 12-14"*).
 
-## 🏗️ Architecture (V1)
+## 🔌 Data Ingestion Ecosystem
 
-*The V1 Intelligence API is built entirely in Python for optimal spatial data processing.*
+Tacet ingests and standardizes chaotic external data into actionable intelligence:
+- **Planned Construction:** Paris Open Data (Predictive date filtering)
+- **Crowd Events:** "Que Faire à Paris" API (Stadium/Concert noise)
+- **Real-Time Traffic:** TomTom API Congestion ratios
+- **Logistical Disruptions:** Transit Strikes (RATP) & Extreme Weather Alerts
 
-```mermaid
-flowchart LR
-    %% Styling
-    classDef external fill:#f8fafc,stroke:#cbd5e1,stroke-width:1px,color:#334155;
-    classDef tacet fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
-    classDef hotel fill:#f1f5f9,stroke:#94a3b8,stroke-width:1px,color:#0f172a;
+## 🚀 Tech Stack
 
-    %% External Data
-    subgraph Proxy Data Sources
-        C[OpenData Permits]:::external
-        T[Traffic APIs]:::external
-        W[Weather APIs]:::external
-    end
+- **Framework:** Python 3.12, FastAPI
+- **Database:** SQLAlchemy / SQLite
+- **Spatial Math:** OSMnx, Shapely, GeoPandas
+- **Deployment:** Stateless webhook dispatching architecture
 
-    %% Core Engine
-    subgraph Tacet Engine
-        E((Synthetic<br/>Acoustic Model)):::tacet
-        M[(OpenStreetMap<br/>3D Geometry)]:::external
-        E --- M
-    end
+## 💡 Use Case Example
 
-    %% Hotel Ecosystem
-    subgraph Hotel Operations
-        RMS[Revenue Management<br/>System]:::hotel
-        PMS[Property Management<br/>System]:::hotel
-    end
-
-    %% Data Flow
-    C -->|Webhooks| E
-    T -->|Streams| E
-    W -->|Streams| E
-    E -->|JSON Alerts| RMS
-    E -->|Room Tags| PMS
-```
-
-*   **Core:** Data pipeline and algorithm engine built in Python using FastAPI, handling complex spatial data calculations and ML integrations.
-*   **Data Sources:** OpenData Paris (Construction), TomTom/Google Maps (Traffic), OpenWeatherMap (Weather), OpenStreetMap (3D Geometry).
-*   **Integration:** Headless Webhooks/APIs designed for seamless connection to industry-standard PMS/RMS platforms.
-
----
-
-### Previous Version (V2)
-
-*Note: The Next.js consumer PWA (V2) located in `/tacet` is currently frozen as we shift focus to the V3 backend intelligence layer.*
-
-The V2 Next.js application mapped Bruitparif noise data into a human-readable "Score Sérénité" for Paris. 
-- **Tech Stack:** Next.js 15, React 18, MapLibre GL JS, Tailwind CSS.
-- **Data Pipeline:** `scripts/build-paris-noise-iris.js` 
+**The Problem:** A massive music festival is planned 800 meters from a luxury hotel next July.
+**Tacet's Execution:**
+1. Fetches the event via the Event API.
+2. Calculates that the concert will generate `100 dB` of noise at the source.
+3. Performs a 3D Ray-Trace and confirms no buildings block the sound path.
+4. Queries the Idiosyncratic DB and sees this hotel has standard windows.
+5. Calculates the sound wave will hit the hotel at `55 dB` (Highly Disruptive).
+6. Dispatches a JSON payload to the RMS recommending a `-10% Price Yield` on street-facing rooms, while pushing a Task to the Apaleo PMS reminding the front desk to order earplugs. 

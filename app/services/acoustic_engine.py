@@ -6,6 +6,8 @@ from app.ingest.paris_permits import fetch_active_permits
 from app.ingest.paris_events import fetch_active_events
 from app.ingest.weather import fetch_current_weather
 from app.ingest.traffic import fetch_traffic_congestion
+from app.ingest.transit_strikes import fetch_transit_disruptions
+from app.ingest.extreme_weather import fetch_extreme_weather_alerts
 from app.services.spatial import get_surrounding_buildings
 from app.database import SessionLocal
 from app.models.db_models import FeedbackEvent
@@ -259,8 +261,36 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
         )
         alerts.append(alert)
         
+    # Fetch Transit Strikes
+    transit_disruptions = fetch_transit_disruptions(hotel_lat, hotel_lon, target_start, target_end)
+    for disruption in transit_disruptions:
+        alerts.append(
+            AcousticAlert(
+                source_type=disruption["source_type"],
+                severity=disruption["severity"],
+                predicted_db_increase=0.0, # Not an acoustic event
+                distance_meters=0, # City-wide
+                recommendation=disruption["recommendation"],
+                explainability_chain=[f"Transit Data: {disruption['description']}"]
+            )
+        )
+        
+    # Fetch Extreme Weather
+    extreme_weather = fetch_extreme_weather_alerts(hotel_lat, hotel_lon, target_start, target_end)
+    for weather in extreme_weather:
+        alerts.append(
+            AcousticAlert(
+                source_type=weather["source_type"],
+                severity=weather["severity"],
+                predicted_db_increase=0.0, # Not an acoustic event
+                distance_meters=0, # City-wide
+                recommendation=weather["recommendation"],
+                explainability_chain=[f"Weather Data: {weather['description']}"]
+            )
+        )
+        
     # Sort alerts by severity/noise level (highest noise first)
-    alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
+    alerts.sort(key=lambda x: (x.severity == "CRITICAL", x.severity == "HIGH", x.predicted_db_increase), reverse=True)
     
     processing_time_ms = int((time.time() - start_time) * 1000)
     metadata = {
