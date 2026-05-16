@@ -1,8 +1,8 @@
-# Tacet: Predictive Environmental & Contextual Intelligence Engine
+# Tacet: Hotel Environmental Risk & Comfort Twin
 
-Tacet is an advanced, headless AI engine built for the luxury hospitality sector. It acts as the sentient analytical layer between external environmental data (City Open Data, Weather, Traffic, Events) and Hotel Operations (Property Management Systems and Revenue Management Systems).
+Tacet is an advanced, headless AI engine built for the luxury hospitality sector. It acts as the sentient **Environmental Digital Twin**, bridging chaotic external data (City Open Data, Weather, Traffic, Events) with Hotel Operations and the broader Agentic Mesh (like Aetherix).
 
-While initially designed as an **Acoustic Ray-Tracing Engine** to predict construction noise propagation in dense urban environments (Paris), Tacet has evolved into a comprehensive **Contextual Intelligence Engine** capable of anticipating strikes, extreme weather, and massive crowd movements.
+While initially designed as an **Acoustic Ray-Tracing Engine**, Tacet has evolved into a comprehensive **Contextual Intelligence Engine** capable of anticipating strikes, extreme weather, and massive crowd movements. It outputs direct ESG KPIs, operational tasks, and yield recommendations.
 
 ## 🗺️ Architecture Overview
 
@@ -76,8 +76,9 @@ Tacet is not a stateless script; it possesses a learning feedback loop powered b
 - **Idiosyncratic Memory (Local):** If a specific hotel's manager repeatedly rejects an automated alert for "Traffic Noise," Tacet learns that this specific building likely has triple-glazed windows. It automatically applies a persistent `+2.0 dB` shielding bonus for future calculations at that exact GPS coordinate.
 - **Hive Mind (Global):** A statistical aggregation engine (`app/services/hive_mind.py`) constantly analyzes rejection rates across the entire global network of hotels to dynamically adjust baseline ecosystem sensitivities.
 
-### 3. Agentic & "Headless" Protocol (MCP Ready)
-Tacet has no graphical user interface. It is built to be consumed by LLM Orchestrators (like Aetherix) or direct machine-to-machine integrations.
+### 3. The Agentic Mesh & MCP Server
+Tacet is fully integrated into the modern Agentic OS paradigm. It exposes a native **Model Context Protocol (MCP)** server (`app/mcp_server.py`).
+- **Composable Capabilities:** Other agents (like Aetherix for F&B/Staffing) or LLMs (Claude) can seamlessly query Tacet via the `get_environmental_risk_profile` tool.
 - **Explainability Chains:** To guarantee transparency in a headless system, every JSON payload includes a mathematical "Chain of Thought" (`explainability_chain`), allowing an LLM to read the raw data and explain the physics to a human in natural language.
 
 ### 4. Enterprise Integrations & The HITL Guardrail
@@ -128,13 +129,24 @@ Tacet is a headless engine. The easiest way to test its capabilities is via the 
    ```
    *Look at the `explainability_chain` in the response to see the Ray-Tracing math in action!*
 
-## 💡 Use Case Example
+## 🤖 How to use the MCP Server (Agentic Mesh)
+Tacet can act as a "Sensory Node" for other AI Agents. You can run the official MCP server:
+```bash
+python -m app.mcp_server
+```
+Once running via `stdio` or SSE, any compatible LLM or orchestrator (like Claude Desktop) can dynamically call the `get_environmental_risk_profile` tool to fetch live spatial intelligence.
 
-**The Problem:** A massive music festival is planned 800 meters from a luxury hotel next July.
+## 💡 Use Case Example & ESG Impact
+
+**The Problem:** A massive heatwave and a music festival coincide near a luxury hotel next July.
 **Tacet's Execution:**
-1. Fetches the event via the Event API.
+1. Fetches the events via the Event API and Meteo API.
 2. Calculates that the concert will generate `100 dB` of noise at the source.
 3. Performs a 3D Ray-Trace and confirms no buildings block the sound path.
 4. Queries the Idiosyncratic DB and sees this hotel has standard windows.
 5. Calculates the sound wave will hit the hotel at `55 dB` (Highly Disruptive).
-6. Dispatches a JSON payload to the RMS recommending a `-10% Price Yield` on street-facing rooms, while pushing a Task to the Apaleo PMS reminding the front desk to order earplugs. 
+6. **Agentic Mesh Action:** Dispatches a JSON payload to the RMS recommending a `-10% Price Yield` on street-facing rooms. The orchestrator (Aetherix) reads the payload and automatically adjusts F&B supply and staffing buffers due to the heatwave.
+
+**ESG KPIs Supported:**
+- % Reduction in energy waste (HVAC optimization preempting weather events).
+- Improvement in guest well-being and complaint reduction regarding urban noise pollution. 

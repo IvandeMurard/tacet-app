@@ -1,13 +1,13 @@
-# Case Study: Tacet – Predictive Contextual Intelligence for Luxury Hospitality
+# Case Study: Tacet – The Hotel Environmental Risk & Comfort Twin
 
 ## 1. The Core Problem
-Luxury hospitality is inherently reactive to its environment. A sudden transport strike, an unannounced street excavation, or a massive music festival can drastically alter the guest experience and demand curves. 
+Luxury hospitality is inherently reactive to its environment. A sudden transport strike, an unannounced street excavation, or a massive heatwave can drastically alter the guest experience and demand curves. 
 Revenue Management Systems (RMS) and Property Management Systems (PMS) rely heavily on historical booking data. They are blind to the *physical* and *contextual* future of the property's immediate surroundings. This blindness leads to mispriced inventory, operational friction, and ultimately, guest dissatisfaction.
 
 ## 2. The Solution: Tacet
-Tacet is a headless, predictive Environmental & Contextual Intelligence engine. It acts as a sentient analytical layer between chaotic city data and the hotel's operational software. 
+Tacet is a headless, predictive **Environmental Digital Twin**. It acts as the sentient sensory layer for a broader hospitality "Agentic Mesh". 
 
-Rather than overwhelming the hotel staff with a dashboard of raw data, Tacet mathematically calculates the real-world impact of external events and pushes actionable yield rules directly to the RMS (like Atomize or Duetto) and preventative tasks to the PMS (like Mews or Apaleo).
+Rather than overwhelming the hotel staff with a dashboard of raw data, Tacet mathematically calculates the real-world impact of external events. It exposes this intelligence via an **MCP (Model Context Protocol)** server so that operational agents (like Aetherix) can adjust F&B/staffing, while Tacet pushes actionable yield rules directly to the RMS (like Atomize or Duetto).
 
 ### Key Architectural Pillars
 
@@ -25,15 +25,18 @@ Tacet is governed by a strict business rule: it never executes autonomous, destr
 **D. Conversational Explainability (The Headless Challenge)**
 To guarantee transparency in a system without a GUI, Tacet generates a mathematical "Chain of Thought" in every JSON response. An orchestration agent (like Aetherix) can parse this payload and explain the exact physics (Base Noise -> Distance Attenuation -> Ray-Tracing Penalty -> Final Impact) to the Revenue Manager in natural language.
 
-## 3. The Impact
-By integrating Tacet, luxury hotels shift from a reactive posture to proactive yield management. 
+## 3. The Impact & ESG Alignment
+By integrating Tacet into an Agentic OS, luxury hotels shift from a reactive posture to proactive yield and operational management. 
 - **Yield Protection:** Automatically lowering prices on noisy inventory prevents costly post-stay refunds.
-- **Yield Maximization:** Anticipating hyper-local crowd surges allows for premium pricing adjustments days in advance.
-- **Operational Excellence:** Pre-emptively ordering earplugs or pausing room service during extreme weather events guarantees a 5-star standard regardless of the external chaos.
+- **Operational Excellence (Aetherix Integration):** When Tacet detects an impending heatwave + transport strike, the orchestration layer automatically adjusts F&B supply and staffing buffers to prevent food waste and labor inefficiencies.
+- **Measurable ESG KPIs:** 
+  - Significant reduction in energy waste (e.g., proactive HVAC optimization based on micro-weather).
+  - Quantitative improvement in guest well-being (proactive mitigation of urban noise pollution).
 
 ## 4. Technical Stack
+- **Agentic Protocol:** Anthropic MCP (Model Context Protocol) SDK
 - **Language:** Python 3.12
 - **Framework:** FastAPI (REST, OpenAPI)
 - **Database:** SQLAlchemy / SQLite
 - **Spatial Processing:** OSMnx, Shapely, GeoPandas
-- **Integrations:** OAuth2, Mews Open API, Apaleo API
+- **Integrations:** OAuth2, Mews Open API, Apaleo API, RMS Webhooks
