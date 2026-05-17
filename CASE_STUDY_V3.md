@@ -28,7 +28,12 @@ Tacet is governed by a strict business rule: it never executes autonomous, destr
 **D. Conversational Explainability (The Headless Challenge)**
 To guarantee transparency in a system without a GUI, Tacet generates a mathematical "Chain of Thought" in every JSON response. An orchestration agent (like Aetherix) can parse this payload and explain the exact physics (Base Noise -> Distance Attenuation -> Ray-Tracing Penalty -> Final Impact) to the Revenue Manager in natural language.
 
-## 3. The Impact & ESG Alignment
+## 3. The Future Vision: The Environmental Command Center
+While Tacet is designed as a headless agentic node, we envisioned what a premium "Command Center" interface would look like for a luxury hotel group. This vision combines 3D spatial mapping with actionable ESG and Yield metrics.
+
+![Tacet Premium UI Concept](./docs/tacet_ui_concept.png)
+
+## 4. The Impact & ESG Alignment
 By integrating Tacet into an Agentic OS, luxury hotels shift from a reactive posture to proactive yield and operational management. 
 - **Yield Protection:** Automatically lowering prices on noisy inventory prevents costly post-stay refunds.
 - **Operational Excellence (Aetherix Integration):** When Tacet detects an impending heatwave + transport strike, the orchestration layer automatically adjusts F&B supply and staffing buffers to prevent food waste and labor inefficiencies.
