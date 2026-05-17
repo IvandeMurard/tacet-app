@@ -21,6 +21,8 @@ Tacet is an advanced, headless **Environmental Risk & Comfort Twin** for the lux
 It functions as a sentient analytical layer that bridges chaotic external data (City Open Data, Weather, Traffic, Events) with Hotel Operations and Revenue Management Systems.
 Tacet synthesizes spatial physics (3D acoustic ray-tracing) and real-time environmental context through a dual-memory system. It is designed from the ground up to proactively protect guest yield and comfort, and is callable by other agents via a native MCP (Model Context Protocol) server.
 
+![Tacet API Live Demonstration](./docs/tacet_api_demo.webp)
+
 ## 🗺️ Architecture Overview
 
 ```mermaid

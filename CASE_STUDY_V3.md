@@ -9,6 +9,9 @@ Tacet is a headless, predictive **Environmental Digital Twin**. It acts as the s
 
 Rather than overwhelming the hotel staff with a dashboard of raw data, Tacet mathematically calculates the real-world impact of external events. It exposes this intelligence via an **MCP (Model Context Protocol)** server so that operational agents (like Aetherix) can adjust F&B/staffing, while Tacet pushes actionable yield rules directly to the RMS (like Atomize or Duetto).
 
+*Live Demonstration of Tacet's API generating a spatial explainability chain:*
+![Démonstration de l'API Tacet (Swagger UI)](./docs/tacet_api_demo.webp)
+
 ### Key Architectural Pillars
 
 **A. The Spatial Physics Engine (Acoustic Ray-Tracing)**

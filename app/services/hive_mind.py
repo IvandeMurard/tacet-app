@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, case
 from app.database import SessionLocal
 from app.models.db_models import FeedbackEvent
 
@@ -18,7 +18,7 @@ def calculate_global_modifiers() -> dict:
             FeedbackEvent.source_type,
             func.count(FeedbackEvent.id).label('total_events'),
             func.sum(
-                func.case((FeedbackEvent.action == "REJECTED", 1), else_=0)
+                case((FeedbackEvent.action == "REJECTED", 1), else_=0)
             ).label('rejected_events')
         ).group_by(FeedbackEvent.source_type).all()
         
