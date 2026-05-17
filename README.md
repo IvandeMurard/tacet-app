@@ -4,12 +4,13 @@
   <p><em>Helping Hotel Revenue Managers predict their property's environmental exposure.</em></p>
   
   <p>
-    <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" />
-    <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white" />
-    <img src="https://img.shields.io/badge/MCP-Ready-6c5ce7?style=for-the-badge" />
-    <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" />
-    <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" />
-    <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white" alt="Python 3.12" />
+    <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi&logoColor=white" alt="FastAPI" />
+    <img src="https://img.shields.io/badge/Anthropic-MCP_Ready-D97757?style=flat&logo=anthropic&logoColor=white" alt="MCP Ready" />
+    <img src="https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat&logo=sqlalchemy&logoColor=white" alt="SQLAlchemy" />
+    <img src="https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white" alt="SQLite" />
+    <br>
+    <img src="https://img.shields.io/badge/License-MIT-2ea44f?style=flat" alt="License MIT" />
   </p>
 </div>
 
