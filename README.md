@@ -1,7 +1,19 @@
-# Tacet
-*Helping Hotel Revenue Managers predict their property's environmental exposure.*
+<div align="center">
+  <h1>Tacet</h1>
+  
+  <p><em>Helping Hotel Revenue Managers predict their property's environmental exposure.</em></p>
+  
+  <p>
+    <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white" />
+    <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white" />
+    <img src="https://img.shields.io/badge/MCP-Ready-6c5ce7?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" />
+    <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" />
+    <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" />
+  </p>
+</div>
 
-![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white) ![Anthropic MCP](https://img.shields.io/badge/MCP-Ready-6c5ce7?style=for-the-badge) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
+---
 
 ## Overview
 Tacet is an advanced, headless **Environmental Risk & Comfort Twin** for the luxury hospitality sector.
