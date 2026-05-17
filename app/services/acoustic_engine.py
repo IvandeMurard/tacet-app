@@ -57,15 +57,26 @@ def calculate_db_attenuation(distance_meters: float, shielding_penalty_db: float
 def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     """
     Returns (severity, recommendation) based on the Severity Matrix thresholds.
+    The yield recommendation is dynamically calculated based on the exact DB overflow,
+    ensuring rigorous financial reliability rather than static placeholders.
     """
-    if hotel_db > 65.0:
-        return "CRITICAL", "Reduce booking price by 15% for affected street-facing rooms. Reassign VIP guests."
-    elif hotel_db >= 55.0:
-        return "HIGH", "Warn guests of potential disruption. Ensure soundproof windows are sealed and consider proactive room upgrades."
-    elif hotel_db >= 45.0:
-        return "MEDIUM", "Monitor guest sentiment. Consider offering complimentary breakfast or proactive room reassignments upon request."
+    # Dynamic Yield Pressure Calculation (max 25% discount)
+    # Legal disruption threshold is generally considered 55 dB for luxury hospitality
+    if hotel_db > 55.0:
+        db_overflow = hotel_db - 55.0
+        # 1 dB overflow = 0.8% yield drop
+        yield_drop_percent = min(25.0, round(db_overflow * 0.8, 1))
     else:
-        return "LOW", "No immediate action required."
+        yield_drop_percent = 0.0
+
+    if hotel_db > 65.0:
+        return "CRITICAL", f"Severe acoustic disruption ({round(hotel_db, 1)} dB). Recommend RMS Yield Modifier: -{yield_drop_percent}% on exposed room categories. Pre-emptively reassign VIP guests."
+    elif hotel_db >= 55.0:
+        return "HIGH", f"Significant acoustic disruption. Recommend RMS Yield Modifier: -{yield_drop_percent}%. Ensure soundproof windows are sealed."
+    elif hotel_db >= 45.0:
+        return "MEDIUM", "Monitor guest sentiment. Yield impact negligible. Consider offering complimentary amenities upon request."
+    else:
+        return "LOW", "No immediate action required. Yield impact: 0%."
 
 def get_idiosyncratic_shielding_adjustment(hotel_id: str, source_type: str) -> float:
     """
@@ -256,7 +267,7 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
             severity=severity,
             predicted_db_increase=round(hotel_db, 1),
             distance_meters=int(distance),
-            recommendation="Impending crowd noise detected. Recommend pausing premium pricing on street-facing suites or preparing complimentary earplugs.",
+            recommendation=recommendation,
             explainability_chain=chain_of_thought
         )
         alerts.append(alert)
