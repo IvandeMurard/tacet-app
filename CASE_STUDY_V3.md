@@ -23,7 +23,7 @@ A predictive engine must learn from its mistakes. Tacet features a built-in stat
 - **Hive Mind:** A statistical aggregation engine constantly analyzes rejection rates across the global network of hotels to dynamically adjust the baseline sensitivity of the entire ecosystem.
 
 **C. The Human-In-The-Loop (HITL) Guardrail**
-Tacet is governed by a strict business rule: it never executes autonomous, destructive actions (like changing a price blindly). Instead, it formulates a precise "Price Modifier Rule" (e.g., *-15% for Street-Facing Suites between June 12-14*) and pushes it to the RMS for human approval.
+Tacet is governed by a strict business rule: it never executes autonomous, destructive actions (like changing a price blindly). Instead, it computes a precise Yield Modifier mathematically linked to the severity of the physical disruption (e.g., *-8.0% for Street-Facing Suites based on a 10dB overflow*) and pushes it to the RMS for human approval.
 
 **D. Conversational Explainability (The Headless Challenge)**
 To guarantee transparency in a system without a GUI, Tacet generates a mathematical "Chain of Thought" in every JSON response. An orchestration agent (like Aetherix) can parse this payload and explain the exact physics (Base Noise -> Distance Attenuation -> Ray-Tracing Penalty -> Final Impact) to the Revenue Manager in natural language.

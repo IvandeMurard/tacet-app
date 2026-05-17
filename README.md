@@ -174,8 +174,8 @@ Once running via `stdio` or SSE, any compatible LLM or orchestrator (like Claude
 2. Calculates that the concert will generate `100 dB` of noise at the source.
 3. Performs a 3D Ray-Trace and confirms no buildings block the sound path.
 4. Queries the Idiosyncratic DB and sees this hotel has standard windows.
-5. Calculates the sound wave will hit the hotel at `55 dB` (Highly Disruptive).
-6. **Agentic Mesh Action:** Dispatches a JSON payload to the RMS recommending a `-10% Price Yield` on street-facing rooms. The orchestrator (Aetherix) reads the payload and automatically adjusts F&B supply and staffing buffers due to the heatwave.
+5. Calculates the sound wave will hit the hotel at `65 dB` (Highly Disruptive).
+6. **Agentic Mesh Action:** Dispatches a JSON payload to the RMS recommending a `-8.0% Price Yield` on street-facing rooms (Calculated dynamically: 0.8% drop for every dB over the legal 55dB limit). The orchestrator (Aetherix) reads the payload and automatically adjusts F&B supply and staffing buffers due to the heatwave.
 
 **ESG KPIs Supported:**
 - % Reduction in energy waste (HVAC optimization preempting weather events).
