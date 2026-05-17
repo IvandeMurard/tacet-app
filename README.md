@@ -1,8 +1,12 @@
-# Tacet: Hotel Environmental Risk & Comfort Twin
+# Tacet
+*Helping Hotel Revenue Managers predict their property's environmental exposure.*
 
-Tacet is an advanced, headless AI engine built for the luxury hospitality sector. It acts as the sentient **Environmental Digital Twin**, bridging chaotic external data (City Open Data, Weather, Traffic, Events) with Hotel Operations and the broader Agentic Mesh (like Aetherix).
+![Python 3.12](https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=FastAPI&logoColor=white) ![Anthropic MCP](https://img.shields.io/badge/MCP-Ready-6c5ce7?style=for-the-badge) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
-While initially designed as an **Acoustic Ray-Tracing Engine**, Tacet has evolved into a comprehensive **Contextual Intelligence Engine** capable of anticipating strikes, extreme weather, and massive crowd movements. It outputs direct ESG KPIs, operational tasks, and yield recommendations.
+## Overview
+Tacet is an advanced, headless **Environmental Risk & Comfort Twin** for the luxury hospitality sector.
+It functions as a sentient analytical layer that bridges chaotic external data (City Open Data, Weather, Traffic, Events) with Hotel Operations and Revenue Management Systems.
+Tacet synthesizes spatial physics (3D acoustic ray-tracing) and real-time environmental context through a dual-memory system. It is designed from the ground up to proactively protect guest yield and comfort, and is callable by other agents via a native MCP (Model Context Protocol) server.
 
 ## 🗺️ Architecture Overview
 
