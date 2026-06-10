@@ -9,3 +9,4 @@ shapely>=2.0.3
 osmnx>=1.9.1
 sqlalchemy>=2.0.0
 mcp>=1.27.1
+apscheduler>=3.10.0

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from app.api import forecast, webhooks, feedback, analytics
 from app.database import engine, Base
 from dotenv import load_dotenv
@@ -9,10 +10,18 @@ load_dotenv()
 # Initialize Database tables
 Base.metadata.create_all(bind=engine)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.ingest.worker import start_scheduler, stop_scheduler
+    start_scheduler()
+    yield
+    stop_scheduler()
+
 app = FastAPI(
     title="Tacet Acoustic Intelligence API",
     description="Proactive Acoustic Intelligence Layer for Hospitality",
-    version="1.0.0" # Changed to 1.0.0
+    version="1.0.0", # Changed to 1.0.0
+    lifespan=lifespan
 )
 
 # Configure CORS

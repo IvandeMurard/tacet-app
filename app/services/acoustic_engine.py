@@ -1,21 +1,22 @@
 import math
 import time
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
+from shapely.ops import nearest_points
+from sqlalchemy import func
 from app.api.models import AcousticAlert
-from app.ingest.paris_permits import fetch_active_permits
-from app.ingest.paris_events import fetch_active_events
-from app.ingest.weather import fetch_current_weather
-from app.ingest.traffic import fetch_traffic_congestion
-from app.ingest.transit_strikes import fetch_transit_disruptions
-from app.ingest.extreme_weather import fetch_extreme_weather_alerts
 from app.services.spatial import get_surrounding_buildings
 from app.database import SessionLocal
-from app.models.db_models import FeedbackEvent
-from app.services.hive_mind import get_hive_modifier
+from app.models.db_models import FeedbackEvent, GeoEvent, EnvironmentalState
 
 # Base assumptions for the V1 Synthetic Model
 BASE_CONSTRUCTION_DB_AT_1M = 90.0
 BASE_CROWD_EVENT_DB_AT_1M = 100.0
+
+# --- POLAR HEATMAP CACHE ---
+# Cache in-memory for the MVP: Dict[hotel_id, Dict[int, float]]
+# Keys are angles 0-359, values are distance to nearest building.
+# In a future iteration, this could be migrated to Redis or Supabase.
+ACOUSTIC_HEATMAP_CACHE = {}
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
@@ -34,6 +35,71 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distance_meters = R * c
     return distance_meters
+
+def get_bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> int:
+    """Calculates the compass bearing from point 1 to point 2."""
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_lambda = math.radians(lon2 - lon1)
+    y = math.sin(delta_lambda) * math.cos(phi2)
+    x = math.cos(phi1) * math.sin(phi2) - math.sin(phi1) * math.cos(phi2) * math.cos(delta_lambda)
+    theta = math.atan2(y, x)
+    return int(round(math.degrees(theta) + 360)) % 360
+
+def build_acoustic_heatmap(hotel_lat: float, hotel_lon: float, buildings: list) -> dict:
+    """
+    Casts 360 rays from the hotel to pre-calculate the distance to the nearest
+    obstacle in every direction. O(B) initialization, allows O(1) lookup.
+    """
+    heatmap = {}
+    max_distance = 1500.0  # Cast rays up to 1.5km
+    R = 6371000
+    hotel_point = Point(hotel_lon, hotel_lat)
+
+    for angle in range(360):
+        bearing = math.radians(angle)
+        lat1 = math.radians(hotel_lat)
+        lon1 = math.radians(hotel_lon)
+        
+        # Calculate destination point of the ray
+        lat2 = math.asin(math.sin(lat1)*math.cos(max_distance/R) + 
+                         math.cos(lat1)*math.sin(max_distance/R)*math.cos(bearing))
+        lon2 = lon1 + math.atan2(math.sin(bearing)*math.sin(max_distance/R)*math.cos(lat1),
+                                 math.cos(max_distance/R)-math.sin(lat1)*math.sin(lat2))
+        
+        ray = LineString([(hotel_lon, hotel_lat), (math.degrees(lon2), math.degrees(lat2))])
+        
+        min_obstacle_dist = max_distance
+        
+        for building in buildings:
+            intersection = ray.intersection(building["polygon"])
+            if not intersection.is_empty:
+                # Exact distance to the intersection point
+                closest_pt, _ = nearest_points(intersection, hotel_point)
+                dist = haversine_distance(hotel_lat, hotel_lon, closest_pt.y, closest_pt.x)
+                # Ignore buildings that the hotel is inside or too close to (< 20m)
+                if 20 < dist < min_obstacle_dist:
+                    min_obstacle_dist = dist
+                    
+        heatmap[angle] = min_obstacle_dist
+        
+    return heatmap
+
+def get_shielding_penalty(hotel_id: str, hotel_lat: float, hotel_lon: float, event_lat: float, event_lon: float, distance_meters: float) -> float:
+    """
+    O(1) lookup for ray-tracing penalty using the Polar Heatmap Cache.
+    """
+    if hotel_id not in ACOUSTIC_HEATMAP_CACHE:
+        buildings = get_surrounding_buildings(hotel_lat, hotel_lon)
+        ACOUSTIC_HEATMAP_CACHE[hotel_id] = build_acoustic_heatmap(hotel_lat, hotel_lon, buildings)
+        
+    heatmap = ACOUSTIC_HEATMAP_CACHE[hotel_id]
+    angle = get_bearing(hotel_lat, hotel_lon, event_lat, event_lon)
+    
+    # If the event is further than the nearest obstacle in that direction, it is shielded
+    if distance_meters > heatmap[angle]:
+        return 15.0
+    return 0.0
 
 def calculate_db_attenuation(distance_meters: float, shielding_penalty_db: float, base_db: float, is_raining: bool = False) -> float:
     """
@@ -78,54 +144,68 @@ def determine_severity_and_action(hotel_db: float) -> tuple[str, str]:
     else:
         return "LOW", "No immediate action required. Yield impact: 0%."
 
-def get_idiosyncratic_shielding_adjustment(hotel_id: str, source_type: str) -> float:
+def preload_idiosyncratic_adjustments(hotel_id: str) -> dict:
     """
-    Queries the Idiosyncratic Memory to see if this specific hotel consistently 
-    rejects this type of noise alert.
-    If so, returns an artificial padding to the shielding penalty.
+    Pre-loads the idiosyncratic adjustments for a hotel using a single SQL query.
+    Returns a dict mapping base_source to adjustment float.
     """
     db = SessionLocal()
     try:
-        base_source = "CONSTRUCTION" if "CONSTRUCTION" in source_type else source_type
-        
-        rejections = db.query(FeedbackEvent).filter(
+        results = db.query(
+            FeedbackEvent.source_type,
+            func.count(FeedbackEvent.id)
+        ).filter(
             FeedbackEvent.hotel_id == hotel_id,
-            FeedbackEvent.source_type.like(f"%{base_source}%"),
             FeedbackEvent.action == "REJECTED"
-        ).count()
+        ).group_by(FeedbackEvent.source_type).all()
         
-        # Every rejection adds +2 dB of artificial shielding
-        # Cap it at +15 dB
-        return min(15.0, float(rejections) * 2.0)
+        counts = {}
+        for source_type, count in results:
+            if "CONSTRUCTION" in source_type:
+                key = "CONSTRUCTION"
+            elif "CROWD_EVENT" in source_type:
+                key = "CROWD_EVENT"
+            else:
+                key = source_type
+                
+            counts[key] = counts.get(key, 0) + count
+            
+        return {k: min(15.0, float(v) * 2.0) for k, v in counts.items()}
     finally:
         db.close()
 
 def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_start: str = None, target_end: str = None, limit_sites: int = 20) -> tuple[list[AcousticAlert], str | None, dict]:
     """
     Core business logic: Fetches permits, weather, traffic, and 3D geometry.
-    Performs acoustic ray-tracing to calculate precise noise attenuation.
+    Performs acoustic ray-tracing to calculate precise noise attenuation using an O(1) cache.
     Filters by predictive dates if provided.
     Queries the Idiosyncratic Memory database to adjust calculations.
     """
     start_time = time.time()
     
-    # Fetch Environmental Context
-    weather_data = fetch_current_weather(hotel_lat, hotel_lon)
-    weather_condition = weather_data["main"] if weather_data else None
-    is_raining = (weather_condition == "Rain")
-    
-    # Fetch 3D Geometry
-    buildings = get_surrounding_buildings(hotel_lat, hotel_lon)
-    
-    alerts = []
-    
-    # Check Traffic Congestion (TomTom)
-    traffic_data = fetch_traffic_congestion(hotel_lat, hotel_lon)
-    if traffic_data:
-        congestion_ratio = traffic_data.get("congestion_ratio", 1.0)
-        # If speed is less than 40% of free flow, we have severe congestion
+    db = SessionLocal()
+    try:
+        # Fetch Environmental Context from DB
+        env_state = db.query(EnvironmentalState).order_by(EnvironmentalState.timestamp.desc()).first()
+        weather_condition = env_state.weather_condition if env_state else None
+        is_raining = (weather_condition == "Rain")
+        congestion_ratio = env_state.congestion_ratio if env_state else 1.0
+
+        # Pre-warm Cache (or ensure it's built)
+        cache_status = "HIT"
+        buildings_analyzed = 0
+        if hotel_id not in ACOUSTIC_HEATMAP_CACHE:
+            buildings = get_surrounding_buildings(hotel_lat, hotel_lon)
+            ACOUSTIC_HEATMAP_CACHE[hotel_id] = build_acoustic_heatmap(hotel_lat, hotel_lon, buildings)
+            buildings_analyzed = len(buildings)
+            cache_status = "MISS"
+            
+        idiosyncratic_adjustments = preload_idiosyncratic_adjustments(hotel_id)
+        
+        alerts = []
+        
+        # Check Traffic Congestion
         if congestion_ratio < 0.4:
-            # Idling diesels and honking generate intense local noise
             alerts.append(
                 AcousticAlert(
                     source_type="TRAFFIC_CONGESTION",
@@ -135,179 +215,105 @@ def generate_forecast(hotel_id: str, hotel_lat: float, hotel_lon: float, target_
                     recommendation="Severe traffic congestion detected. Recommend pausing premium pricing on street-facing suites or offering affected guests complimentary spa access."
                 )
             )
-            
-    # Fetch Disruptions (Construction)
-    permits = fetch_active_permits(limit=limit_sites, target_start=target_start, target_end=target_end)
-    if not permits:
-        alerts.sort(key=lambda x: x.predicted_db_increase, reverse=True)
-        return alerts, weather_condition
-    
-    for permit in permits:
-        coords = permit.get("coordinates")
-        if not coords:
-            continue
-            
-        permit_lat = coords.get("lat")
-        permit_lon = coords.get("lon")
-        
-        # 1. Distance Calculation
-        distance = haversine_distance(hotel_lat, hotel_lon, permit_lat, permit_lon)
-        
-        # We only care about construction within ~500 meters for now to save processing
-        if distance > 500:
-            continue
-            
-        # 1.5 Query Idiosyncratic Memory
-        idiosyncratic_bonus = get_idiosyncratic_shielding_adjustment(hotel_id, "CONSTRUCTION")
-        
-        # 1.6 Query Hive Memory
-        hive_bonus = get_hive_modifier("CONSTRUCTION")
-        
-        # 2. Acoustic Ray-Tracing
-        shielding_penalty = 0.0 + idiosyncratic_bonus + hive_bonus
-        # Draw a line from source to receiver (shapely expects lon, lat)
-        line_of_sight = LineString([(hotel_lon, hotel_lat), (permit_lon, permit_lat)])
-        
-        # Check intersections against 3D city layout
-        for building in buildings:
-            if line_of_sight.intersects(building["polygon"]):
-                # Sound is physically blocked by a building
-                shielding_penalty = 15.0
-                break # We found a blocker, no need to check others
                 
-        # 3. Acoustic Math
-        hotel_db = calculate_db_attenuation(distance, shielding_penalty_db=shielding_penalty, base_db=BASE_CONSTRUCTION_DB_AT_1M, is_raining=is_raining)
-        
-        # If noise is < 45 dB, it's considered ambient and we don't alert
-        if hotel_db < 45.0:
-            continue
+        # Fetch GeoEvents from DB
+        query = db.query(GeoEvent)
+        # Apply date filters if provided
+        if target_start:
+            query = query.filter(GeoEvent.start_date >= target_start)
+        if target_end:
+            query = query.filter(GeoEvent.start_date <= target_end)
             
-        chain_of_thought = [
-            f"Base Noise: {BASE_CONSTRUCTION_DB_AT_1M} dB (Construction at 1m)",
-            f"Distance Attenuation: {int(distance)}m removed {round(BASE_CONSTRUCTION_DB_AT_1M - (hotel_db + shielding_penalty), 1)} dB"
-        ]
-        if shielding_penalty > 0:
-            chain_of_thought.append(f"Ray-Tracing Penalty: -15.0 dB (Blocked by 3D geometry)")
-        if idiosyncratic_bonus > 0:
-            chain_of_thought.append(f"Idiosyncratic Memory Bonus: +{idiosyncratic_bonus} dB (Hotel historically rejects alerts)")
-        if hive_bonus > 0:
-            chain_of_thought.append(f"Hive Memory Bonus: +{hive_bonus} dB (Global ecosystem suppression)")
-        if is_raining:
-            chain_of_thought.append("Weather Penalty: +3.0 dB (Rain increases wet surface friction)")
-        chain_of_thought.append(f"Final Predicted Impact: {round(hotel_db, 1)} dB")
+        geo_events = query.limit(limit_sites * 4).all()  # multiply limit since we fetch all types at once
         
-        # 4. Severity Matrix
-        severity, recommendation = determine_severity_and_action(hotel_db)
-        
-        permit_start = permit.get('start_date', 'Unknown')[:10] if permit.get('start_date') else 'Unknown'
-        permit_end = permit.get('end_date', 'Unknown')[:10] if permit.get('end_date') else 'Unknown'
-        
-        alert = AcousticAlert(
-            source_type=f"PLANNED_CONSTRUCTION (From {permit_start} to {permit_end})",
-            severity=severity,
-            predicted_db_increase=round(hotel_db, 1),
-            distance_meters=int(distance),
-            recommendation=recommendation,
-            explainability_chain=chain_of_thought
-        )
-        alerts.append(alert)
-        
-    # Fetch Events (Crowds)
-    events = fetch_active_events(limit=limit_sites, target_start=target_start, target_end=target_end)
-    for event in events:
-        coords = event.get("coordinates")
-        if not coords:
-            continue
+        cache_lookups = 0
+        for event in geo_events:
+            # Transit Strikes and Extreme Weather
+            if event.event_type in ("transit_strike", "extreme_weather"):
+                alerts.append(
+                    AcousticAlert(
+                        source_type=event.event_type.upper(),
+                        severity="HIGH", # Using default severity for these
+                        predicted_db_increase=0.0,
+                        distance_meters=0,
+                        recommendation="Review staffing and alternative transit options." if event.event_type == "transit_strike" else "Ensure outdoor areas are secured.",
+                        explainability_chain=[f"{event.event_type.capitalize()} Data: {event.description}"]
+                    )
+                )
+                continue
+
+            # Skip if no coords
+            if event.lat is None or event.lon is None:
+                continue
+
+            # Permits and Crowd Events
+            distance = haversine_distance(hotel_lat, hotel_lon, event.lat, event.lon)
             
-        event_lat = coords.get("lat")
-        event_lon = coords.get("lon")
-        
-        distance = haversine_distance(hotel_lat, hotel_lon, event_lat, event_lon)
-        
-        # Events are louder, we check up to 1000m
-        if distance > 1000:
-            continue
+            if event.event_type == "permit":
+                if distance > 500:
+                    continue
+                base_db = BASE_CONSTRUCTION_DB_AT_1M
+                idiosyncratic_bonus = idiosyncratic_adjustments.get("CONSTRUCTION", 0.0)
+            elif event.event_type == "crowd_event":
+                if distance > 1000:
+                    continue
+                base_db = BASE_CROWD_EVENT_DB_AT_1M
+                idiosyncratic_bonus = idiosyncratic_adjustments.get("CROWD_EVENT", 0.0)
+            else:
+                continue
+
+            # Acoustic Ray-Tracing Cache Lookup (O(1))
+            ray_tracing_penalty = get_shielding_penalty(hotel_id, hotel_lat, hotel_lon, event.lat, event.lon, distance)
+            cache_lookups += 1
+            shielding_penalty = idiosyncratic_bonus + ray_tracing_penalty
             
-        idiosyncratic_bonus = get_idiosyncratic_shielding_adjustment(hotel_id, "CROWD_EVENT")
-        hive_bonus = get_hive_modifier("CROWD_EVENT")
-        
-        shielding_penalty = 0.0 + idiosyncratic_bonus + hive_bonus
-        line_of_sight = LineString([(hotel_lon, hotel_lat), (event_lon, event_lat)])
-        
-        for building in buildings:
-            if line_of_sight.intersects(building["polygon"]):
-                shielding_penalty = 15.0
-                break
+            hotel_db = calculate_db_attenuation(distance, shielding_penalty_db=shielding_penalty, base_db=base_db, is_raining=is_raining)
+            
+            if hotel_db < 45.0:
+                continue
                 
-        hotel_db = calculate_db_attenuation(distance, shielding_penalty_db=shielding_penalty, base_db=BASE_CROWD_EVENT_DB_AT_1M, is_raining=is_raining)
-        
-        if hotel_db < 45.0:
-            continue
+            event_type_str = "Construction" if event.event_type == "permit" else "Crowd Event"
+            chain_of_thought = [
+                f"Base Noise: {base_db} dB ({event_type_str} at 1m)",
+                f"Distance Attenuation: {int(distance)}m removed {round(base_db - (hotel_db + shielding_penalty), 1)} dB"
+            ]
+            if ray_tracing_penalty > 0:
+                chain_of_thought.append(f"Ray-Tracing Penalty: -15.0 dB (Blocked by 3D geometry from Cache)")
+            if idiosyncratic_bonus > 0:
+                chain_of_thought.append(f"Idiosyncratic Memory Bonus: +{idiosyncratic_bonus} dB")
+            if is_raining:
+                chain_of_thought.append("Weather Penalty: +3.0 dB")
+            chain_of_thought.append(f"Final Predicted Impact: {round(hotel_db, 1)} dB")
             
-        chain_of_thought = [
-            f"Base Noise: {BASE_CROWD_EVENT_DB_AT_1M} dB (Crowd Event at 1m)",
-            f"Distance Attenuation: {int(distance)}m removed {round(BASE_CROWD_EVENT_DB_AT_1M - (hotel_db + shielding_penalty), 1)} dB"
-        ]
-        if shielding_penalty > 0:
-            chain_of_thought.append(f"Ray-Tracing Penalty: -15.0 dB (Blocked by 3D geometry)")
-        if idiosyncratic_bonus > 0:
-            chain_of_thought.append(f"Idiosyncratic Memory Bonus: +{idiosyncratic_bonus} dB")
-        if hive_bonus > 0:
-            chain_of_thought.append(f"Hive Memory Bonus: +{hive_bonus} dB")
-        if is_raining:
-            chain_of_thought.append("Weather Penalty: +3.0 dB")
-        chain_of_thought.append(f"Final Predicted Impact: {round(hotel_db, 1)} dB")
-        
-        severity, recommendation = determine_severity_and_action(hotel_db)
-        
-        ev_start = event.get('start_date', 'Unknown')[:10] if event.get('start_date') else 'Unknown'
-        
-        alert = AcousticAlert(
-            source_type=f"CROWD_EVENT ({event.get('description')} on {ev_start})",
-            severity=severity,
-            predicted_db_increase=round(hotel_db, 1),
-            distance_meters=int(distance),
-            recommendation=recommendation,
-            explainability_chain=chain_of_thought
-        )
-        alerts.append(alert)
-        
-    # Fetch Transit Strikes
-    transit_disruptions = fetch_transit_disruptions(hotel_lat, hotel_lon, target_start, target_end)
-    for disruption in transit_disruptions:
-        alerts.append(
-            AcousticAlert(
-                source_type=disruption["source_type"],
-                severity=disruption["severity"],
-                predicted_db_increase=0.0, # Not an acoustic event
-                distance_meters=0, # City-wide
-                recommendation=disruption["recommendation"],
-                explainability_chain=[f"Transit Data: {disruption['description']}"]
+            severity, recommendation = determine_severity_and_action(hotel_db)
+            
+            ev_start = event.start_date.strftime('%Y-%m-%d') if event.start_date else 'Unknown'
+            ev_end = event.end_date.strftime('%Y-%m-%d') if event.end_date else 'Unknown'
+            
+            source_desc = f"PLANNED_CONSTRUCTION (From {ev_start} to {ev_end})" if event.event_type == "permit" else f"CROWD_EVENT ({event.description} on {ev_start})"
+            
+            alerts.append(
+                AcousticAlert(
+                    source_type=source_desc,
+                    severity=severity,
+                    predicted_db_increase=round(hotel_db, 1),
+                    distance_meters=int(distance),
+                    recommendation=recommendation,
+                    explainability_chain=chain_of_thought
+                )
             )
-        )
+
+        # Sort alerts by severity/noise level (highest noise first)
+        alerts.sort(key=lambda x: (x.severity == "CRITICAL", x.severity == "HIGH", x.predicted_db_increase), reverse=True)
         
-    # Fetch Extreme Weather
-    extreme_weather = fetch_extreme_weather_alerts(hotel_lat, hotel_lon, target_start, target_end)
-    for weather in extreme_weather:
-        alerts.append(
-            AcousticAlert(
-                source_type=weather["source_type"],
-                severity=weather["severity"],
-                predicted_db_increase=0.0, # Not an acoustic event
-                distance_meters=0, # City-wide
-                recommendation=weather["recommendation"],
-                explainability_chain=[f"Weather Data: {weather['description']}"]
-            )
-        )
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        metadata = {
+            "processing_time_ms": processing_time_ms,
+            "buildings_analyzed": buildings_analyzed,
+            "cache_lookups": cache_lookups,
+            "cache_status": cache_status
+        }
         
-    # Sort alerts by severity/noise level (highest noise first)
-    alerts.sort(key=lambda x: (x.severity == "CRITICAL", x.severity == "HIGH", x.predicted_db_increase), reverse=True)
-    
-    processing_time_ms = int((time.time() - start_time) * 1000)
-    metadata = {
-        "processing_time_ms": processing_time_ms,
-        "buildings_analyzed": len(buildings),
-        "ray_traces_performed": len(permits) if permits else 0
-    }
-    
-    return alerts, weather_condition, metadata
+        return alerts, weather_condition, metadata
+    finally:
+        db.close()
