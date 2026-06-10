@@ -1,7 +1,7 @@
 <div align="center">
   <h1>Tacet</h1>
   
-  <p><em>Helping Hotel Revenue Managers predict their property's environmental exposure.</em></p>
+  <p><em>Predict and monetize environmental exposure for Luxury Hospitality.</em></p>
   
   <p>
     <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white" alt="Python 3.12" />
@@ -16,9 +16,14 @@
 ---
 
 ## Overview
-Tacet is an advanced, headless **Environmental Risk & Comfort Twin** for the luxury hospitality sector.
-It functions as a sentient analytical layer that bridges chaotic external data (City Open Data, Weather, Traffic, Events) with Hotel Operations and Revenue Management Systems.
-Tacet synthesizes spatial physics (3D acoustic ray-tracing) and real-time environmental context through a dual-memory system. It is designed from the ground up to proactively protect guest yield and comfort, and is callable by other agents via a native MCP (Model Context Protocol) server.
+
+Tacet is an **Environmental Risk & Comfort Twin** designed to protect luxury hotels from urban unpredictability (noise, construction, crowds, weather). 
+
+For a Revenue Manager or Hotel Operator, the city is a chaotic external risk factor that often leads to guest complaints or lost revenue. Tacet solves this by predicting exactly how external events will physically impact the property, and automatically translating these risks into **actionable business outputs**:
+- **Yield Protection:** Dynamic pricing rules pushed to the RMS (e.g., preemptively adjusting the price of a street-facing suite during a marathon).
+- **Operational Excellence:** Alerts pushed to the PMS to adapt room assignments or F&B staffing.
+
+Tacet runs seamlessly in the background as a headless service, and is fully integrated into the Agentic ecosystem via a native MCP (Model Context Protocol) server.
 
 ## 🗺️ Architecture Overview
 
@@ -37,13 +42,13 @@ graph TD
         I[Ingestion Layer]
         RT[3D Ray-Tracing Physics]
         DM[(Dual Memory DB)]
-        HM[Hive Mind Analytics]
+        SM[Sensory Memory Analytics]
         MCP{{MCP Server Protocol}}
         
         I --> RT
         RT <--> DM
-        DM --> HM
-        HM --> RT
+        DM --> SM
+        SM --> RT
         RT <--> MCP
     end
 
@@ -79,25 +84,28 @@ graph TD
     classDef dest fill:#00b894,stroke:#55efc4,color:#fff;
     classDef mcp fill:#6c5ce7,stroke:#a29bfe,stroke-width:3px,color:#fff;
     
-    class RT,DM,HM,EXP,I,WH core;
+    class RT,DM,SM,EXP,I,WH core;
     class P,E,W,T data;
     class PMS,RMS dest;
     class LLM dest;
     class MCP mcp;
 ```
 
-## 🏗 Core Architecture & Engineering Highlights
+## 🏗 Core Architecture & The "Urban ISR" Engine
 
-This repository was architected to demonstrate modern, highly-scalable backend AI engineering patterns:
+While the output is pure hospitality business logic, the core engine draws inspiration from defense technologies like **Urban ISR (Intelligence, Surveillance, and Reconnaissance)**. The city is chaotic and opaque by default; Tacet uses physics to create a **live, predictive acoustic picture** of the environment to eliminate blind spots.
 
-### 1. 3D Spatial Physics Engine (Acoustics)
-- **Ray-Tracing:** Uses `shapely` and `osmnx` to draw mathematical lines of sight between a disruptive event (e.g., a jackhammer or a stadium concert) and the target hotel.
-- **Physical Shielding:** Cross-references the ray-trace against 3D urban building polygons. If a building intersects the line of sight, a dynamic `-15 dB` shielding penalty is applied to the inverse-square law attenuation formula.
+### 1. Edge-First Spatial Physics (Acoustics)
+- **Heatmap Caching:** To guarantee `< 100ms` API latency, complex 3D ray-tracing (`shapely`, `osmnx`) is pre-computed into local acoustic heatmaps. The run-time engine simply queries this edge cache instead of performing synchronous geometrical math.
+- **Physical Shielding:** If a 3D urban building polygon intersects the line of sight during pre-computation, a dynamic shielding penalty is permanently mapped to that directional vector.
 
-### 2. Dual Memory Systems (Idiosyncratic & Hive Mind)
-Tacet is not a stateless script; it possesses a learning feedback loop powered by `SQLAlchemy` and `SQLite`.
-- **Idiosyncratic Memory (Local):** If a specific hotel's manager repeatedly rejects an automated alert for "Traffic Noise," Tacet learns that this specific building likely has triple-glazed windows. It automatically applies a persistent `+2.0 dB` shielding bonus for future calculations at that exact GPS coordinate.
-- **Hive Mind (Global):** A statistical aggregation engine (`app/services/hive_mind.py`) constantly analyzes rejection rates across the entire global network of hotels to dynamically adjust baseline ecosystem sensitivities.
+### 2. Pattern of Life (Idiosyncratic Memory)
+Tacet abandons absolute thresholds (e.g., "70 dB is loud"). It operates entirely on contextual anomalies.
+- **The Baseline:** The local `SQLite` database stores the specific acoustic "Pattern of Life" for the hotel (e.g., a baseline of 60 dB for a busy avenue). 
+- **Anomaly Detection:** Tacet only triggers an alert if a disruptive event deviates significantly from this historical baseline (e.g., an unexpected +15 dB spike).
+
+### 2.5 Decentralized Mesh (Triangulation)
+For hotel groups with multiple properties in a city, Tacet nodes share *threat detections* on a peer-to-peer mesh. If Hotel A detects an unmapped protest moving down a street, it alerts Hotel B to calculate its own impact. Nodes share the detection, but perfectly isolate the impact evaluation.
 
 ### 3. The Agentic Mesh & MCP Server
 Tacet is fully integrated into the modern Agentic OS paradigm. It exposes a native **Model Context Protocol (MCP)** server (`app/mcp_server.py`).
@@ -109,13 +117,13 @@ Tacet adheres strictly to a **Human-In-The-Loop (HITL)** philosophy. It never ex
 - **Native PMS Tasks:** Implements OAuth2 and secure connectors (`mews_client.py`, `apaleo_client.py`) to push `CRITICAL` warnings directly into the hotel staff's operational dashboard as native tasks.
 - **The RMS Contract:** Generates universal Yield Management rules (`TacetRMSPayload`) designed for immediate ingestion by systems like Duetto or Atomize (e.g., *"-15% price modifier for Street Facing Suites between June 12-14"*).
 
-## 🔌 Data Ingestion Ecosystem
+## 🔌 The Abstraction Layer (Data Ingestion)
 
-Tacet ingests and standardizes chaotic external data into actionable intelligence:
-- **Planned Construction:** Paris Open Data (Predictive date filtering)
-- **Crowd Events:** "Que Faire à Paris" API (Stadium/Concert noise)
-- **Real-Time Traffic:** TomTom API Congestion ratios
-- **Logistical Disruptions:** Transit Strikes (RATP) & Extreme Weather Alerts
+Tacet features an **Agnostic Ingestion Layer** designed to absorb chaotic, multi-format external data (JSON, XML, municipal APIs) and normalize it into a universal `DisruptiveEvent` object. The physics engine only consumes this standardized format, allowing global deployment without rewriting core logic:
+- **Planned Construction:** Paris Open Data, NYC OpenData, etc.
+- **Crowd Events:** "Que Faire à Paris" API, Ticketmaster APIs.
+- **Real-Time Traffic:** TomTom / Waze congestion ratios.
+- **Logistical Disruptions:** Transit Strikes & Extreme Weather Alerts.
 
 ## 🚀 Tech Stack
 
@@ -165,10 +173,10 @@ Once running via `stdio` or SSE, any compatible LLM or orchestrator (like Claude
 **Tacet's Execution:**
 1. Fetches the events via the Event API and Meteo API.
 2. Calculates that the concert will generate `100 dB` of noise at the source.
-3. Performs a 3D Ray-Trace and confirms no buildings block the sound path.
-4. Queries the Idiosyncratic DB and sees this hotel has standard windows.
-5. Calculates the sound wave will hit the hotel at `65 dB` (Highly Disruptive).
-6. **Agentic Mesh Action:** Dispatches a JSON payload to the RMS recommending a `-8.0% Price Yield` on street-facing rooms (Calculated dynamically: 0.8% drop for every dB over the legal 55dB limit). The orchestrator (Aetherix) reads the payload and automatically adjusts F&B supply and staffing buffers due to the heatwave.
+3. Queries the pre-calculated Edge Heatmap and confirms no buildings block the sound path.
+4. Queries the Idiosyncratic DB and reads the hotel's "Pattern of Life" baseline (e.g., usually 50 dB at this time).
+5. Calculates the sound wave will hit the hotel at `65 dB`, resulting in a **+15 dB severe anomaly**.
+6. **Agentic Mesh Action (Intent-to-Task):** Dispatches a JSON payload to the Orchestrator (Aetherix) highlighting the anomaly. Aetherix translates this into a PMS Task (rescheduling housekeeping) and pushes a `-15% Yield Modifier` rule to the RMS for street-facing rooms.
 
 **ESG KPIs Supported:**
 - % Reduction in energy waste (HVAC optimization preempting weather events).
