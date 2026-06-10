@@ -1,0 +1,98 @@
+:root {
+  /* Premium Dark Theme Palette */
+  --bg-deep: hsl(230, 20%, 8%);
+  --bg-panel: hsla(230, 25%, 15%, 0.6);
+  --text-main: hsl(0, 0%, 95%);
+  --text-muted: hsl(230, 15%, 65%);
+  
+  /* Accent Colors */
+  --accent-gold: hsl(45, 90%, 65%);
+  --accent-glow: hsla(45, 90%, 65%, 0.2);
+  --alert-critical: hsl(0, 80%, 60%);
+  --alert-high: hsl(30, 90%, 60%);
+  --alert-medium: hsl(50, 90%, 55%);
+  --success: hsl(150, 60%, 50%);
+  
+  /* Utility */
+  --border-light: hsla(0, 0%, 100%, 0.08);
+  --glass-blur: blur(12px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow: hidden; /* App is a fullscreen dashboard */
+  background-image: 
+    radial-gradient(circle at 15% 50%, hsla(230, 30%, 15%, 0.4), transparent 25%),
+    radial-gradient(circle at 85% 30%, hsla(45, 50%, 15%, 0.2), transparent 25%);
+}
+
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.flex-col { display: flex; flex-direction: column; }
+.flex-row { display: flex; flex-direction: row; }
+.gap-2 { gap: 8px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.flex-1 { flex: 1; }
+
+.text-muted { color: var(--text-muted); }
+.text-xs { font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; font-weight: 500; }
+.text-xl { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+
+h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.01em; }
+
+/* Micro-animations */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  70% { box-shadow: 0 0 0 10px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-gold);
+  animation: pulseGlow 2s infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

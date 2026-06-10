@@ -17,10 +17,10 @@ Rather than overwhelming the hotel staff with a dashboard of raw data, Tacet mat
 **A. The Spatial Physics Engine (Acoustic Ray-Tracing)**
 Tacet doesn't just measure distance; it measures physics. Using Python libraries like `shapely` and `osmnx`, Tacet draws 3D lines of sight between a disruptive event (e.g., a jackhammer or a stadium crowd) and the hotel. It cross-references this path against urban building polygons. If a building blocks the sound, Tacet dynamically applies a shielding penalty. This prevents false positives and alert fatigue.
 
-**B. The Dual Memory System (Idiosyncratic & Hive Mind)**
+**B. The Dual Memory System (Idiosyncratic & Sensory Memory)**
 A predictive engine must learn from its mistakes. Tacet features a built-in stateful database:
 - **Idiosyncratic Memory:** If a specific hotel manager repeatedly rejects an automated alert for "Traffic Noise", Tacet learns that this specific building likely has triple-glazed windows. It automatically applies a persistent shielding bonus for future calculations at that exact GPS coordinate.
-- **Hive Mind:** A statistical aggregation engine constantly analyzes rejection rates across the global network of hotels to dynamically adjust the baseline sensitivity of the entire ecosystem.
+- **Sensory Memory:** A statistical aggregation engine constantly analyzes rejection rates across the global network of hotels to dynamically adjust the baseline sensitivity of the entire ecosystem.
 
 **C. The Human-In-The-Loop (HITL) Guardrail**
 Tacet is governed by a strict business rule: it never executes autonomous, destructive actions (like changing a price blindly). Instead, it computes a precise Yield Modifier mathematically linked to the severity of the physical disruption (e.g., *-8.0% for Street-Facing Suites based on a 10dB overflow*) and pushes it to the RMS for human approval.

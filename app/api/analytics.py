@@ -1,15 +1,15 @@
 from fastapi import APIRouter
-from app.services.hive_mind import get_hive_analytics
+from app.services.sensory_memory import get_sensory_analytics
 
 router = APIRouter()
 
-@router.get("/analytics/hive-intel", tags=["Analytics"])
-def fetch_hive_intelligence():
+@router.get("/analytics/sensory-intel", tags=["Analytics"])
+def fetch_sensory_intelligence():
     """
-    Retrieves the global learnings and statistical aggregations of the Tacet Hive Mind.
+    Retrieves the global learnings and statistical aggregations of the Tacet Sensory Memory.
     Useful for proving ROI to Revenue Managers.
     """
-    data = get_hive_analytics()
+    data = get_sensory_analytics()
     return {
         "status": "success",
         "intelligence": data

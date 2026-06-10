@@ -15,7 +15,7 @@ def get_surrounding_buildings(lat: float, lon: float, radius: int = 500) -> list
         ox.settings.log_console = False
         
         # Download data
-        gdf = ox.geometries_from_point((lat, lon), tags, dist=radius)
+        gdf = ox.features_from_point((lat, lon), tags, dist=radius)
         
         if gdf.empty:
             return []

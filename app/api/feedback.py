@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/feedback", tags=["Memory"])
 def process_feedback(request: FeedbackRequest, db: Session = Depends(get_db)):
     """
-    Ingests human-in-the-loop feedback to train the Idiosyncratic and Hive memory.
+    Ingests human-in-the-loop feedback to train the Idiosyncratic and Sensory memory.
     """
     event = FeedbackEvent(
         hotel_id=request.hotel_id,
