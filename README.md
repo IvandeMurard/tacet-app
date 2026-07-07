@@ -15,6 +15,8 @@
 
 ---
 
+> **🕸️ Part of the [Hospitality Agentic Mesh](https://github.com/IvandeMurard/hospitality-agentic-mesh)** — a network of specialized AI agents for hotel operations. Tacet is the environmental-risk node; the F&B execution node (Aetherix, private repo) and the overall architecture are documented in the [meta-repo](https://github.com/IvandeMurard/hospitality-agentic-mesh) and the [case study](https://ivandemurard.com/aetherix).
+
 ## Overview
 
 Tacet is an **Environmental Risk & Comfort Twin** designed to protect luxury hotels from urban unpredictability (noise, construction, crowds, weather). 
