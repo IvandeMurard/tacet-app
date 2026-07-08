@@ -9,6 +9,7 @@
     <img src="https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?style=flat&logo=sqlalchemy&logoColor=white" alt="SQLAlchemy" />
     <img src="https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white" alt="SQLite" />
     <br>
+    <img src="https://github.com/IvandeMurard/tacet-app/actions/workflows/ci.yml/badge.svg" alt="CI" />
     <img src="https://img.shields.io/badge/License-MIT-2ea44f?style=flat" alt="License MIT" />
   </p>
 </div>
@@ -42,7 +43,7 @@ graph TD
     %% Tacet Core Engine
     subgraph TCE [Tacet: Environmental Risk Twin]
         I[Ingestion Layer]
-        RT[3D Ray-Tracing Physics]
+        RT[2D Footprint Ray-Casting]
         DM[(Dual Memory DB)]
         SM[Sensory Memory Analytics]
         MCP{{MCP Server Protocol}}
@@ -93,21 +94,21 @@ graph TD
     class MCP mcp;
 ```
 
-## 🏗 Core Architecture & The "Urban ISR" Engine
+## 🏗 Core Architecture: a Predictive Acoustic Picture of the Neighborhood
 
-While the output is pure hospitality business logic, the core engine draws inspiration from defense technologies like **Urban ISR (Intelligence, Surveillance, and Reconnaissance)**. The city is chaotic and opaque by default; Tacet uses physics to create a **live, predictive acoustic picture** of the environment to eliminate blind spots.
+The city around a hotel is chaotic and opaque by default. Tacet uses simple, explainable physics to build a **live, predictive acoustic picture** of the property's surroundings, so that revenue and operations teams see disruptions coming instead of reacting to complaints.
 
 ### 1. Edge-First Spatial Physics (Acoustics)
-- **Heatmap Caching:** To guarantee `< 100ms` API latency, complex 3D ray-tracing (`shapely`, `osmnx`) is pre-computed into local acoustic heatmaps. The run-time engine simply queries this edge cache instead of performing synchronous geometrical math.
-- **Physical Shielding:** If a 3D urban building polygon intersects the line of sight during pre-computation, a dynamic shielding penalty is permanently mapped to that directional vector.
+- **Heatmap Caching:** To guarantee `< 100ms` API latency, 2D ray-casting over OpenStreetMap building footprints (`shapely`, `osmnx`) is pre-computed into a local polar heatmap (360 rays, one per compass degree). The run-time engine queries this cache instead of performing synchronous geometrical math.
+- **Physical Shielding:** If a building footprint intersects the line of sight during pre-computation, a shielding penalty is mapped to that directional vector. This is a 2D model: building heights are fetched but not yet used in the ray test.
 
 ### 2. Pattern of Life (Idiosyncratic Memory)
 Tacet abandons absolute thresholds (e.g., "70 dB is loud"). It operates entirely on contextual anomalies.
 - **The Baseline:** The local `SQLite` database stores the specific acoustic "Pattern of Life" for the hotel (e.g., a baseline of 60 dB for a busy avenue). 
 - **Anomaly Detection:** Tacet only triggers an alert if a disruptive event deviates significantly from this historical baseline (e.g., an unexpected +15 dB spike).
 
-### 2.5 Decentralized Mesh (Triangulation)
-For hotel groups with multiple properties in a city, Tacet nodes share *threat detections* on a peer-to-peer mesh. If Hotel A detects an unmapped protest moving down a street, it alerts Hotel B to calculate its own impact. Nodes share the detection, but perfectly isolate the impact evaluation.
+### 2.5 Multi-Property Detection Sharing — *roadmap, not implemented*
+The intended design for hotel groups with multiple properties in a city: Tacet nodes share *disruption detections* with each other. If Hotel A detects an unmapped protest moving down a street, it alerts Hotel B to calculate its own impact. Nodes would share the detection but isolate the impact evaluation. **No code exists for this yet** — it is documented here as a design target only.
 
 ### 3. The Agentic Mesh & MCP Server
 Tacet is fully integrated into the modern Agentic OS paradigm. It exposes a native **Model Context Protocol (MCP)** server (`app/mcp_server.py`).
@@ -136,7 +137,13 @@ Tacet features an **Agnostic Ingestion Layer** designed to absorb chaotic, multi
 
 ## 🧪 How to Test Locally
 
-Tacet is a headless engine. The easiest way to test its capabilities is via the auto-generated Swagger UI.
+Run the unit tests (acoustic engine: haversine, bearing, heatmap, shielding, attenuation, severity matrix):
+```bash
+pip install pytest shapely sqlalchemy pydantic
+python -m pytest tests/ -q
+```
+
+Tacet is a headless engine. The easiest way to explore its capabilities is via the auto-generated Swagger UI.
 
 1. **Install dependencies:**
    ```bash

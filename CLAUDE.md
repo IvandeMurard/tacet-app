@@ -23,7 +23,7 @@
 |--------|------------|-------|
 | Backend | FastAPI + Python 3.12 | Async, Pydantic v2 |
 | Base de données | SQLite / SQLAlchemy | Mémoire Idiosyncratique & SensoryMemory |
-| Physique 3D | OSMnx, Shapely, GeoPandas | Ray-Tracing acoustique, shielding des bâtiments |
+| Physique spatiale 2D | OSMnx, Shapely, GeoPandas | Ray-casting acoustique sur empreintes de bâtiments, shielding |
 | Protocole Sortant | MCP Server | Expose les données aux orchestrateurs (Aetherix/Claude) |
 
 ---
