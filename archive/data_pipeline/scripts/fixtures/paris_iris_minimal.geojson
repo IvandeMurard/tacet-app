@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.335, 48.860], [2.340, 48.860], [2.340, 48.864], [2.335, 48.864], [2.335, 48.860]]]
+      },
+      "properties": { "CODE_IRIS": "751010101", "DCOMIRIS": "751010101", "NOM_IRIS": "IRIS Centre 1er" }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.345, 48.848], [2.350, 48.848], [2.350, 48.852], [2.345, 48.852], [2.345, 48.848]]]
+      },
+      "properties": { "CODE_IRIS": "751050201", "DCOMIRIS": "751050201", "NOM_IRIS": "IRIS Val-de-Grâce" }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.358, 48.878], [2.365, 48.878], [2.365, 48.882], [2.358, 48.882], [2.358, 48.878]]]
+      },
+      "properties": { "CODE_IRIS": "751100301", "DCOMIRIS": "751100301", "NOM_IRIS": "IRIS Belleville" }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[2.398, 48.862], [2.404, 48.862], [2.404, 48.866], [2.398, 48.866], [2.398, 48.862]]]
+      },
+      "properties": { "CODE_IRIS": "751200401", "DCOMIRIS": "751200401", "NOM_IRIS": "IRIS Saint-Fargeau" }
+    }
+  ]
+}

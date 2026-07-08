@@ -1,0 +1,399 @@
+"use client";
+
+import { useEffect, useRef, useCallback, useState } from "react";
+import type { MapMouseEvent, ExpressionSpecification } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { useMapContext } from "@/contexts/MapContext";
+import { PARIS_CENTER, DEFAULT_ZOOM, NOISE_CATEGORIES } from "@/lib/noise-categories";
+import { getBaseMapStyle } from "@/lib/map-style";
+import { addChantiersLayer, removeChantiersLayer } from "@/components/map/ChantiersLayer";
+import { addRumeurLayer, removeRumeurLayer } from "@/components/map/RumeurLayer";
+import { addElectionsLayer, removeElectionsLayer } from "@/components/map/ElectionsLayer";
+import { useChantiersData } from "@/hooks/useChantiersData";
+import { useRumeurData } from "@/hooks/useRumeurData";
+import { useElectionsData } from "@/hooks/useElectionsData";
+import type { IrisProperties } from "@/types/iris";
+import type { ChantierProperties } from "@/types/chantier";
+import type { RumeurFeatureProperties } from "@/types/rumeur";
+
+const GEOJSON_URL = "/data/paris-noise-iris.geojson";
+const CENTROIDS_URL = "/data/iris-centroids.geojson";
+
+// Dynamic spread prevents direct type inference; assertion documents intended MapLibre type.
+const colorExpression = [
+  "match",
+  ["get", "noise_level"],
+  ...NOISE_CATEGORIES.flatMap((cat) => [cat.level, cat.color]),
+  "#666666",
+] as unknown as ExpressionSpecification;
+
+const NEIGHBORHOOD_ZOOM = 13;
+
+export function MapContainer() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { mapRef, setSelectedZone, selectedZone, activeLayers, setSelectedChantier, setSelectedRumeur } = useMapContext();
+  const chantiersEnabled = activeLayers.has("chantiers");
+  const rumeurEnabled = activeLayers.has("rumeur");
+  const electionsEnabled = activeLayers.has("elections");
+  const { data: chantiersResponse, error: chantiersError } = useChantiersData(chantiersEnabled);
+  const { data: rumeurResponse } = useRumeurData(rumeurEnabled);
+  const { data: electionsResponse } = useElectionsData(electionsEnabled);
+  const [geoLoadError, setGeoLoadError] = useState<string | null>(null);
+
+  const handleClick = useCallback(
+    (e: MapMouseEvent) => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      // RUMEUR circles — open sensor dB popup and suppress other popup logic
+      if (map.getLayer("rumeur-circles")) {
+        const rumeurFeatures = map.queryRenderedFeatures(e.point, {
+          layers: ["rumeur-circles"],
+        });
+        if (rumeurFeatures.length > 0 && rumeurFeatures[0].properties) {
+          setSelectedRumeur(rumeurFeatures[0].properties as unknown as RumeurFeatureProperties);
+          setSelectedChantier(null);
+          setSelectedZone(null);
+          return;
+        }
+      }
+
+      // Clicking anywhere other than a RUMEUR circle — close any open RUMEUR popup
+      setSelectedRumeur(null);
+
+      // Chantier circles take priority over IRIS — open the chantier popup and suppress IRIS logic
+      if (map.getLayer("chantiers-circles")) {
+        const chantierFeatures = map.queryRenderedFeatures(e.point, {
+          layers: ["chantiers-circles"],
+        });
+        if (chantierFeatures.length > 0 && chantierFeatures[0].properties) {
+          setSelectedChantier(chantierFeatures[0].properties as unknown as ChantierProperties);
+          setSelectedZone(null);
+          return;
+        }
+      }
+
+      // Clicking anywhere other than a chantier circle — close any open chantier popup
+      setSelectedChantier(null);
+
+      const dotFeatures = map.queryRenderedFeatures(e.point, {
+        layers: ["score-dots-circles", "score-dots-cluster"],
+      });
+      if (dotFeatures.length > 0) {
+        const f = dotFeatures[0];
+        const props = f.properties as { cluster?: boolean; cluster_id?: number } | undefined;
+        if (props?.cluster && typeof props.cluster_id === "number") {
+          const source = map.getSource("iris-centroids") as maplibregl.GeoJSONSource;
+          source.getClusterExpansionZoom(props.cluster_id).then((zoom) => {
+            const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+            map.flyTo({ center: coords, zoom });
+          }).catch(() => {});
+          return;
+        }
+        if (props && !props.cluster) {
+          const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number];
+          setSelectedZone(props as unknown as IrisProperties, coords);
+          return;
+        }
+      }
+      const fillFeatures = map.queryRenderedFeatures(e.point, { layers: ["iris-fill"] });
+      if (fillFeatures.length > 0 && fillFeatures[0].properties) {
+        setSelectedZone(fillFeatures[0].properties as unknown as IrisProperties, [e.lngLat.lng, e.lngLat.lat]);
+      } else {
+        setSelectedZone(null);
+      }
+    },
+    [mapRef, setSelectedZone, setSelectedChantier, setSelectedRumeur]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MapMouseEvent) => {
+      if (!containerRef.current || !mapRef.current) return;
+      const features = mapRef.current.queryRenderedFeatures(e.point, {
+        layers: ["iris-fill", "score-dots-circles", "score-dots-cluster", "chantiers-circles", "rumeur-circles"],
+      });
+      containerRef.current.style.cursor = features.length > 0 ? "pointer" : "";
+    },
+    [mapRef]
+  );
+
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const cancelledRef = useRef(false);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    cancelledRef.current = false;
+
+    const initMap = async () => {
+      const maplibregl = (await import("maplibre-gl")).default;
+      const { Protocol } = await import("pmtiles");
+
+      const protocol = new Protocol();
+      maplibregl.addProtocol("pmtiles", protocol.tile);
+
+      const map = new maplibregl.Map({
+        container: containerRef.current!,
+        style: getBaseMapStyle(),
+        center: PARIS_CENTER,
+        zoom: DEFAULT_ZOOM,
+        maxBounds: [
+          [2.15, 48.75],
+          [2.55, 48.95],
+        ],
+        dragRotate: false,
+      });
+
+      map.addControl(new maplibregl.NavigationControl({}), "top-right");
+      map.addControl(new maplibregl.FullscreenControl({}), "top-right");
+
+      mapRef.current = map;
+
+      const resizeObserver = new ResizeObserver(() => map.resize());
+      if (containerRef.current) resizeObserver.observe(containerRef.current);
+
+      map.on("click", handleClick);
+      map.on("mousemove", handleMouseMove);
+
+      const loadData = async () => {
+        try {
+          const [irisRes, centroidsRes] = await Promise.all([
+            fetch(GEOJSON_URL),
+            fetch(CENTROIDS_URL),
+          ]);
+          if (!irisRes.ok || !centroidsRes.ok) {
+            throw new Error(
+              `Impossible de charger les données cartographiques (${irisRes.status}/${centroidsRes.status})`
+            );
+          }
+          const [geojson, centroidsGeojson] = await Promise.all([
+            irisRes.json(),
+            centroidsRes.json(),
+          ]);
+
+          if (!map.getSource("iris")) {
+            map.addSource("iris", { type: "geojson", data: geojson });
+            map.addLayer({
+              id: "iris-fill",
+              type: "fill",
+              source: "iris",
+              paint: {
+                "fill-color": colorExpression,
+                "fill-opacity": 0.5,
+                "fill-outline-color": "rgba(255,255,255,0.1)",
+              },
+            });
+            map.addLayer({
+              id: "zone-highlight-fill",
+              type: "fill",
+              source: "iris",
+              paint: {
+                "fill-color": "#ffffff",
+                "fill-opacity": 0.03,
+              },
+              filter: ["==", ["get", "code_iris"], ""],
+            });
+            map.addLayer({
+              id: "zone-highlight-line",
+              type: "line",
+              source: "iris",
+              paint: {
+                "line-color": "rgba(255,255,255,0.9)",
+                "line-width": 2,
+                "line-dasharray": [2, 1],
+              },
+              filter: ["==", ["get", "code_iris"], ""],
+            });
+          }
+
+          if (!map.getSource("iris-centroids")) {
+            map.addSource("iris-centroids", {
+              type: "geojson",
+              data: centroidsGeojson,
+              cluster: true,
+              clusterMaxZoom: NEIGHBORHOOD_ZOOM - 1,
+              clusterRadius: 50,
+            });
+            map.addLayer({
+              id: "score-dots-circles",
+              type: "circle",
+              source: "iris-centroids",
+              filter: ["!=", "cluster", true],
+              paint: {
+                "circle-color": colorExpression,
+                "circle-radius": [
+                  "interpolate",
+                  ["linear"],
+                  ["zoom"],
+                  13,
+                  5,
+                  16,
+                  10,
+                ],
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "rgba(255,255,255,0.3)",
+              },
+            });
+            map.addLayer({
+              id: "score-dots-cluster",
+              type: "circle",
+              source: "iris-centroids",
+              filter: ["==", "cluster", true],
+              paint: {
+                "circle-color": "#0D9488",
+                "circle-radius": 20,
+                "circle-stroke-width": 2,
+                "circle-stroke-color": "#fff",
+              },
+            });
+            map.addLayer({
+              id: "score-dots-cluster-count",
+              type: "symbol",
+              source: "iris-centroids",
+              filter: ["==", "cluster", true],
+              layout: {
+                "text-field": ["get", "point_count_abbreviated"],
+                "text-size": 12,
+              },
+              paint: { "text-color": "#fff" },
+            });
+          }
+
+          setGeoLoadError(null);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Erreur de chargement des données";
+          setGeoLoadError(msg);
+        }
+      };
+
+      map.on("load", loadData);
+      if (map.isStyleLoaded()) loadData();
+
+      return () => {
+        resizeObserver.disconnect();
+        map.off("click", handleClick);
+        map.off("mousemove", handleMouseMove);
+        map.remove();
+        mapRef.current = null;
+        maplibregl.removeProtocol("pmtiles");
+      };
+    };
+
+    initMap().then((fn) => {
+      if (cancelledRef.current) fn();
+      else cleanupRef.current = fn;
+    });
+
+    return () => {
+      cancelledRef.current = true;
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, [handleClick, handleMouseMove, mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    const code = selectedZone?.code_iris ?? "";
+    if (map.getLayer("zone-highlight-line")) {
+      map.setFilter("zone-highlight-line", ["==", ["get", "code_iris"], code]);
+      map.setFilter("zone-highlight-fill", ["==", ["get", "code_iris"], code]);
+    }
+  }, [selectedZone, mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    if (chantiersEnabled && chantiersResponse?.data) {
+      addChantiersLayer(map, chantiersResponse.data);
+    } else {
+      removeChantiersLayer(map);
+      setSelectedChantier(null);
+    }
+  }, [chantiersEnabled, chantiersResponse, mapRef, setSelectedChantier]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const applyLayerState = () => {
+      if (!map.isStyleLoaded()) return;
+      if (rumeurEnabled && rumeurResponse?.data?.measurements) {
+        addRumeurLayer(map, rumeurResponse.data.measurements);
+      } else {
+        removeRumeurLayer(map);
+        setSelectedRumeur(null);
+      }
+    };
+
+    if (!map.isStyleLoaded()) {
+      const onLoad = () => {
+        applyLayerState();
+        map.off("load", onLoad);
+      };
+      map.on("load", onLoad);
+      return () => { map.off("load", onLoad); };
+    }
+
+    applyLayerState();
+  }, [rumeurEnabled, rumeurResponse, mapRef, setSelectedRumeur]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const applyElectionsState = () => {
+      if (!map.isStyleLoaded()) return;
+      if (electionsEnabled && electionsResponse) {
+        addElectionsLayer(map, electionsResponse);
+      } else {
+        removeElectionsLayer(map);
+      }
+    };
+
+    if (!map.isStyleLoaded()) {
+      const onLoad = () => {
+        applyElectionsState();
+        map.off("load", onLoad);
+      };
+      map.on("load", onLoad);
+      return () => { map.off("load", onLoad); };
+    }
+
+    applyElectionsState();
+  }, [electionsEnabled, electionsResponse, mapRef]);
+
+  return (
+    <div className="relative h-full w-full">
+      <div
+        ref={containerRef}
+        className="h-full w-full"
+        role="application"
+        aria-label="Carte du bruit à Paris par zone IRIS"
+      />
+      {chantiersEnabled && chantiersError && !chantiersResponse?.data && (
+        <div
+          className="absolute top-16 inset-x-0 mx-auto w-fit max-w-sm rounded-xl border border-amber-500/30 bg-amber-950/80 px-4 py-3 text-center text-sm text-amber-200 shadow-lg backdrop-blur-md"
+          role="status"
+          aria-live="polite"
+        >
+          Données chantiers temporairement indisponibles
+        </div>
+      )}
+      {geoLoadError && (
+        <div
+          className="absolute inset-x-0 top-4 mx-auto w-fit max-w-sm rounded-xl border border-red-500/30 bg-red-950/80 px-4 py-3 text-center text-sm text-red-200 shadow-lg backdrop-blur-md"
+          role="alert"
+        >
+          <p>{geoLoadError}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-2 text-xs underline text-red-300 hover:text-white"
+          >
+            Réessayer
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

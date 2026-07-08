@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tacet — User Journey Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #F7F3EC;
+      --cream-light: #FDFAF6;
+      --cream-mid: #F0EAE0;
+      --terracotta: #C8603A;
+      --terracotta-light: #F0D4C8;
+      --terracotta-pale: #FAF0EB;
+      --amber: #C8913A;
+      --amber-light: #F0E4C8;
+      --amber-pale: #FAF5EB;
+      --sage: #5F9173;
+      --sage-light: #C8DDD2;
+      --sage-pale: #EDF5F0;
+      --slate: #3A5F88;
+      --slate-light: #C8D8EC;
+      --slate-pale: #EBF2FA;
+      --ink: #1A1612;
+      --ink-mid: #4A3F35;
+      --ink-soft: #8A7E74;
+      --border: #E4DDD4;
+      --border-light: #EDE8E2;
+      --phase-1: #EDE5D8;
+      --phase-2: #E8D8C8;
+      --phase-3: #E4D0C0;
+      --phase-4: #D8ECDF;
+      --shadow: 0 2px 16px rgba(26,22,18,0.07);
+      --shadow-hover: 0 6px 28px rgba(26,22,18,0.13);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 40px 48px 80px;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      padding-bottom: 32px;
+      border-bottom: 1.5px solid var(--border);
+    }
+    .header-left {}
+    .header-eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 8px;
+    }
+    .header-title {
+      font-family: 'Fraunces', serif;
+      font-size: 38px;
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    .header-title em {
+      font-style: italic;
+      color: var(--terracotta);
+    }
+    .header-subtitle {
+      font-size: 14px;
+      color: var(--ink-soft);
+      margin-top: 10px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+    .header-meta {
+      text-align: right;
+      font-size: 12px;
+      color: var(--ink-soft);
+      font-weight: 300;
+      line-height: 1.7;
+    }
+    .header-meta strong {
+      font-weight: 500;
+      color: var(--ink-mid);
+    }
+
+    /* ─── LEGEND ─── */
+    .legend {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--ink-mid);
+      font-weight: 400;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-sep {
+      width: 1px;
+      height: 16px;
+      background: var(--border);
+      align-self: center;
+    }
+
+    /* ─── JOURNEY GRID ─── */
+    .journey-grid {
+      display: grid;
+      grid-template-columns: 164px 1fr 1fr 1fr 1fr;
+      gap: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1.5px solid var(--border);
+      background: var(--border);
+    }
+
+    /* ─── PHASE HEADER ─── */
+    .phase-header-spacer {
+      background: var(--cream-mid);
+      padding: 18px 16px;
+      display: flex;
+      align-items: center;
+      border-right: 1.5px solid var(--border);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .phase-header-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .phase-header {
+      padding: 18px 20px;
+      border-right: 1.5px solid var(--border);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .phase-header:last-child { border-right: none; }
+    .phase-header-num {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 4px;
+    }
+    .phase-header-name {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .phase-1-bg { background: var(--phase-1); }
+    .phase-2-bg { background: var(--phase-2); }
+    .phase-3-bg { background: var(--phase-3); }
+    .phase-4-bg { background: var(--phase-4); }
+
+    /* ─── PERSONA CELL ─── */
+    .persona-cell {
+      background: var(--cream-light);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      border-right: 1.5px solid var(--border);
+      border-bottom: 1.5px solid var(--border);
+    }
+    .persona-cell:last-of-type { border-bottom: none; }
+
+    .persona-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .persona-name {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+    .persona-role {
+      font-size: 11px;
+      color: var(--ink-soft);
+      font-weight: 300;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .persona-type {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .type-primary { background: var(--terracotta-light); color: var(--terracotta); }
+    .type-secondary { background: var(--sage-light); color: var(--sage); }
+    .type-b2b { background: var(--slate-light); color: var(--slate); }
+    .type-edge { background: var(--amber-light); color: var(--amber); }
+
+    /* ─── STEP CARD ─── */
+    .step-cell {
+      background: var(--cream-light);
+      padding: 20px;
+      border-right: 1.5px solid var(--border);
+      border-bottom: 1.5px solid var(--border);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 200px;
+    }
+    .step-cell:last-child { border-right: none; }
+    .journey-row:last-child .step-cell,
+    .journey-row:last-child .persona-cell {
+      border-bottom: none;
+    }
+
+    .step-cell::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+    .accent-terracotta::before { background: var(--terracotta); }
+    .accent-amber::before { background: var(--amber); }
+    .accent-sage::before { background: var(--sage); }
+    .accent-slate::before { background: var(--slate); }
+
+    .step-emotion {
+      font-size: 22px;
+      margin-bottom: 10px;
+      line-height: 1;
+    }
+    .step-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-mid);
+      font-weight: 300;
+      flex: 1;
+      margin-bottom: 14px;
+    }
+    .step-desc strong {
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .step-arrow {
+      position: absolute;
+      right: -13px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 22px;
+      height: 22px;
+      background: var(--cream);
+      border: 1.5px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--ink-soft);
+      z-index: 10;
+    }
+
+    /* ─── TOUCHPOINTS ─── */
+    .touchpoints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: auto;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      border: 1px solid transparent;
+    }
+    .tag-feature { background: var(--cream-mid); color: var(--ink-mid); border-color: var(--border); }
+    .tag-risk { background: #FDF0E8; color: #A04020; border-color: #F0D4C0; }
+    .tag-future { background: #EEF0F5; color: #5A6070; border-color: #D8DCE8; }
+
+    /* ─── EMOTION FLOW ─── */
+    .emotion-flow-row {
+      display: grid;
+      grid-template-columns: 164px 1fr 1fr 1fr 1fr;
+      gap: 0;
+      margin-top: -1px;
+      border-left: 1.5px solid var(--border);
+      border-right: 1.5px solid var(--border);
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1.5px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .footer-note {
+      font-size: 12px;
+      color: var(--ink-soft);
+      font-weight: 300;
+      line-height: 1.6;
+      max-width: 480px;
+    }
+    .footer-note strong {
+      font-weight: 500;
+      color: var(--ink-mid);
+    }
+    .footer-logo {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--ink-soft);
+      letter-spacing: -0.02em;
+    }
+    .footer-logo em {
+      font-style: italic;
+      color: var(--terracotta);
+    }
+
+    /* ─── JOURNEY ROW WRAPPER ─── */
+    .journey-row {
+      display: contents;
+    }
+
+    /* ─── SCORE BADGE ─── */
+    .score-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      margin: 2px 0;
+    }
+    .score-high { background: var(--sage-light); color: var(--sage); }
+    .score-mid { background: var(--amber-light); color: var(--amber); }
+    .score-low { background: var(--terracotta-light); color: var(--terracotta); }
+
+    @media print {
+      body { padding: 20px 24px; }
+      .header { margin-bottom: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="header-eyebrow">Tacet — La couche sonore de Paris</div>
+      <h1 class="header-title">User Journey <em>Map</em></h1>
+      <p class="header-subtitle">4 parcours · 4 phases · V2 MVP + V3 roadmap</p>
+    </div>
+    <div class="header-meta">
+      <strong>Version</strong> PRD Draft — Step 4<br>
+      <strong>Date</strong> Février 2026<br>
+      <strong>Auteur</strong> IVAN de Murard<br>
+      <strong>Statut</strong> Pour validation
+    </div>
+  </header>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--terracotta)"></div>
+      <span>Maria, 36 — Locataire (primaire)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--amber)"></div>
+      <span>Maria — Cas limite</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--sage)"></div>
+      <span>Sophie, 42 — Mère (secondaire)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--slate)"></div>
+      <span>Maxime, 31 — CTO PropTech (B2B V3)</span>
+    </div>
+    <div class="legend-sep"></div>
+    <div class="legend-item">
+      <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:500;">MVP V2</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:var(--border);border:1.5px dashed var(--ink-soft)"></div>
+      <span>Fonctionnalité V3 (roadmap)</span>
+    </div>
+  </div>
+
+  <!-- JOURNEY GRID -->
+  <div class="journey-grid">
+
+    <!-- Phase Headers -->
+    <div class="phase-header-spacer">
+      <span class="phase-header-label">Persona</span>
+    </div>
+    <div class="phase-header phase-1-bg">
+      <div class="phase-header-num">01</div>
+      <div class="phase-header-name">Opening</div>
+    </div>
+    <div class="phase-header phase-2-bg">
+      <div class="phase-header-num">02</div>
+      <div class="phase-header-name">Rising Action</div>
+    </div>
+    <div class="phase-header phase-3-bg">
+      <div class="phase-header-num">03</div>
+      <div class="phase-header-name">Climax</div>
+    </div>
+    <div class="phase-header phase-4-bg">
+      <div class="phase-header-num">04</div>
+      <div class="phase-header-name">Resolution</div>
+    </div>
+
+    <!-- ═══ JOURNEY 1 — MARIA SUCCESS ═══ -->
+    <div class="journey-row">
+
+      <div class="persona-cell">
+        <div class="persona-avatar" style="background:var(--terracotta-pale)">🏠</div>
+        <div class="persona-name">Maria</div>
+        <div class="persona-role">36 ans · Directrice projet · 10e arr.</div>
+        <div class="persona-type type-primary">Primaire</div>
+      </div>
+
+      <div class="step-cell accent-terracotta" style="background:var(--terracotta-pale);">
+        <div class="step-emotion">😕</div>
+        <div class="step-desc">
+          Reçoit une alerte SeLoger pour un 2P rue de Crimée, 19e. Cherche sur Google Maps — <strong>aucune info sur le bruit</strong>. Tombe sur Tacet via un article partagé.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">SeLoger alert</span>
+          <span class="tag tag-feature">Search Google</span>
+          <span class="tag tag-feature">Article presse</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-terracotta">
+        <div class="step-emotion">🔍</div>
+        <div class="step-desc">
+          Ouvre Tacet sur mobile (&lt;2s). Tape "rue de Crimée 19" — autocomplétion en 3 lettres. Zone IRIS : <span class="score-badge score-high">72 / 100</span>. Active RUMEUR : capteur Riquet, <strong>54 dB live</strong>. Partage screenshot sur WhatsApp.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Photon geocoding</span>
+          <span class="tag tag-feature">Score Sérénité</span>
+          <span class="tag tag-feature">RUMEUR layer</span>
+          <span class="tag tag-feature">PWA offline</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-terracotta">
+        <div class="step-emotion">😊</div>
+        <div class="step-desc">
+          Compare avec ancien appart (Faubourg du Temple, 10e) : <span class="score-badge score-low">41 / 100</span>. <strong>Différence immédiate, visuelle.</strong> Elle ne sait pas ce qu'est un Lden. Elle n'a pas besoin de le savoir.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Comparaison zones</span>
+          <span class="tag tag-feature">Choroplèthe couleur</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-terracotta">
+        <div class="step-emotion">🎉</div>
+        <div class="step-desc">
+          Confirme la visite. Revient 3 jours plus tard pour un appart dans le 11e. <strong>Tacet installé en PWA</strong> sur écran d'accueil.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">PWA install</span>
+          <span class="tag tag-feature">Session récurrente</span>
+          <span class="tag tag-feature">Partage natif</span>
+        </div>
+      </div>
+
+    </div><!-- /journey 1 -->
+
+    <!-- ═══ JOURNEY 2 — MARIA EDGE CASE ═══ -->
+    <div class="journey-row">
+
+      <div class="persona-cell">
+        <div class="persona-avatar" style="background:var(--amber-pale)">🔔</div>
+        <div class="persona-name">Maria</div>
+        <div class="persona-role">36 ans · Bail signé · Cas limite</div>
+        <div class="persona-type type-edge">Cas limite</div>
+      </div>
+
+      <div class="step-cell accent-amber" style="background:var(--amber-pale);">
+        <div class="step-emotion">😤</div>
+        <div class="step-desc">
+          A signé le bail 6 semaines plus tôt. Remarque un <strong>bruit inhabituel en semaine</strong> depuis 2 semaines, tôt le matin. Rouvre Tacet.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Session récurrente</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-amber">
+        <div class="step-emotion">🔍</div>
+        <div class="step-desc">
+          Score Sérénité : toujours <span class="score-badge score-high">72</span> (données annuelles). Active layer <strong>Chantiers</strong> (TAC-36) : chantier voirie déclaré 3 semaines, 4 mois prévus, à 80m. RUMEUR : <strong>68 dB à 06h30</strong>.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Layer Chantiers</span>
+          <span class="tag tag-feature">RUMEUR temps réel</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-amber">
+        <div class="step-emotion">😐</div>
+        <div class="step-desc">
+          Comprend : <strong>Score statique ≠ événementiel.</strong> L'interface est transparente sur cette limite — le layer Chantiers la révèle explicitement. Envoie un feedback.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-risk">Limite Score statique</span>
+          <span class="tag tag-feature">Formulaire feedback</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-amber">
+        <div class="step-emotion">💡</div>
+        <div class="step-desc">
+          Utilise Tacet comme <strong>monitoring continu</strong>. Met en liste d'attente l'alerte push quand capteur dépasse 65 dB.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-future">Alerte push V3</span>
+          <span class="tag tag-feature">Usage monitoring</span>
+        </div>
+      </div>
+
+    </div><!-- /journey 2 -->
+
+    <!-- ═══ JOURNEY 3 — SOPHIE ═══ -->
+    <div class="journey-row">
+
+      <div class="persona-cell">
+        <div class="persona-avatar" style="background:var(--sage-pale)">🏫</div>
+        <div class="persona-name">Sophie</div>
+        <div class="persona-role">42 ans · Mère · 14e arr.</div>
+        <div class="persona-type type-secondary">Secondaire</div>
+      </div>
+
+      <div class="step-cell accent-sage" style="background:var(--sage-pale);">
+        <div class="step-emotion">🤔</div>
+        <div class="step-desc">
+          Cherche une école primaire hors secteur (dérogation). <strong>3 écoles à comparer</strong> dans des arrondissements différents. Critère : qualité de vie autour de l'école. Entendu parler de Tacet via une réunion de parents.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Bouche-à-oreille</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-sage">
+        <div class="step-emotion">📊</div>
+        <div class="step-desc">
+          Sur iPad, compare les zones IRIS : École A 15e <span class="score-badge score-mid">68</span>, École B 14e <span class="score-badge score-low">55</span> (périph.), École C 13e <span class="score-badge score-high">74</span>. Consulte RUMEUR aux heures de sortie.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Comparaison multi-zones</span>
+          <span class="tag tag-feature">Tablette responsive</span>
+          <span class="tag tag-feature">RUMEUR horaires</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-sage">
+        <div class="step-emotion">😊</div>
+        <div class="step-desc">
+          Présente à son conjoint : <em>"L'école du 13e est objectivement dans la zone la plus calme."</em> <strong>Débat familial clos en 3 minutes.</strong> L'argument chiffré + visuel est décisif.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Score Sérénité</span>
+          <span class="tag tag-feature">Partage visuel</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-sage">
+        <div class="step-emotion">🔄</div>
+        <div class="step-desc">
+          Revient tous les <strong>2-3 mois</strong> pour monitoring. Recommande Tacet à 2 parents via WhatsApp de classe. Utilisatrice récurrente — usage de suivi, pas uniquement décisionnel.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Session récurrente</span>
+          <span class="tag tag-feature">Partage WhatsApp</span>
+          <span class="tag tag-feature">Acquisition organique</span>
+        </div>
+      </div>
+
+    </div><!-- /journey 3 -->
+
+    <!-- ═══ JOURNEY 4 — MAXIME B2B ═══ -->
+    <div class="journey-row">
+
+      <div class="persona-cell">
+        <div class="persona-avatar" style="background:var(--slate-pale)">💼</div>
+        <div class="persona-name">Maxime</div>
+        <div class="persona-role">31 ans · CTO PropTech · B2B V3</div>
+        <div class="persona-type type-b2b">B2B V3</div>
+      </div>
+
+      <div class="step-cell accent-slate" style="background:var(--slate-pale);">
+        <div class="step-emotion">💡</div>
+        <div class="step-desc">
+          Découvre Tacet sur ProductHunt. Outil PropTech existant manque d'une <strong>couche acoustique</strong>. Cherche une API données bruit Paris. Pas d'API publique documentée sur le site.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">ProductHunt</span>
+          <span class="tag tag-risk">Pas d'API publique</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-slate">
+        <div class="step-emotion">📨</div>
+        <div class="step-desc">
+          Contacte via formulaire. Réponse IVAN sous 48h : <strong>Score Sérénité par IRIS en JSON</strong>, MàJ mensuelle, +RUMEUR temps réel si partnership. Maxime propose un pilot à <strong>150€/mo</strong>.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-feature">Formulaire contact</span>
+          <span class="tag tag-future">API JSON IRIS (V3)</span>
+          <span class="tag tag-future">RUMEUR partnership</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-slate">
+        <div class="step-emotion">🚀</div>
+        <div class="step-desc">
+          Intègre le Score dans sa fiche espace : <em>"Quartier : Score Sérénité 78/100 — données Tacet."</em> Ses utilisateurs réagissent <strong>très positivement</strong> dans les retours UX.
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-future">White-label embed</span>
+          <span class="tag tag-future">Score Sérénité API</span>
+        </div>
+        <div class="step-arrow">→</div>
+      </div>
+
+      <div class="step-cell accent-slate">
+        <div class="step-emotion">💼</div>
+        <div class="step-desc">
+          Renouvelle à <strong>200€/mo</strong> pour accès RUMEUR. Client référence V3. Mentionne Tacet dans un article Medium. → <strong>Déclenche le besoin d'un portail client dédié.</strong>
+        </div>
+        <div class="touchpoints">
+          <span class="tag tag-future">Portail client B2B</span>
+          <span class="tag tag-future">Facturation</span>
+          <span class="tag tag-future">Docs API</span>
+        </div>
+      </div>
+
+    </div><!-- /journey 4 -->
+
+  </div><!-- /journey-grid -->
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-note">
+      <strong>Note :</strong> Les fonctionnalités marquées <span class="tag tag-future" style="display:inline-flex;">V3 roadmap</span> ne font pas partie du MVP V2 (TAC-28→37). Elles sont documentées pour orienter les décisions d'architecture. <br>
+      Le portail client B2B (Journey 4, Resolution) est en backlog Linear — priorité Low, dépend de TAC-28 et d'au moins 1 client pilot actif.
+    </div>
+    <div class="footer-logo"><em>Tacet</em></div>
+  </footer>
+
+</body>
+</html>
