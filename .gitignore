@@ -71,3 +71,7 @@ tacet/playwright-report/
 # generated service worker (built by Serwist)
 tacet/public/sw.js
 tacet/public/sw.js.map
+
+# Python
+__pycache__/
+*.pyc
