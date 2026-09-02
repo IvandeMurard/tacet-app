@@ -16,7 +16,9 @@
 
 ---
 
-> **🕸️ Part of the [Hospitality Agentic Mesh](https://github.com/IvandeMurard/hospitality-agentic-mesh)** — a network of specialized AI agents for hotel operations. Tacet is the environmental-risk node; the F&B execution node (Aetherix, private repo) and the overall architecture are documented in the [meta-repo](https://github.com/IvandeMurard/hospitality-agentic-mesh) and the [case study](https://ivandemurard.com/aetherix).
+> **🕸️ Part of the [Hospitality Multi-agent Architecture](https://github.com/IvandeMurard/Hospitality-Multi-agent-Architecture)** — a network of specialized AI agents for hotel operations. Tacet is the environmental-risk node; the F&B execution node (Aetherix, private repo) and the overall architecture are documented in the [meta-repo](https://github.com/IvandeMurard/Hospitality-Multi-agent-Architecture) and the [case study](https://ivandemurard.com/aetherix).
+>
+> **Status:** paused / maintenance mode — no active development since July 2026.
 
 ## Overview
 
