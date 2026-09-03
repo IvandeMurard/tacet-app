@@ -1,0 +1,31 @@
+# Tacet
+
+> Environmental Risk & Comfort Twin for luxury hospitality. Predicts how external events (noise, construction, crowds, weather) will physically hit a property, then turns that into yield rules for an RMS and operational alerts for a PMS. Headless, exposed through a native MCP server. Python 3.12 / FastAPI, MIT.
+
+Status: Built — the code runs end-to-end on the target environment. Paused / maintenance mode, no active development since July 2026. Status vocabulary: https://github.com/IvandeMurard/Hospitality-Multi-agent-Architecture/blob/main/llms.txt
+
+Tacet is the environmental-risk node of the Hospitality Multi-agent Architecture. The F&B execution node (Aetherix) is a private repo; the architecture is documented in the meta-repo.
+
+## How it works
+
+- Sense — public signals: Paris permits API, events, weather.
+- Reason — acoustic ray-tracing over urban building polygons (OSMnx, Shapely): when a building blocks the source, a shielding penalty applies, which cuts false positives. Plus a dual-memory store (per-property idiosyncratic + cross-network aggregate).
+- Expose — an MCP server returning yield rules with a mathematical Chain of Thought, so a consuming agent can explain the calculation rather than assert it.
+
+Human-in-the-loop by design: Tacet formulates a price-modifier rule and pushes it for human approval. It never changes a price autonomously.
+
+## Docs
+
+- [README](README.md): overview, architecture diagram, getting started
+- [Case study](CASE_STUDY_V3.md): the V3 write-up (MCP server and dual memory)
+- [Architecture manifest](ARCHITECTURE_MANIFEST.md): component contracts
+
+## Related
+
+- [Meta-repo](https://github.com/IvandeMurard/Hospitality-Multi-agent-Architecture): the 5-agent architecture
+- [Aetherix case study](https://ivandemurard.com/aetherix): the F&B node that consumes Tacet over MCP
+- [Tacet case study](https://ivandemurard.com/tacet): product-level walkthrough
+
+## Stack
+
+Python 3.12, FastAPI 0.115, Anthropic MCP SDK, SQLAlchemy 2.0 + SQLite (dual-memory store), OSMnx, Shapely, GeoPandas. Mews and Apaleo connectors, RMS webhooks. CI on GitHub Actions.
